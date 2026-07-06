@@ -1,0 +1,568 @@
+<style>
+  :root{
+    --ink:#16233B; --paper:#E7EAEF; --card:#FFFFFF; --muted:#59636F;
+    --line:#D4DAE2; --line-soft:#E4E8ED;
+    --maxw:960px; --docw:730px;
+    --mono:"Cascadia Code",Consolas,ui-monospace,"SF Mono",Menlo,monospace;
+    --sans:"Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif;
+    --serif:Georgia,"Iowan Old Style","Times New Roman",serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);
+    font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased}
+  .app{min-height:100vh}
+  .eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--muted);font-weight:400}
+  h1,h2,h3{font-family:var(--serif);font-weight:600;text-wrap:balance;line-height:1.15;margin:0}
+  a{color:var(--ac,#2F5D8C)}
+  .tnum{font-variant-numeric:tabular-nums}
+
+  #hub{max-width:var(--maxw);margin:0 auto;padding:clamp(40px,7vw,88px) 28px 72px}
+  .cover-top{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;
+    border-bottom:1px solid var(--line);padding-bottom:20px}
+  .brandmark{font-family:var(--mono);font-size:12px;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--ink);font-weight:600}
+  .cover-top .sep{flex:1}
+  .cover-meta{font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;color:var(--muted)}
+  .cover-title{margin:34px 0 0;font-size:clamp(38px,6.4vw,66px);letter-spacing:-.015em}
+  .cover-lead{margin:20px 0 0;max-width:62ch;font-size:clamp(17px,2.1vw,20px);color:#38424F;line-height:1.55}
+  .stats{display:flex;flex-wrap:wrap;gap:30px 44px;margin:38px 0 0;padding:22px 0 0;border-top:1px solid var(--line)}
+  .stat b{display:block;font-family:var(--serif);font-size:30px;font-weight:600;letter-spacing:-.01em}
+  .stat span{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+
+  .index{margin:56px 0 0;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .index-label{margin:0 0 4px;grid-column:1/-1}
+  .entry{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:start;
+    background:var(--card);border:1px solid var(--line);border-left:3px solid var(--ac,#2F5D8C);
+    border-radius:3px;padding:22px 24px;cursor:pointer;text-align:left;width:100%;font:inherit;color:inherit;
+    transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
+  .entry:hover,.entry:focus-visible{transform:translateY(-2px);
+    box-shadow:0 10px 30px -18px rgba(22,35,59,.5);outline:none}
+  .entry:focus-visible{border-color:var(--ac)}
+  .entry .stamp{font-size:22px;line-height:1.1}
+  .entry h2{font-size:20px;letter-spacing:-.01em}
+  .entry .no{font-family:var(--mono);font-size:11px;color:var(--ac);font-weight:600;letter-spacing:.08em}
+  .entry p{margin:8px 0 0;color:var(--muted);font-size:14px;line-height:1.5}
+  .entry .open{margin:12px 0 0;font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--ac);display:flex;align-items:center;gap:7px}
+  .entry .open .arw{transition:transform .18s ease}
+  .entry:hover .open .arw{transform:translateX(4px)}
+  .cover-foot{margin:52px 0 0;padding-top:22px;border-top:1px solid var(--line);
+    font-family:var(--mono);font-size:11.5px;color:var(--muted);letter-spacing:.04em}
+  .cover-foot a{color:var(--muted)}
+
+  .doc{display:none}
+  .doc.active{display:block;animation:rise .34s ease}
+  @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .docbar{position:sticky;top:0;z-index:5;background:rgba(231,234,239,.86);
+    backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  .docbar-in{max-width:var(--docw);margin:0 auto;padding:15px 28px;display:flex;align-items:center;gap:18px}
+  .back{font:inherit;font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;
+    background:none;border:none;color:var(--muted);cursor:pointer;padding:6px 2px;display:flex;align-items:center;gap:8px}
+  .back:hover,.back:focus-visible{color:var(--ink);outline:none}
+  .docbar .tag{margin-left:auto;font-family:var(--mono);font-size:11px;letter-spacing:.12em;
+    text-transform:uppercase;color:#fff;background:var(--ac);padding:5px 11px;border-radius:2px}
+  .docwrap{max-width:var(--docw);margin:0 auto;padding:52px 28px 96px}
+  .doc-hd{border-bottom:2px solid var(--ac);padding-bottom:26px;margin-bottom:38px}
+  .doc-hd .stamp{font-size:32px}
+  .doc-hd h1{margin:14px 0 0;font-size:clamp(30px,4.6vw,44px);letter-spacing:-.015em}
+  .doc-hd .sub{margin:14px 0 0;color:#39434F;font-size:18px;max-width:60ch;line-height:1.5}
+  .doc section{margin:0 0 44px}
+  .doc h2{font-size:24px;letter-spacing:-.01em;margin:0 0 6px}
+  .kicker{margin:0 0 16px}
+  .doc h3{font-family:var(--sans);font-weight:600;font-size:15.5px;margin:26px 0 6px}
+  .doc p{margin:0 0 14px;max-width:66ch}
+  .doc ul{margin:0 0 14px;padding-left:0;list-style:none;max-width:66ch}
+  .doc li{position:relative;padding:0 0 9px 22px}
+  .doc li::before{content:"";position:absolute;left:2px;top:10px;width:6px;height:6px;
+    background:var(--ac);border-radius:1px}
+  .doc li b{font-weight:600}
+  .lead-in{font-size:18.5px;line-height:1.55;color:#2C3743;max-width:62ch}
+
+  .tablewrap{overflow-x:auto;margin:0 0 16px;border:1px solid var(--line);border-radius:3px}
+  table{border-collapse:collapse;width:100%;font-size:14px}
+  th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+  thead th{font-family:var(--mono);font-size:11px;letter-spacing:.07em;text-transform:uppercase;
+    color:var(--muted);background:#F3F5F8;font-weight:600;border-bottom:1px solid var(--line)}
+  tbody tr:last-child td{border-bottom:none}
+  td code,p code,li code{font-family:var(--mono);font-size:12.5px;background:#EEF1F5;
+    padding:1px 6px;border-radius:3px;color:#28405C}
+  .path{font-family:var(--mono);font-size:12.5px;color:var(--ac);white-space:nowrap}
+
+  .callout{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--ac);
+    border-radius:3px;padding:20px 22px;margin:0 0 16px}
+  .callout .eyebrow{color:var(--ac)}
+  .callout p:last-child{margin-bottom:0}
+  .callout p:first-of-type{margin-top:8px}
+  .callout.warn{border-left-color:#B4532B}
+  .callout.warn .eyebrow{color:#B4532B}
+
+  .tree{background:#12203A;color:#D6E0EE;border-radius:4px;padding:22px 24px;margin:0 0 16px;
+    font-family:var(--mono);font-size:12.5px;line-height:1.7;overflow-x:auto;white-space:pre}
+  .tree .c{color:#8FA6C2}
+  .tree b{color:#fff;font-weight:600}
+
+  .steps{counter-reset:st;list-style:none;padding:0;margin:0 0 16px;max-width:66ch}
+  .steps li{position:relative;padding:0 0 16px 42px;counter-increment:st}
+  .steps li::before{content:counter(st);position:absolute;left:0;top:-2px;width:26px;height:26px;
+    background:var(--ac);color:#fff;border-radius:50%;font-family:var(--mono);font-size:12px;font-weight:600;
+    display:flex;align-items:center;justify-content:center}
+  .steps li code{font-size:12.5px}
+
+  .xref{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12.5px;
+    color:var(--ac);text-decoration:none;border:1px solid var(--line);border-radius:3px;padding:9px 14px;
+    background:var(--card)}
+  .xref:hover{border-color:var(--ac)}
+
+  @media (max-width:640px){ .index{grid-template-columns:1fr} .stats{gap:22px 30px} }
+  @media (prefers-reduced-motion:reduce){ *{animation:none!important;transition:none!important} }
+</style>
+
+<div class="app">
+
+  <main id="hub">
+    <div class="cover-top">
+      <span class="brandmark">ImmoMail Studio</span>
+      <span class="sep"></span>
+      <span class="cover-meta">Documentation applicative · v1.0 · Juillet 2026</span>
+    </div>
+
+    <h1 class="cover-title">L'application, de fond en comble.</h1>
+    <p class="cover-lead">Le guide complet d'ImmoMail Studio : les écrans, l'architecture Next.js,
+      le modèle de données, le moteur d'automatisation, l'import/export Excel et la mise en
+      production. Tout ce qu'il faut pour comprendre, exploiter ou reprendre le produit.</p>
+
+    <div class="stats">
+      <div class="stat"><b class="tnum">13</b><span>Écrans</span></div>
+      <div class="stat"><b class="tnum">15</b><span>Tables</span></div>
+      <div class="stat"><b class="tnum">11</b><span>Automatisations</span></div>
+      <div class="stat"><b class="tnum">3</b><span>Routes API</span></div>
+      <div class="stat"><b>Live</b><span>Vercel + Supabase EU</span></div>
+    </div>
+
+    <section class="index" aria-label="Chapitres">
+      <p class="eyebrow index-label">Sommaire — 6 chapitres</p>
+
+      <button class="entry" data-doc="apercu" style="--ac:#2F5D8C">
+        <span class="stamp">🗺️</span>
+        <div><span class="no">01</span>
+          <h2>Vue d'ensemble & écrans</h2>
+          <p>Ce que fait le produit, l'interface, et les 13 écrans un par un.</p>
+          <span class="open">Ouvrir <span class="arw">→</span></span></div>
+      </button>
+
+      <button class="entry" data-doc="archi" style="--ac:#3E6E7A">
+        <span class="stamp">🧱</span>
+        <div><span class="no">02</span>
+          <h2>Architecture & stack</h2>
+          <p>Next.js 16, organisation des dossiers, rendu serveur et actions.</p>
+          <span class="open">Ouvrir <span class="arw">→</span></span></div>
+      </button>
+
+      <button class="entry" data-doc="donnees" style="--ac:#1E7A6B">
+        <span class="stamp">🗄️</span>
+        <div><span class="no">03</span>
+          <h2>Modèle de données</h2>
+          <p>Les 15 tables, leurs relations et les conventions de schéma.</p>
+          <span class="open">Ouvrir <span class="arw">→</span></span></div>
+      </button>
+
+      <button class="entry" data-doc="moteur" style="--ac:#A97B1E">
+        <span class="stamp">⚙️</span>
+        <div><span class="no">04</span>
+          <h2>Automatisations & moteur</h2>
+          <p>Les 11 automatisations, le moteur idempotent et l'horloge de démo.</p>
+          <span class="open">Ouvrir <span class="arw">→</span></span></div>
+      </button>
+
+      <button class="entry" data-doc="io" style="--ac:#9A5B3B">
+        <span class="stamp">📥</span>
+        <div><span class="no">05</span>
+          <h2>Import / export & API</h2>
+          <p>Le round-trip Excel, les quittances PDF et les 3 routes API.</p>
+          <span class="open">Ouvrir <span class="arw">→</span></span></div>
+      </button>
+
+      <button class="entry" data-doc="deploy" style="--ac:#4E5D8C">
+        <span class="stamp">🚀</span>
+        <div><span class="no">06</span>
+          <h2>Installation & déploiement</h2>
+          <p>Lancer en local, variables, seed, et la mise en ligne Vercel + Supabase.</p>
+          <span class="open">Ouvrir <span class="arw">→</span></span></div>
+      </button>
+    </section>
+
+    <p class="cover-foot">immomail-studio.vercel.app · Complément du <a href="#" data-openother>portail des automatisations n8n</a></p>
+  </main>
+
+  <!-- ===== 01 APERÇU ===== -->
+  <article class="doc" id="apercu" style="--ac:#2F5D8C">
+    <div class="docbar"><div class="docbar-in">
+      <button class="back" data-back>← Sommaire</button><span class="tag">Vue d'ensemble</span>
+    </div></div>
+    <div class="docwrap">
+      <header class="doc-hd"><span class="stamp">🗺️</span>
+        <p class="eyebrow">Chapitre 01</p>
+        <h1>Vue d'ensemble & écrans</h1>
+        <p class="sub">Une application de gestion pour agences immobilières, pensée comme une
+          démonstration commerciale : chaque écran met en scène une ou plusieurs automatisations.</p>
+      </header>
+
+      <section>
+        <p class="lead-in">ImmoMail Studio réunit dans une seule interface le quotidien d'une
+          agence — leads, visites, mandats, baux, conformité, marketing — et montre, écran par
+          écran, ce que les automatisations font à la place de l'humain.</p>
+      </section>
+
+      <section>
+        <h2>L'interface</h2>
+        <p class="kicker eyebrow">Le cadre commun à tous les écrans</p>
+        <ul>
+          <li><b>Barre latérale</b> (desktop) / <b>menu tiroir</b> (mobile) — navigation entre les écrans.</li>
+          <li><b>Sélecteur d'agence</b> — bascule entre les agences ; toutes les données sont cloisonnées par agence.</li>
+          <li><b>Barre d'horloge de démo</b> — affiche et fait avancer la date simulée pour déclencher en direct les automatisations différées (rappels J-1, avis J+2, parrainage J+30…).</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Les 13 écrans</h2>
+        <p class="kicker eyebrow">Espace application + réservation publique</p>
+        <div class="tablewrap"><table>
+          <thead><tr><th>Écran</th><th>Route</th><th>Rôle</th><th>Auto.</th></tr></thead>
+          <tbody>
+            <tr><td>Tableau de bord</td><td class="path">/</td><td>Synthèse d'activité et automatisations actives.</td><td>—</td></tr>
+            <tr><td>Boîte de réception & leads</td><td class="path">/leads</td><td>Emails entrants triés, leads qualifiés, routés.</td><td>A9·A10·A11</td></tr>
+            <tr><td>Agenda</td><td class="path">/agenda</td><td>Rendez-vous, pages de réservation, rappels.</td><td>A1·A2</td></tr>
+            <tr><td>Mandats</td><td class="path">/mandats</td><td>Mandats et alertes d'expiration.</td><td>A3</td></tr>
+            <tr><td>Locations</td><td class="path">/locations</td><td>Baux et quittances de loyer.</td><td>A4</td></tr>
+            <tr><td>Conformité</td><td class="path">/conformite</td><td>Diagnostics et échéances (DPE, PNO, bail).</td><td>A5</td></tr>
+            <tr><td>Marketing</td><td class="path">/marketing</td><td>Newsletter, avis Google, parrainage.</td><td>A6·A7·A8</td></tr>
+            <tr><td>Messages</td><td class="path">/messages</td><td>Journal des emails et SMS envoyés.</td><td>—</td></tr>
+            <tr><td>Journal</td><td class="path">/journal</td><td>Fil d'activité horodaté de l'agence.</td><td>—</td></tr>
+            <tr><td>Import / export</td><td class="path">/import</td><td>Charger ses biens et contacts via Excel.</td><td>—</td></tr>
+            <tr><td>Automatisations</td><td class="path">/automatisations</td><td>Catalogue des 11 automatisations.</td><td>toutes</td></tr>
+            <tr><td>Aide</td><td class="path">/aide</td><td>Guide d'utilisation de la démo.</td><td>—</td></tr>
+            <tr><td>Réservation (public)</td><td class="path">/book/:id</td><td>Page type Calendly, hors espace connecté.</td><td>A1</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <section>
+        <div class="callout">
+          <p class="eyebrow">Fil conducteur</p>
+          <p>Chaque écran est adossé à des données réelles en base et à l'une des automatisations.
+            Avancer l'horloge de démo « fait vivre » l'agence sous les yeux du prospect.</p>
+        </div>
+      </section>
+    </div>
+  </article>
+
+  <!-- ===== 02 ARCHITECTURE ===== -->
+  <article class="doc" id="archi" style="--ac:#3E6E7A">
+    <div class="docbar"><div class="docbar-in">
+      <button class="back" data-back>← Sommaire</button><span class="tag">Architecture</span>
+    </div></div>
+    <div class="docwrap">
+      <header class="doc-hd"><span class="stamp">🧱</span>
+        <p class="eyebrow">Chapitre 02</p>
+        <h1>Architecture & stack</h1>
+        <p class="sub">Une application Next.js 16 en App Router : composants serveur qui lisent la
+          base directement, actions serveur pour les mutations, aucune API interne à maintenir.</p>
+      </header>
+
+      <section>
+        <h2>La stack</h2>
+        <p class="kicker eyebrow">Dépendances principales</p>
+        <div class="tablewrap"><table>
+          <thead><tr><th>Rôle</th><th>Paquet</th></tr></thead>
+          <tbody>
+            <tr><td>Framework</td><td class="path">next 16 · react 19</td></tr>
+            <tr><td>ORM</td><td class="path">drizzle-orm</td></tr>
+            <tr><td>Driver PostgreSQL</td><td class="path">postgres (postgres-js)</td></tr>
+            <tr><td>Excel</td><td class="path">exceljs</td></tr>
+            <tr><td>PDF</td><td class="path">pdf-lib</td></tr>
+            <tr><td>Dates</td><td class="path">date-fns</td></tr>
+            <tr><td>UI</td><td class="path">tailwindcss 4 · lucide-react · clsx</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <section>
+        <h2>Organisation du code</h2>
+        <p class="kicker eyebrow">Arborescence</p>
+        <div class="tree"><b>app/</b>
+├─ <b>(app)/</b>          <span class="c">espace connecté (layout commun : sidebar, horloge)</span>
+│   ├─ page.tsx      <span class="c">tableau de bord</span>
+│   ├─ leads/ agenda/ mandats/ locations/ …
+│   └─ import/ automatisations/ aide/
+├─ <b>book/</b>           <span class="c">réservation publique (hors layout app)</span>
+└─ <b>api/</b>            <span class="c">receipt · import · template</span>
+<b>components/</b>
+├─ app-shell/       <span class="c">Sidebar · MobileNav · AgencySelector · DemoClockBar</span>
+└─ BookingForm · ImportPanel · MessagePreview · ui.tsx
+<b>lib/</b>
+├─ db/              <span class="c">schema.ts · ddl.ts · client.ts</span>
+├─ services/        <span class="c">email · sms · pdf · inbox · review · calendar (mock)</span>
+├─ automation-engine.ts · queries.ts · demo-clock.ts
+└─ excel-io.ts · seed-data.ts · date.ts
+<b>scripts/</b>seed.ts</div>
+      </section>
+
+      <section>
+        <h2>Le modèle de rendu</h2>
+        <p class="kicker eyebrow">Server Components + Server Actions</p>
+        <ul>
+          <li><b>Lecture.</b> Les pages sont des composants serveur : elles interrogent la base via Drizzle (<code>lib/queries.ts</code>) et rendent le HTML côté serveur — pas d'appel réseau client.</li>
+          <li><b>Écriture.</b> Les interactions (réserver, importer, envoyer une newsletter) passent par des <b>Server Actions</b> (<code>app/actions.ts</code>).</li>
+          <li><b>Couche de services mockée.</b> <code>lib/services/*</code> simule email, SMS, PDF, calendrier — branchable sur de vrais fournisseurs (ce que fait la couche n8n).</li>
+          <li><b>Contexte de page.</b> <code>lib/page-context.ts</code> et <code>lib/agency.ts</code> résolvent l'agence sélectionnée pour cloisonner les données.</li>
+        </ul>
+      </section>
+    </div>
+  </article>
+
+  <!-- ===== 03 DONNÉES ===== -->
+  <article class="doc" id="donnees" style="--ac:#1E7A6B">
+    <div class="docbar"><div class="docbar-in">
+      <button class="back" data-back>← Sommaire</button><span class="tag">Modèle de données</span>
+    </div></div>
+    <div class="docwrap">
+      <header class="doc-hd"><span class="stamp">🗄️</span>
+        <p class="eyebrow">Chapitre 03</p>
+        <h1>Modèle de données</h1>
+        <p class="sub">Quinze tables PostgreSQL, cloisonnées par agence via <code>agency_id</code>.
+          Le schéma vit dans Drizzle et est appliqué au runtime (<code>CREATE TABLE IF NOT EXISTS</code>).</p>
+      </header>
+
+      <section>
+        <h2>Les tables</h2>
+        <p class="kicker eyebrow">Regroupées par domaine</p>
+
+        <h3>Référentiel</h3>
+        <div class="tablewrap"><table><thead><tr><th>Table</th><th>Contenu</th></tr></thead><tbody>
+          <tr><td class="path">agencies</td><td>Les agences (multi-tenant).</td></tr>
+          <tr><td class="path">contacts</td><td>Personnes : acheteurs, locataires, propriétaires (+ critères de recherche).</td></tr>
+          <tr><td class="path">properties</td><td>Biens : réf, type, prix, ville, négociateur, statut.</td></tr>
+        </tbody></table></div>
+
+        <h3>Cycle commercial</h3>
+        <div class="tablewrap"><table><thead><tr><th>Table</th><th>Contenu</th></tr></thead><tbody>
+          <tr><td class="path">inbox_emails</td><td>Emails entrants bruts des portails (avant tri).</td></tr>
+          <tr><td class="path">leads</td><td>Leads qualifiés, routés vers un négociateur.</td></tr>
+          <tr><td class="path">appointments</td><td>Rendez-vous / visites + flags de rappel.</td></tr>
+          <tr><td class="path">mandates</td><td>Mandats (simple/exclusif) et échéances.</td></tr>
+          <tr><td class="path">transactions</td><td>Ventes/locations signées + suivi avis & parrainage.</td></tr>
+        </tbody></table></div>
+
+        <h3>Gestion locative & conformité</h3>
+        <div class="tablewrap"><table><thead><tr><th>Table</th><th>Contenu</th></tr></thead><tbody>
+          <tr><td class="path">leases</td><td>Baux : loyer, charges, jour d'échéance.</td></tr>
+          <tr><td class="path">compliance_items</td><td>Échéances de conformité (DPE, PNO, bail).</td></tr>
+        </tbody></table></div>
+
+        <h3>Marketing & système</h3>
+        <div class="tablewrap"><table><thead><tr><th>Table</th><th>Contenu</th></tr></thead><tbody>
+          <tr><td class="path">newsletter_segments</td><td>Segments d'acheteurs pour la newsletter.</td></tr>
+          <tr><td class="path">messages</td><td>Journal des emails/SMS envoyés.</td></tr>
+          <tr><td class="path">activity_log</td><td>Fil d'activité horodaté (affiché dans l'app).</td></tr>
+          <tr><td class="path">automation_runs</td><td>Réservations d'idempotence (<code>run_key</code> unique).</td></tr>
+          <tr><td class="path">demo_clock</td><td>Date simulée courante et initiale.</td></tr>
+        </tbody></table></div>
+      </section>
+
+      <section>
+        <h2>Conventions</h2>
+        <p class="kicker eyebrow">Bon à savoir avant de requêter</p>
+        <ul>
+          <li><b>Identifiants</b> en <code>TEXT</code> (UUID générés applicativement).</li>
+          <li><b>Dates</b> stockées en <code>TEXT</code> ISO → caster en <code>::timestamptz</code> pour comparer.</li>
+          <li><b>Cloisonnement</b> systématique par <code>agency_id</code>.</li>
+          <li><b>Critères acheteurs</b> stockés en JSON dans <code>contacts.buyer_criteria</code>.</li>
+        </ul>
+      </section>
+    </div>
+  </article>
+
+  <!-- ===== 04 MOTEUR ===== -->
+  <article class="doc" id="moteur" style="--ac:#A97B1E">
+    <div class="docbar"><div class="docbar-in">
+      <button class="back" data-back>← Sommaire</button><span class="tag">Automatisations & moteur</span>
+    </div></div>
+    <div class="docwrap">
+      <header class="doc-hd"><span class="stamp">⚙️</span>
+        <p class="eyebrow">Chapitre 04</p>
+        <h1>Automatisations & moteur</h1>
+        <p class="sub">Onze automatisations pilotées par un moteur idempotent, déclenché par
+          l'horloge de démo dans l'app — ou par n8n en production.</p>
+      </header>
+
+      <section>
+        <h2>Le catalogue</h2>
+        <p class="kicker eyebrow">4 familles, 11 automatisations</p>
+        <div class="tablewrap"><table>
+          <thead><tr><th>Famille</th><th>Automatisations</th></tr></thead>
+          <tbody>
+            <tr><td>Leads</td><td>A9 tri & qualification · A10 réponse instantanée · A11 fiche CRM</td></tr>
+            <tr><td>Visites</td><td>A1 prise de RDV · A2 confirmation + rappels</td></tr>
+            <tr><td>Gestion</td><td>A3 expiration de mandat · A4 quittances · A5 conformité</td></tr>
+            <tr><td>Marketing</td><td>A6 newsletter · A7 avis Google · A8 parrainage</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <section>
+        <h2>Le moteur</h2>
+        <p class="kicker eyebrow">lib/automation-engine.ts</p>
+        <ul>
+          <li><b>Un seul point d'entrée.</b> <code>runEngine(upto, agencyId?)</code> passe en revue chaque agence et traite tout ce qui est « dû » jusqu'à la date <code>upto</code>.</li>
+          <li><b>Idempotence.</b> Chaque action réserve une clé unique dans <code>automation_runs.run_key</code> — jamais deux fois le même envoi.</li>
+          <li><b>Traçabilité.</b> Tout envoi est écrit dans <code>messages</code> + <code>activity_log</code>.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>L'horloge de démo</h2>
+        <p class="kicker eyebrow">lib/demo-clock.ts</p>
+        <p>La table <code>demo_clock</code> porte une date simulée. L'avancer (depuis la barre du
+          haut) rejoue le temps et déclenche les automatisations différées — J-1 avant une visite,
+          J+2 après une signature, J+30 pour le parrainage — <b>en direct devant le prospect</b>.
+          En production, cette horloge est remplacée par le temps réel piloté par n8n.</p>
+      </section>
+
+      <section>
+        <div class="callout">
+          <p class="eyebrow">Aller plus loin</p>
+          <p>Le détail de l'externalisation dans n8n (les 9 workflows, chaque nœud) fait l'objet
+            d'un portail dédié.</p>
+          <p style="margin-top:14px"><a class="xref" href="#" data-openother>→ Portail des automatisations n8n</a></p>
+        </div>
+      </section>
+    </div>
+  </article>
+
+  <!-- ===== 05 IMPORT/API ===== -->
+  <article class="doc" id="io" style="--ac:#9A5B3B">
+    <div class="docbar"><div class="docbar-in">
+      <button class="back" data-back>← Sommaire</button><span class="tag">Import / export & API</span>
+    </div></div>
+    <div class="docwrap">
+      <header class="doc-hd"><span class="stamp">📥</span>
+        <p class="eyebrow">Chapitre 05</p>
+        <h1>Import / export & API</h1>
+        <p class="sub">L'agence charge ses propres données via Excel, et la démo s'adapte
+          immédiatement. Trois routes API portent le PDF, l'export et l'import.</p>
+      </header>
+
+      <section>
+        <h2>Le round-trip Excel</h2>
+        <p class="kicker eyebrow">lib/excel-io.ts (exceljs)</p>
+        <p>L'écran <code>/import</code> propose d'exporter un classeur modèle, de le remplir avec ses
+          propres biens et contacts, puis de le réimporter : l'affichage reflète alors fidèlement
+          le fichier. Le classeur couvre agences, biens, acheteurs, boîte de réception, leads,
+          rendez-vous, mandats, baux, conformité, transactions et segments.</p>
+      </section>
+
+      <section>
+        <h2>Les 3 routes API</h2>
+        <div class="tablewrap"><table>
+          <thead><tr><th>Route</th><th>Méthode</th><th>Rôle</th></tr></thead>
+          <tbody>
+            <tr><td class="path">/api/template</td><td>GET</td><td>Exporte l'agence sélectionnée en <code>.xlsx</code> (sert de modèle).</td></tr>
+            <tr><td class="path">/api/import</td><td>POST</td><td>Importe un <code>.xlsx</code> : remet à zéro puis recharge les données.</td></tr>
+            <tr><td class="path">/api/receipt/:id</td><td>GET</td><td>Génère la quittance de loyer en <b>vrai PDF</b> (<code>pdf-lib</code>), avec <code>?period=YYYY-MM</code>.</td></tr>
+          </tbody>
+        </table></div>
+        <p>La route quittance est aussi celle qu'appelle le workflow n8n A4 pour joindre le PDF à
+          l'email — l'app et l'automatisation partagent le même générateur.</p>
+      </section>
+    </div>
+  </article>
+
+  <!-- ===== 06 DÉPLOIEMENT ===== -->
+  <article class="doc" id="deploy" style="--ac:#4E5D8C">
+    <div class="docbar"><div class="docbar-in">
+      <button class="back" data-back>← Sommaire</button><span class="tag">Installation & déploiement</span>
+    </div></div>
+    <div class="docwrap">
+      <header class="doc-hd"><span class="stamp">🚀</span>
+        <p class="eyebrow">Chapitre 06</p>
+        <h1>Installation & déploiement</h1>
+        <p class="sub">De <code>git clone</code> à la production sur Vercel — avec le piège Supabase
+          à ne pas rater.</p>
+      </header>
+
+      <section>
+        <h2>Lancer en local</h2>
+        <ol class="steps">
+          <li>Renseigner <code>DATABASE_URL</code> dans <code>.env.local</code> (chaîne Supabase, pooler <b>Session, port 5432</b>).</li>
+          <li>Installer : <code>npm install</code>.</li>
+          <li>Peupler les données de démo : <code>npm run seed</code>.</li>
+          <li>Démarrer : <code>npm run dev</code> → l'app tourne, date de démo initiale au 23 juin 2026.</li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>Les scripts</h2>
+        <div class="tablewrap"><table>
+          <thead><tr><th>Script</th><th>Rôle</th></tr></thead>
+          <tbody>
+            <tr><td class="path">npm run dev</td><td>Serveur de développement.</td></tr>
+            <tr><td class="path">npm run build / start</td><td>Build de production / serveur.</td></tr>
+            <tr><td class="path">npm run seed</td><td>Charge les 3 agences et données de test (<code>scripts/seed.ts</code>).</td></tr>
+            <tr><td class="path">npm run db:push</td><td>Applique le schéma Drizzle (<code>drizzle-kit push</code>).</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <section>
+        <h2>Le piège Supabase + postgres-js</h2>
+        <div class="callout warn">
+          <p class="eyebrow">À retenir absolument</p>
+          <p>Utiliser le <b>pooler Supabase en mode Session (port 5432)</b>, <b>pas</b> le mode
+            transaction (6543) : avec <code>postgres-js</code>, le mode transaction bloque sur la
+            première requête (récupération des types) → timeouts 504. Côté client : <code>prepare:false</code>,
+            <code>fetch_types:false</code>, connexion mise en cache sur <code>globalThis</code> (réutilisation
+            serverless). Mot de passe à caractères spéciaux → <b>encoder en %xx</b> dans l'URL.</p>
+        </div>
+      </section>
+
+      <section>
+        <h2>Production</h2>
+        <p class="kicker eyebrow">Vercel + Supabase EU</p>
+        <ul>
+          <li><b>Hébergement</b> : Vercel (projet <code>immomail-studio</code>), déploiement auto.</li>
+          <li><b>Base</b> : Supabase région EU (RGPD) — à choisir <b>à la création</b> du projet, non modifiable ensuite.</li>
+          <li><b>Vigilance offre gratuite</b> : un projet Supabase gratuit se met <b>en pause après ~7 jours</b> d'inactivité ; le site renvoie alors des erreurs 500. Le restaurer (bouton <i>Restore</i>) suffit à tout remettre en ligne.</li>
+        </ul>
+      </section>
+    </div>
+  </article>
+
+</div>
+
+<script>
+  (function(){
+    var OTHER = "https://claude.ai/code/artifact/182712b1-8e41-42e1-852d-5ccf06c483f2";
+    var hub = document.getElementById('hub');
+    var ids = ['apercu','archi','donnees','moteur','io','deploy'];
+    var docs = {}; ids.forEach(function(i){ docs[i]=document.getElementById(i); });
+    function show(id){
+      var isDoc = docs.hasOwnProperty(id);
+      hub.style.display = isDoc ? 'none' : 'block';
+      ids.forEach(function(k){ docs[k].classList.toggle('active', k===id); });
+      window.scrollTo(0,0);
+      try{ history.replaceState(null,'', isDoc ? '#'+id : '#'); }catch(e){}
+    }
+    document.querySelectorAll('.entry').forEach(function(b){
+      b.addEventListener('click', function(){ show(b.getAttribute('data-doc')); });
+    });
+    document.querySelectorAll('[data-back]').forEach(function(b){
+      b.addEventListener('click', function(){ show('hub'); });
+    });
+    document.querySelectorAll('[data-openother]').forEach(function(a){
+      a.addEventListener('click', function(e){ e.preventDefault(); window.open(OTHER,'_blank','noopener'); });
+    });
+    var h = (location.hash||'').replace('#','');
+    if(docs.hasOwnProperty(h)) show(h); else show('hub');
+  })();
+</script>

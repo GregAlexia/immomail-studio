@@ -1,0 +1,208 @@
+{
+  "name": "A4 · Quittances de loyer automatiques",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "A4 — Quittances de loyer\n\nQuotidien 9h. Dès que le jour d'échéance du bail est atteint,\ngénère la quittance via l'endpoint /api/receipt de l'app (vrai PDF)\net l'envoie au locataire. 1 quittance/bail/mois (idempotence).",
+        "height": 200,
+        "width": 500
+      },
+      "id": "edf47acc-6738-432b-b6f1-873f05a19be3",
+      "name": "Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        240,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "id": "e5b352a8-b000-404c-a362-a3c44c062d2b",
+      "name": "Chaque jour 9h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT l.id, l.agency_id, l.property_id, l.monthly_rent, l.charges, l.rent_due_day,\n       p.title AS prop_title,\n       t.id AS tenant_id, t.first_name, t.last_name, t.email AS tenant_email,\n       to_char(now(), 'YYYY-MM') AS period_key,\n       'A4:receipt:' || l.id || ':' || to_char(now(), 'YYYY-MM') AS run_key\nFROM leases l\nJOIN properties p ON p.id = l.property_id\nLEFT JOIN contacts t ON t.id = l.tenant_id\nWHERE date_part('day', now()) >= l.rent_due_day\n  AND l.start_date::timestamptz <= now()\n  AND (l.end_date IS NULL OR l.end_date::timestamptz >= now())\n  AND NOT EXISTS (SELECT 1 FROM automation_runs ar WHERE ar.run_key = 'A4:receipt:' || l.id || ':' || to_char(now(), 'YYYY-MM'));",
+        "options": {}
+      },
+      "id": "dc63466c-3097-4066-972f-32c9ff68bbf9",
+      "name": "Quittances dues ce mois",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        240,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "immomail-supabase",
+          "name": "Supabase ImmoMail (pooler session 5432)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const eur = (n) => new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(n);\nfor (const item of $input.all()) {\n  const j = item.json;\n  const tenant = ((j.first_name||'')+' '+(j.last_name||'')).trim() || 'le locataire';\n  const total = Number(j.monthly_rent) + Number(j.charges);\n  const [y,m] = j.period_key.split('-');\n  const period = new Date(Number(y), Number(m)-1, 1).toLocaleDateString('fr-FR',{month:'long',year:'numeric'});\n  item.json.tenant_name = tenant;\n  item.json.total = total;\n  item.json.subject = 'Quittance de loyer — ' + period;\n  item.json.attachment_url = '/api/receipt/' + j.id + '?period=' + j.period_key;\n  item.json.body = 'Bonjour ' + tenant + ',\\n\\nVeuillez trouver ci-joint votre quittance de loyer pour ' + period + ' (' + (j.prop_title||'') + ').\\nMontant réglé : ' + eur(total) + ' (loyer ' + eur(j.monthly_rent) + ' + charges ' + eur(j.charges) + ').\\n\\nCordialement,';\n}\nreturn $input.all();"
+      },
+      "id": "daa5b118-eff2-419a-ad80-eaac3a9dd288",
+      "name": "Préparer la quittance",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ ($env.IMMOMAIL_BASE_URL || 'https://immomail-studio.vercel.app') + $json.attachment_url }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "data"
+            }
+          }
+        }
+      },
+      "id": "3c1340eb-fcf0-43ad-b705-323180eb280f",
+      "name": "Générer le PDF (app)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        720,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $env.IMMOMAIL_FROM_EMAIL || 'agence@immomail.demo' }}",
+        "toEmail": "={{ $('Préparer la quittance').item.json.tenant_email }}",
+        "subject": "={{ $('Préparer la quittance').item.json.subject }}",
+        "emailFormat": "text",
+        "text": "={{ $('Préparer la quittance').item.json.body }}",
+        "options": {
+          "attachments": "data"
+        }
+      },
+      "id": "0fb59d5d-c12c-47d7-9e5d-0fce88b1484f",
+      "name": "Email quittance + PDF",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        960,
+        300
+      ],
+      "credentials": {
+        "smtp": {
+          "id": "immomail-smtp",
+          "name": "SMTP ImmoMail"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH run AS (\n  INSERT INTO automation_runs (id, agency_id, automation_type, ref_id, run_key, executed_at, created_at)\n  VALUES (gen_random_uuid()::text, {{ JSON.stringify($('Préparer la quittance').item.json.agency_id) }}, 'A4', {{ JSON.stringify($('Préparer la quittance').item.json.id) }}, {{ JSON.stringify($('Préparer la quittance').item.json.run_key) }}, now()::text, now()::text)\n  ON CONFLICT (run_key) DO NOTHING\n),\nmsg AS (\n  INSERT INTO messages (id, agency_id, channel, to_contact_id, to_name, to_address, subject, body, attachment_url, automation_type, sent_at, created_at)\n  VALUES (gen_random_uuid()::text, {{ JSON.stringify($('Préparer la quittance').item.json.agency_id) }}, 'email', {{ $('Préparer la quittance').item.json.tenant_id ? JSON.stringify($('Préparer la quittance').item.json.tenant_id) : 'NULL' }}, {{ JSON.stringify($('Préparer la quittance').item.json.tenant_name) }}, {{ $('Préparer la quittance').item.json.tenant_email ? JSON.stringify($('Préparer la quittance').item.json.tenant_email) : 'NULL' }}, {{ JSON.stringify($('Préparer la quittance').item.json.subject) }}, {{ JSON.stringify($('Préparer la quittance').item.json.body) }}, {{ JSON.stringify($('Préparer la quittance').item.json.attachment_url) }}, 'A4', now()::text, now()::text)\n)\nINSERT INTO activity_log (id, agency_id, automation_type, description, ref_id, occurred_at, created_at)\nVALUES (gen_random_uuid()::text, {{ JSON.stringify($('Préparer la quittance').item.json.agency_id) }}, 'A4', {{ JSON.stringify('Quittance envoyée à ') }} || {{ JSON.stringify($('Préparer la quittance').item.json.tenant_name) }}, {{ JSON.stringify($('Préparer la quittance').item.json.id) }}, now()::text, now()::text);",
+        "options": {}
+      },
+      "id": "26d75d80-ecee-4f70-9a8c-40efca97eaf3",
+      "name": "Journaliser A4",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1200,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "immomail-supabase",
+          "name": "Supabase ImmoMail (pooler session 5432)"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Chaque jour 9h": {
+      "main": [
+        [
+          {
+            "node": "Quittances dues ce mois",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Quittances dues ce mois": {
+      "main": [
+        [
+          {
+            "node": "Préparer la quittance",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Préparer la quittance": {
+      "main": [
+        [
+          {
+            "node": "Générer le PDF (app)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Générer le PDF (app)": {
+      "main": [
+        [
+          {
+            "node": "Email quittance + PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email quittance + PDF": {
+      "main": [
+        [
+          {
+            "node": "Journaliser A4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "note": "Génère et envoie la quittance mensuelle (PDF réel via /api/receipt)."
+  }
+}

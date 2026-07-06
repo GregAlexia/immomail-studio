@@ -1,0 +1,210 @@
+{
+  "name": "A2 · Confirmation + rappels de visite",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "A2 — Confirmation + rappels de visite\n\nPlanifié (toutes les 15 min). Sélectionne les RDV à confirmer,\nles rappels J-1 et H-2 non encore envoyés (filtrés par idempotence),\nenvoie SMS + email et marque le flag correspondant.",
+        "height": 200,
+        "width": 500
+      },
+      "id": "7af297b4-36b1-4329-a95c-fc1d7e31ce25",
+      "name": "Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        240,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      },
+      "id": "ea6124f3-173d-42f2-bbe4-ba5201e3c4ad",
+      "name": "Toutes les 15 min",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM (\n  -- Confirmation immédiate\n  SELECT a.id, a.agency_id, a.contact_id, a.contact_name AS name, a.contact_email AS to_email,\n         a.contact_phone AS to_phone, a.type, a.scheduled_at,\n         'confirm' AS action,\n         'A2:confirm:' || a.id AS run_key,\n         p.title AS prop_title, p.city AS prop_city\n  FROM appointments a LEFT JOIN properties p ON p.id = a.property_id\n  WHERE a.status NOT IN ('cancelled','no_show','done')\n    AND a.confirmation_sent_at IS NULL\n  UNION ALL\n  -- Rappel J-1\n  SELECT a.id, a.agency_id, a.contact_id, a.contact_name, a.contact_email, a.contact_phone, a.type, a.scheduled_at,\n         'j1', 'A2:reminder_j1:' || a.id, p.title, p.city\n  FROM appointments a LEFT JOIN properties p ON p.id = a.property_id\n  WHERE a.status NOT IN ('cancelled','no_show','done')\n    AND a.reminder_j1_sent_at IS NULL\n    AND now() >= (a.scheduled_at::timestamptz - interval '1 day')\n  UNION ALL\n  -- Rappel H-2\n  SELECT a.id, a.agency_id, a.contact_id, a.contact_name, a.contact_email, a.contact_phone, a.type, a.scheduled_at,\n         'h2', 'A2:reminder_h2:' || a.id, p.title, p.city\n  FROM appointments a LEFT JOIN properties p ON p.id = a.property_id\n  WHERE a.status NOT IN ('cancelled','no_show','done')\n    AND a.reminder_h2_sent_at IS NULL\n    AND now() >= (a.scheduled_at::timestamptz - interval '2 hours')\n) due\n-- filtre idempotence : n'envoie pas ce qui est déjà réservé\nWHERE NOT EXISTS (SELECT 1 FROM automation_runs ar WHERE ar.run_key = due.run_key);",
+        "options": {}
+      },
+      "id": "cf8c26ca-814f-42b7-9adc-6062e7129fed",
+      "name": "RDV : actions dues",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        240,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "immomail-supabase",
+          "name": "Supabase ImmoMail (pooler session 5432)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "for (const item of $input.all()) {\n  const j = item.json;\n  const when = new Date(j.scheduled_at);\n  const time = when.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });\n  const date = when.toLocaleDateString('fr-FR');\n  const lieu = j.prop_title ? j.prop_title + (j.prop_city ? ', ' + j.prop_city : '') : \"l'agence\";\n  const kind = j.type === 'estimation' ? \"rendez-vous d'estimation\" : \"visite\";\n  let body, subject;\n  if (j.action === 'confirm') {\n    subject = 'Confirmation de votre rendez-vous — ' + date;\n    body = 'Bonjour ' + j.name + ', votre ' + kind + ' est confirmé(e) le ' + date + ' à ' + time + ' (' + lieu + '). Répondez STOP pour annuler.';\n  } else if (j.action === 'j1') {\n    subject = 'Rappel — votre visite est demain';\n    body = 'Rappel : ' + j.name + ', votre ' + kind + ' a lieu demain à ' + time + ' (' + lieu + '). À demain !';\n  } else {\n    subject = 'Rappel — votre visite dans 2 h';\n    body = j.name + ', votre visite est dans 2 h (' + time + ', ' + lieu + '). À tout à l'heure !';\n  }\n  item.json.subject = subject;\n  item.json.body = body;\n  item.json.update_col = j.action === 'confirm' ? 'confirmation_sent_at' : j.action === 'j1' ? 'reminder_j1_sent_at' : 'reminder_h2_sent_at';\n}\nreturn $input.all();"
+      },
+      "id": "977bca9c-1fd6-4156-a5fe-2a647614f306",
+      "name": "Construire le message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $env.IMMOMAIL_FROM_EMAIL || 'agence@immomail.demo' }}",
+        "toEmail": "={{ $json.to_email }}",
+        "subject": "={{ $json.subject }}",
+        "emailFormat": "text",
+        "text": "={{ $json.body }}",
+        "options": {}
+      },
+      "id": "d7717229-4447-44f9-83ec-0e25833952af",
+      "name": "Email de confirmation",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        720,
+        220
+      ],
+      "credentials": {
+        "smtp": {
+          "id": "immomail-smtp",
+          "name": "SMTP ImmoMail"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SMS_API_URL || 'https://api.brevo.com/v3/transactionalSMS/sms' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ sender: 'ImmoMail', recipient: ={{ $json.to_phone }}, content: ={{ $json.body }} }) }}",
+        "options": {}
+      },
+      "id": "15efceeb-63ea-4354-a554-0d6ace03772c",
+      "name": "SMS",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        720,
+        400
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "immomail-sms",
+          "name": "SMS Provider (Brevo / Twilio)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH upd AS (\n  UPDATE appointments SET\n    confirmation_sent_at = CASE WHEN '{{ $json.update_col }}' = 'confirmation_sent_at' THEN now()::text ELSE confirmation_sent_at END,\n    reminder_j1_sent_at  = CASE WHEN '{{ $json.update_col }}' = 'reminder_j1_sent_at'  THEN now()::text ELSE reminder_j1_sent_at END,\n    reminder_h2_sent_at  = CASE WHEN '{{ $json.update_col }}' = 'reminder_h2_sent_at'  THEN now()::text ELSE reminder_h2_sent_at END,\n    status = CASE WHEN '{{ $json.update_col }}' = 'reminder_j1_sent_at' AND status IN ('requested','confirmed') THEN 'reminded' ELSE status END\n  WHERE id = {{ JSON.stringify($json.id) }}\n),\nrun AS (\n  INSERT INTO automation_runs (id, agency_id, automation_type, ref_id, run_key, executed_at, created_at)\n  VALUES (gen_random_uuid()::text, {{ JSON.stringify($json.agency_id) }}, 'A2', {{ JSON.stringify($json.id) }}, {{ JSON.stringify($json.run_key) }}, now()::text, now()::text)\n  ON CONFLICT (run_key) DO NOTHING\n),\nmsg AS (\n  INSERT INTO messages (id, agency_id, channel, to_contact_id, to_name, to_address, subject, body, automation_type, sent_at, created_at)\n  VALUES (gen_random_uuid()::text, {{ JSON.stringify($json.agency_id) }}, 'sms', {{ $json.contact_id ? JSON.stringify($json.contact_id) : 'NULL' }}, {{ JSON.stringify($json.name) }}, {{ $json.to_phone ? JSON.stringify($json.to_phone) : 'NULL' }}, {{ JSON.stringify($json.subject) }}, {{ JSON.stringify($json.body) }}, 'A2', now()::text, now()::text)\n)\nINSERT INTO activity_log (id, agency_id, automation_type, description, ref_id, occurred_at, created_at)\nVALUES (gen_random_uuid()::text, {{ JSON.stringify($json.agency_id) }}, 'A2', {{ JSON.stringify('Message A2 (' + $json.action + ') envoyé à ') }} || {{ JSON.stringify($json.name) }}, {{ JSON.stringify($json.id) }}, now()::text, now()::text);",
+        "options": {}
+      },
+      "id": "33527757-90cb-4561-a52b-3238733ea417",
+      "name": "Marquer envoyé + journaliser",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        980,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "immomail-supabase",
+          "name": "Supabase ImmoMail (pooler session 5432)"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Toutes les 15 min": {
+      "main": [
+        [
+          {
+            "node": "RDV : actions dues",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RDV : actions dues": {
+      "main": [
+        [
+          {
+            "node": "Construire le message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Construire le message": {
+      "main": [
+        [
+          {
+            "node": "Email de confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email de confirmation": {
+      "main": [
+        [
+          {
+            "node": "SMS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SMS": {
+      "main": [
+        [
+          {
+            "node": "Marquer envoyé + journaliser",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "note": "RDV : confirmation immédiate + rappels J-1 / H-2 par SMS et email."
+  }
+}

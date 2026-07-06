@@ -1,0 +1,210 @@
+{
+  "name": "A8 · Demande de parrainage post-transaction",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "A8 — Demande de parrainage\n\nQuotidien 11h. 30 jours après la signature, propose au client\nde parrainer un proche (bon 200 €). Email + SMS, idempotent.",
+        "height": 180,
+        "width": 480
+      },
+      "id": "fea54c15-a4c9-4585-bf76-3a280b978cf1",
+      "name": "Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        240,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "triggerAtHour": 11
+            }
+          ]
+        }
+      },
+      "id": "e12ffeb4-92a2-4a8c-94ba-9c57147d5c05",
+      "name": "Chaque jour 11h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT t.id, t.agency_id, t.type, t.signed_date,\n       c.id AS contact_id, c.first_name, c.last_name, c.email, c.phone,\n       p.title AS prop_title,\n       'A8:referral:' || t.id AS run_key\nFROM transactions t\nJOIN contacts c ON c.id = t.contact_id\nLEFT JOIN properties p ON p.id = t.property_id\nWHERE t.referral_requested_at IS NULL\n  AND now() >= (t.signed_date::timestamptz + interval '1 month')\n  AND NOT EXISTS (SELECT 1 FROM automation_runs ar WHERE ar.run_key = 'A8:referral:' || t.id);",
+        "options": {}
+      },
+      "id": "34e802c8-55a2-4ab1-98df-ef8bfd1ecfa7",
+      "name": "Parrainages dus (J+30)",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        240,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "immomail-supabase",
+          "name": "Supabase ImmoMail (pooler session 5432)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const AGENCY = $env.IMMOMAIL_AGENCY_NAME || 'votre agence';\nfor (const item of $input.all()) {\n  const j = item.json;\n  const name = ((j.first_name||'')+' '+(j.last_name||'')).trim();\n  const verb = j.type === 'rental' ? 'emménagé' : 'signé';\n  item.json.full_name = name;\n  item.json.subject = 'Un mois déjà — parrainez vos proches 🎁';\n  item.json.body = 'Bonjour ' + j.first_name + ',\\n\\nCela fait un mois que vous avez ' + verb + ' pour ' + (j.prop_title||'votre bien') + ' — nous espérons que tout se passe bien !\\n\\nSi vous connaissez un proche qui souhaite acheter, vendre ou louer, recommandez-nous : pour chaque mise en relation aboutie, nous offrons un bon de 200 €.\\n\\nMerci de votre confiance,\\n' + AGENCY;\n  item.json.sms_body = j.first_name + ', parrainez un proche chez ' + AGENCY + ' et recevez 200 € par mise en relation aboutie ! Merci de votre confiance.';\n}\nreturn $input.all();"
+      },
+      "id": "b37e7db3-b1cb-43fc-929c-867b8503c3f0",
+      "name": "Rédiger le parrainage",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $env.IMMOMAIL_FROM_EMAIL || 'agence@immomail.demo' }}",
+        "toEmail": "={{ $json.email }}",
+        "subject": "={{ $json.subject }}",
+        "emailFormat": "text",
+        "text": "={{ $json.body }}",
+        "options": {}
+      },
+      "id": "3b404c9f-0451-43df-83f0-38f823fd3185",
+      "name": "Email parrainage",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        720,
+        220
+      ],
+      "credentials": {
+        "smtp": {
+          "id": "immomail-smtp",
+          "name": "SMTP ImmoMail"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SMS_API_URL || 'https://api.brevo.com/v3/transactionalSMS/sms' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ sender: 'ImmoMail', recipient: ={{ $json.phone }}, content: ={{ $json.sms_body }} }) }}",
+        "options": {}
+      },
+      "id": "15ee53f0-da98-4411-9434-fdaa25554f11",
+      "name": "SMS parrainage",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        720,
+        400
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "immomail-sms",
+          "name": "SMS Provider (Brevo / Twilio)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH upd AS (\n  UPDATE transactions SET referral_requested_at = now()::text WHERE id = {{ JSON.stringify($json.id) }}\n),\nrun AS (\n  INSERT INTO automation_runs (id, agency_id, automation_type, ref_id, run_key, executed_at, created_at)\n  VALUES (gen_random_uuid()::text, {{ JSON.stringify($json.agency_id) }}, 'A8', {{ JSON.stringify($json.id) }}, {{ JSON.stringify($json.run_key) }}, now()::text, now()::text)\n  ON CONFLICT (run_key) DO NOTHING\n),\nmsg AS (\n  INSERT INTO messages (id, agency_id, channel, to_contact_id, to_name, to_address, subject, body, automation_type, sent_at, created_at)\n  VALUES (gen_random_uuid()::text, {{ JSON.stringify($json.agency_id) }}, 'email', {{ JSON.stringify($json.contact_id) }}, {{ JSON.stringify($json.full_name) }}, {{ JSON.stringify($json.email) }}, {{ JSON.stringify($json.subject) }}, {{ JSON.stringify($json.body) }}, 'A8', now()::text, now()::text)\n)\nINSERT INTO activity_log (id, agency_id, automation_type, description, ref_id, occurred_at, created_at)\nVALUES (gen_random_uuid()::text, {{ JSON.stringify($json.agency_id) }}, 'A8', {{ JSON.stringify('Demande de parrainage (J+30) → ') }} || {{ JSON.stringify($json.full_name) }}, {{ JSON.stringify($json.id) }}, now()::text, now()::text);",
+        "options": {}
+      },
+      "id": "408f40f8-bd22-4f8f-9001-6d9c953bf0b0",
+      "name": "Journaliser A8 + horodater",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        980,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "immomail-supabase",
+          "name": "Supabase ImmoMail (pooler session 5432)"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Chaque jour 11h": {
+      "main": [
+        [
+          {
+            "node": "Parrainages dus (J+30)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parrainages dus (J+30)": {
+      "main": [
+        [
+          {
+            "node": "Rédiger le parrainage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rédiger le parrainage": {
+      "main": [
+        [
+          {
+            "node": "Email parrainage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email parrainage": {
+      "main": [
+        [
+          {
+            "node": "SMS parrainage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SMS parrainage": {
+      "main": [
+        [
+          {
+            "node": "Journaliser A8 + horodater",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "note": "Demande de parrainage 30 jours après la transaction."
+  }
+}

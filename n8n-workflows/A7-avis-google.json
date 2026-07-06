@@ -1,0 +1,210 @@
+{
+  "name": "A7 · Collecte automatique d'avis Google",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "A7 — Collecte d'avis Google\n\nQuotidien 10h. J+2 après signature : demande d'avis (email+SMS).\nJ+5 : relance si pas encore d'avis. Idempotent par transaction.",
+        "height": 180,
+        "width": 480
+      },
+      "id": "ab315896-15d4-4108-9cc3-a68799b607ec",
+      "name": "Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        240,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "triggerAtHour": 10
+            }
+          ]
+        }
+      },
+      "id": "7cd96ce4-a987-4c34-98a5-5efa5f870e80",
+      "name": "Chaque jour 10h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM (\n  -- J+2 : première demande\n  SELECT t.id, t.agency_id, t.signed_date, 'request' AS action,\n         c.id AS contact_id, c.first_name, c.last_name, c.email, c.phone,\n         'A7:review_req:' || t.id AS run_key\n  FROM transactions t JOIN contacts c ON c.id = t.contact_id\n  WHERE t.review_requested_at IS NULL\n    AND now() >= (t.signed_date::timestamptz + interval '2 days')\n  UNION ALL\n  -- J+5 : relance si pas d'avis\n  SELECT t.id, t.agency_id, t.signed_date, 'followup',\n         c.id, c.first_name, c.last_name, c.email, c.phone,\n         'A7:review_followup:' || t.id\n  FROM transactions t JOIN contacts c ON c.id = t.contact_id\n  WHERE t.review_requested_at IS NOT NULL\n    AND t.review_completed_at IS NULL\n    AND t.review_followup_at IS NULL\n    AND now() >= (t.signed_date::timestamptz + interval '5 days')\n) due\nWHERE NOT EXISTS (SELECT 1 FROM automation_runs ar WHERE ar.run_key = due.run_key);",
+        "options": {}
+      },
+      "id": "62fb5c9f-1e48-4461-bcb5-b58f3d926f11",
+      "name": "Avis : demandes & relances dues",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        240,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "immomail-supabase",
+          "name": "Supabase ImmoMail (pooler session 5432)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const AGENCY = $env.IMMOMAIL_AGENCY_NAME || 'votre agence';\nconst LINK = $env.GOOGLE_REVIEW_LINK || 'https://g.page/r/immomail/review';\nfor (const item of $input.all()) {\n  const j = item.json;\n  const name = ((j.first_name||'')+' '+(j.last_name||'')).trim();\n  if (j.action === 'request') {\n    item.json.subject = 'Votre avis compte pour ' + AGENCY + ' 🙏';\n    item.json.body = 'Bonjour ' + j.first_name + ',\\n\\nMerci de votre confiance ! Votre avis nous aiderait énormément. Cela prend 30 secondes :\\n👉 ' + LINK + '\\n\\nMerci beaucoup,\\n' + AGENCY;\n    item.json.sms_body = name + ', merci pour votre confiance ! Un avis Google nous aiderait beaucoup : ' + LINK;\n    item.json.update_col = 'review_requested_at';\n  } else {\n    item.json.subject = 'Petit rappel — votre avis pour ' + AGENCY;\n    item.json.body = 'Bonjour ' + j.first_name + ',\\n\\nJuste un petit rappel : si vous avez un instant, votre avis compte beaucoup pour nous 🙏\\n👉 ' + LINK + '\\n\\nMerci,\\n' + AGENCY;\n    item.json.sms_body = name + ', un petit rappel : votre avis Google nous aiderait beaucoup 🙏 ' + LINK;\n    item.json.update_col = 'review_followup_at';\n  }\n}\nreturn $input.all();"
+      },
+      "id": "eb587273-3094-43ad-a534-255b14946168",
+      "name": "Rédiger la demande d'avis",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $env.IMMOMAIL_FROM_EMAIL || 'agence@immomail.demo' }}",
+        "toEmail": "={{ $json.email }}",
+        "subject": "={{ $json.subject }}",
+        "emailFormat": "text",
+        "text": "={{ $json.body }}",
+        "options": {}
+      },
+      "id": "1a91297e-70e8-4b98-95c4-a6f1fb189ecc",
+      "name": "Email avis",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        720,
+        220
+      ],
+      "credentials": {
+        "smtp": {
+          "id": "immomail-smtp",
+          "name": "SMTP ImmoMail"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SMS_API_URL || 'https://api.brevo.com/v3/transactionalSMS/sms' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ sender: 'ImmoMail', recipient: ={{ $json.phone }}, content: ={{ $json.sms_body }} }) }}",
+        "options": {}
+      },
+      "id": "d9a81640-a974-43dc-8979-e10966d6e01f",
+      "name": "SMS avis",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        720,
+        400
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "immomail-sms",
+          "name": "SMS Provider (Brevo / Twilio)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH upd AS (\n  UPDATE transactions SET\n    review_requested_at = CASE WHEN '{{ $json.update_col }}' = 'review_requested_at' THEN now()::text ELSE review_requested_at END,\n    review_followup_at  = CASE WHEN '{{ $json.update_col }}' = 'review_followup_at'  THEN now()::text ELSE review_followup_at END\n  WHERE id = {{ JSON.stringify($json.id) }}\n),\nrun AS (\n  INSERT INTO automation_runs (id, agency_id, automation_type, ref_id, run_key, executed_at, created_at)\n  VALUES (gen_random_uuid()::text, {{ JSON.stringify($json.agency_id) }}, 'A7', {{ JSON.stringify($json.id) }}, {{ JSON.stringify($json.run_key) }}, now()::text, now()::text)\n  ON CONFLICT (run_key) DO NOTHING\n),\nmsg AS (\n  INSERT INTO messages (id, agency_id, channel, to_contact_id, to_name, to_address, subject, body, automation_type, sent_at, created_at)\n  VALUES (gen_random_uuid()::text, {{ JSON.stringify($json.agency_id) }}, 'email', {{ JSON.stringify($json.contact_id) }}, {{ JSON.stringify(($json.first_name||'')+' '+($json.last_name||'')) }}, {{ JSON.stringify($json.email) }}, {{ JSON.stringify($json.subject) }}, {{ JSON.stringify($json.body) }}, 'A7', now()::text, now()::text)\n)\nINSERT INTO activity_log (id, agency_id, automation_type, description, ref_id, occurred_at, created_at)\nVALUES (gen_random_uuid()::text, {{ JSON.stringify($json.agency_id) }}, 'A7', {{ JSON.stringify('Avis Google (' ) }} || {{ JSON.stringify($json.action) }} || {{ JSON.stringify(') → ') }} || {{ JSON.stringify(($json.first_name||'')+' '+($json.last_name||'')) }}, {{ JSON.stringify($json.id) }}, now()::text, now()::text);",
+        "options": {}
+      },
+      "id": "a81639f0-a0f3-4c89-ba63-7b0ce10d03b9",
+      "name": "Journaliser A7 + horodater",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        980,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "immomail-supabase",
+          "name": "Supabase ImmoMail (pooler session 5432)"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Chaque jour 10h": {
+      "main": [
+        [
+          {
+            "node": "Avis : demandes & relances dues",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Avis : demandes & relances dues": {
+      "main": [
+        [
+          {
+            "node": "Rédiger la demande d'avis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rédiger la demande d'avis": {
+      "main": [
+        [
+          {
+            "node": "Email avis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email avis": {
+      "main": [
+        [
+          {
+            "node": "SMS avis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SMS avis": {
+      "main": [
+        [
+          {
+            "node": "Journaliser A7 + horodater",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "note": "Demande d'avis Google J+2 + relance J+5 après signature."
+  }
+}

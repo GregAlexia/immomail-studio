@@ -1,0 +1,670 @@
+<style>
+  :root{
+    --ink:#16233B; --paper:#E7EAEF; --card:#FFFFFF; --muted:#59636F;
+    --line:#D4DAE2; --line-soft:#E4E8ED;
+    --c-build:#2F5D8C; --c-value:#A97B1E; --c-tech:#1E7A6B;
+    --maxw:960px; --docw:730px;
+    --mono:"Cascadia Code",Consolas,ui-monospace,"SF Mono",Menlo,monospace;
+    --sans:"Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif;
+    --serif:Georgia,"Iowan Old Style","Times New Roman",serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);
+    font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased}
+  .app{min-height:100vh}
+  .eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--muted);font-weight:400}
+  h1,h2,h3{font-family:var(--serif);font-weight:600;text-wrap:balance;line-height:1.15;margin:0}
+  a{color:inherit}
+  .tnum{font-variant-numeric:tabular-nums}
+
+  /* ---------- HUB ---------- */
+  #hub{max-width:var(--maxw);margin:0 auto;padding:clamp(40px,7vw,88px) 28px 72px}
+  .cover-top{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;
+    border-bottom:1px solid var(--line);padding-bottom:20px}
+  .brandmark{font-family:var(--mono);font-size:12px;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--ink);font-weight:600}
+  .cover-top .sep{flex:1}
+  .cover-meta{font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;color:var(--muted)}
+  .cover-title{margin:34px 0 0;font-size:clamp(38px,6.4vw,66px);letter-spacing:-.015em}
+  .cover-lead{margin:20px 0 0;max-width:60ch;font-size:clamp(17px,2.1vw,20px);color:#38424F;line-height:1.55}
+  .stats{display:flex;flex-wrap:wrap;gap:30px 44px;margin:38px 0 0;padding:22px 0 0;border-top:1px solid var(--line)}
+  .stat b{display:block;font-family:var(--serif);font-size:30px;font-weight:600;letter-spacing:-.01em}
+  .stat span{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+
+  .index{margin:56px 0 0;display:flex;flex-direction:column;gap:16px}
+  .index-label{margin:0 0 4px}
+  .entry{display:grid;grid-template-columns:52px 1fr auto;gap:22px;align-items:center;
+    background:var(--card);border:1px solid var(--line);border-left:3px solid var(--ac,#2F5D8C);
+    border-radius:3px;padding:24px 26px;cursor:pointer;text-align:left;width:100%;font:inherit;color:inherit;
+    transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
+  .entry:hover,.entry:focus-visible{transform:translateY(-2px);
+    box-shadow:0 10px 30px -18px rgba(22,35,59,.5);outline:none}
+  .entry:focus-visible{border-color:var(--ac)}
+  .entry .no{font-family:var(--mono);font-size:13px;color:var(--muted);align-self:start;padding-top:4px}
+  .entry .stamp{font-size:24px;line-height:1}
+  .entry h2{font-size:23px;letter-spacing:-.01em;display:flex;align-items:center;gap:12px}
+  .entry .aud{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--ac);font-weight:600}
+  .entry p{margin:7px 0 0;color:var(--muted);font-size:14.5px;max-width:56ch;line-height:1.5}
+  .entry .open{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--ac);white-space:nowrap;display:flex;align-items:center;gap:7px}
+  .entry .open .arw{transition:transform .18s ease}
+  .entry:hover .open .arw{transform:translateX(4px)}
+  .cover-foot{margin:56px 0 0;padding-top:22px;border-top:1px solid var(--line);
+    font-family:var(--mono);font-size:11.5px;color:var(--muted);letter-spacing:.04em;line-height:1.9}
+  .cover-foot .xlink{color:var(--c-build);text-decoration:none;border-bottom:1px solid currentColor}
+  .cover-foot .xlink:hover{color:var(--ink)}
+  .xref{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12.5px;
+    color:var(--ac);text-decoration:none;border:1px solid var(--line);border-radius:3px;
+    padding:9px 14px;background:var(--card)}
+  .xref:hover{border-color:var(--ac)}
+
+  /* ---------- DOC ---------- */
+  .doc{display:none}
+  .doc.active{display:block;animation:rise .34s ease}
+  @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .docbar{position:sticky;top:0;z-index:5;background:rgba(231,234,239,.86);
+    backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  .docbar-in{max-width:var(--docw);margin:0 auto;padding:15px 28px;display:flex;align-items:center;gap:18px}
+  .back{font:inherit;font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;
+    background:none;border:none;color:var(--muted);cursor:pointer;padding:6px 2px;display:flex;align-items:center;gap:8px}
+  .back:hover,.back:focus-visible{color:var(--ink);outline:none}
+  .docbar .tag{margin-left:auto;font-family:var(--mono);font-size:11px;letter-spacing:.12em;
+    text-transform:uppercase;color:#fff;background:var(--ac);padding:5px 11px;border-radius:2px}
+  .docwrap{max-width:var(--docw);margin:0 auto;padding:52px 28px 96px}
+  .doc-hd{border-bottom:2px solid var(--ac);padding-bottom:26px;margin-bottom:38px}
+  .doc-hd .stamp{font-size:32px}
+  .doc-hd h1{margin:14px 0 0;font-size:clamp(30px,4.6vw,44px);letter-spacing:-.015em}
+  .doc-hd .sub{margin:14px 0 0;color:#39434F;font-size:18px;max-width:60ch;line-height:1.5}
+  .doc section{margin:0 0 44px}
+  .doc h2{font-size:24px;letter-spacing:-.01em;margin:0 0 6px}
+  .doc h2 + .kicker{margin-top:0}
+  .kicker{margin:0 0 16px}
+  .doc h3{font-family:var(--sans);font-weight:600;font-size:15.5px;margin:26px 0 6px}
+  .doc p{margin:0 0 14px;max-width:66ch}
+  .doc ul{margin:0 0 14px;padding-left:0;list-style:none;max-width:66ch}
+  .doc li{position:relative;padding:0 0 9px 22px}
+  .doc li::before{content:"";position:absolute;left:2px;top:10px;width:6px;height:6px;
+    background:var(--ac);border-radius:1px}
+  .doc li b{font-weight:600}
+  .lead-in{font-size:18.5px;line-height:1.55;color:#2C3743;max-width:62ch}
+
+  table{border-collapse:collapse;width:100%;font-size:14px;margin:2px 0 8px}
+  .tablewrap{overflow-x:auto;margin:0 0 16px;border:1px solid var(--line);border-radius:3px}
+  th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+  thead th{font-family:var(--mono);font-size:11px;letter-spacing:.07em;text-transform:uppercase;
+    color:var(--muted);background:#F3F5F8;font-weight:600;border-bottom:1px solid var(--line)}
+  tbody tr:last-child td{border-bottom:none}
+  td code,p code,li code{font-family:var(--mono);font-size:12.5px;background:#EEF1F5;
+    padding:1px 6px;border-radius:3px;color:#28405C}
+  .code-cell{font-family:var(--mono);font-size:12.5px;color:var(--ac);white-space:nowrap}
+
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin:0 0 16px}
+  .vc{background:var(--card);border:1px solid var(--line);border-top:3px solid var(--ac);
+    border-radius:3px;padding:18px 20px}
+  .vc .fam{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--ac);font-weight:600}
+  .vc h3{font-family:var(--serif);font-size:18px;margin:8px 0 12px}
+  .vc dl{margin:0;font-size:13.5px;line-height:1.45}
+  .vc dt{font-weight:600;margin:9px 0 1px}
+  .vc dd{margin:0;color:var(--muted)}
+  .vc dt .ac-code{font-family:var(--mono);font-size:11px;color:var(--ac);margin-right:6px}
+
+  .callout{background:var(--card);border:1px solid var(--line);border-left:3px solid var(--ac);
+    border-radius:3px;padding:20px 22px;margin:0 0 16px}
+  .callout .eyebrow{color:var(--ac)}
+  .callout p:last-child{margin-bottom:0}
+  .callout p:first-of-type{margin-top:8px}
+
+  .flow{background:#12203A;color:#D6E0EE;border-radius:4px;padding:22px 24px;margin:0 0 16px;
+    font-family:var(--mono);font-size:12.5px;line-height:1.75;overflow-x:auto}
+  .flow b{color:#fff;font-weight:600}
+  .flow .a{color:#7FB0D8}
+
+  .quote{font-family:var(--serif);font-size:21px;line-height:1.4;color:var(--ink);
+    border-left:3px solid var(--ac);padding:4px 0 4px 22px;margin:22px 0;max-width:56ch;font-style:italic}
+
+  .nodes{display:flex;flex-direction:column;gap:10px;margin:0 0 8px}
+  details.nd{background:var(--card);border:1px solid var(--line);border-radius:3px}
+  details.nd summary{cursor:pointer;padding:14px 18px;font-family:var(--sans);font-weight:600;
+    font-size:15px;display:flex;align-items:center;gap:12px;list-style:none;border-radius:3px}
+  details.nd summary::-webkit-details-marker{display:none}
+  details.nd summary:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+  details.nd summary .code{font-family:var(--mono);font-size:11px;color:#fff;background:var(--ac);
+    padding:3px 8px;border-radius:2px;letter-spacing:.05em;font-weight:600}
+  details.nd summary .cnt{margin-left:auto;font-family:var(--mono);font-size:11px;
+    letter-spacing:.04em;color:var(--muted);font-weight:400}
+  details.nd summary .chev{color:var(--ac);transition:transform .2s ease;font-size:13px}
+  details.nd[open] summary .chev{transform:rotate(90deg)}
+  details.nd[open] summary{border-bottom:1px solid var(--line-soft)}
+  details.nd .ndbody{padding:6px 18px 10px}
+  details.nd .ndbody .tablewrap{border:none;margin:0}
+  details.nd table{font-size:13.5px}
+  details.nd td:first-child{font-weight:600;white-space:nowrap}
+  details.nd td:nth-child(2){font-family:var(--mono);font-size:11.5px;color:var(--muted);white-space:nowrap}
+
+  @media (max-width:560px){
+    .entry{grid-template-columns:1fr;gap:12px}
+    .entry .no{display:none}.entry .open{justify-self:start}
+    .stats{gap:22px 30px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important}
+  }
+</style>
+
+<div class="app">
+
+  <main id="hub">
+    <div class="cover-top">
+      <span class="brandmark">ImmoMail Studio</span>
+      <span class="sep"></span>
+      <span class="cover-meta">Portail de documentation · v1.0 · Juillet 2026</span>
+    </div>
+
+    <h1 class="cover-title">Un poste d'agence qui travaille tout seul.</h1>
+    <p class="cover-lead">SaaS de démonstration pour agences immobilières : onze automatisations
+      qui trient les leads, confirment les visites, relancent les mandats et entretiennent la
+      relation client — sans ressaisie. Trois lectures, une par métier.</p>
+
+    <div class="stats">
+      <div class="stat"><b class="tnum">11</b><span>Automatisations</span></div>
+      <div class="stat"><b class="tnum">9</b><span>Workflows n8n</span></div>
+      <div class="stat"><b class="tnum">4</b><span>Familles de valeur</span></div>
+      <div class="stat"><b>Live</b><span>Déployé sur Vercel</span></div>
+    </div>
+
+    <section class="index" aria-label="Documents disponibles">
+      <p class="eyebrow index-label">Sommaire — choisissez votre lecture</p>
+
+      <button class="entry" data-doc="invest" style="--ac:var(--c-build)">
+        <span class="no tnum">01</span>
+        <div>
+          <h2><span class="stamp">📊</span> Dossier de construction</h2>
+          <span class="aud">Associé · Investisseur — comment c'est fait</span>
+          <p>La méthode, la stack, le périmètre livré et le modèle économique. Ce qui existe
+             réellement derrière la démo.</p>
+        </div>
+        <span class="open">Ouvrir <span class="arw">→</span></span>
+      </button>
+
+      <button class="entry" data-doc="produit" style="--ac:var(--c-value)">
+        <span class="no tnum">02</span>
+        <div>
+          <h2><span class="stamp">🎯</span> Objectif du produit</h2>
+          <span class="aud">Prospect · Commercial — pourquoi ça vaut le coup</span>
+          <p>Le problème des agences, la promesse, et le bénéfice concret de chacune des onze
+             automatisations. De quoi vendre la démo.</p>
+        </div>
+        <span class="open">Ouvrir <span class="arw">→</span></span>
+      </button>
+
+      <button class="entry" data-doc="tech" style="--ac:var(--c-tech)">
+        <span class="no tnum">03</span>
+        <div>
+          <h2><span class="stamp">🔧</span> Documentation technique n8n</h2>
+          <span class="aud">Développeur · Repreneur — comment ça tourne</span>
+          <p>Architecture, les 9 workflows, idempotence, base Supabase et credentials. Pour
+             reprendre ou faire évoluer le système.</p>
+        </div>
+        <span class="open">Ouvrir <span class="arw">→</span></span>
+      </button>
+    </section>
+
+    <p class="cover-foot">immomail-studio.vercel.app · Next.js 16 · Supabase EU · n8n self-host<br>
+      → <a class="xlink" href="https://claude.ai/code/artifact/782be469-3642-48b9-b3ea-cadd79c9cb7c" target="_blank" rel="noopener">Documentation complète de l'application</a> (écrans, données, architecture, déploiement)</p>
+  </main>
+
+  <!-- ============ DOC 01 — CONSTRUCTION ============ -->
+  <article class="doc" id="invest" style="--ac:var(--c-build)">
+    <div class="docbar"><div class="docbar-in">
+      <button class="back" data-back>← Sommaire</button>
+      <span class="tag">Dossier de construction</span>
+    </div></div>
+    <div class="docwrap">
+      <header class="doc-hd">
+        <span class="stamp">📊</span>
+        <p class="eyebrow">Pour l'associé & l'investisseur</p>
+        <h1>Comment c'est fait</h1>
+        <p class="sub">Ce qu'il y a vraiment derrière la démo : une méthode de production, une
+          stack éprouvée, un périmètre mesurable et un modèle qui se répète d'un client à l'autre.</p>
+      </header>
+
+      <section>
+        <p class="lead-in">ImmoMail Studio n'est pas un prototype jetable : c'est une application
+          multi-agences complète, doublée d'une couche d'automatisation branchée sur la même base.
+          Elle sert de démonstration commerciale reproductible.</p>
+      </section>
+
+      <section>
+        <h2>La méthode de production</h2>
+        <p class="kicker eyebrow">Du cahier des charges au produit déployé</p>
+        <ul>
+          <li><b>Cadrage par PRD.</b> Un document produit (v2.0) fige le périmètre, les données de
+            test et les scénarios de démo avant toute ligne de code.</li>
+          <li><b>Application de démo.</b> Un vrai produit web multi-agences, avec une horloge simulée
+            pilotable pour déclencher les automatisations différées devant le client.</li>
+          <li><b>Couche d'automatisation.</b> Les mêmes règles métier externalisées dans n8n (9 workflows)
+            pour passer de la démo au fonctionnement réel.</li>
+          <li><b>Déploiement continu.</b> Mise en ligne automatique sur Vercel, base gérée sur Supabase.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>La stack, et pourquoi</h2>
+        <p class="kicker eyebrow">Des choix figés, pour la fiabilité et la vitesse</p>
+        <div class="tablewrap"><table>
+          <thead><tr><th>Brique</th><th>Technologie</th><th>Raison</th></tr></thead>
+          <tbody>
+            <tr><td>Application</td><td class="code-cell">Next.js 16</td><td>Rendu serveur + actions, un seul langage front/back.</td></tr>
+            <tr><td>Base de données</td><td class="code-cell">PostgreSQL · Supabase EU</td><td>Hébergement européen (RGPD), robuste, managé.</td></tr>
+            <tr><td>Accès données</td><td class="code-cell">Drizzle ORM</td><td>Requêtes typées, zéro SQL fragile.</td></tr>
+            <tr><td>Documents</td><td class="code-cell">pdf-lib</td><td>Vraies quittances PDF générées à la volée.</td></tr>
+            <tr><td>Automatisation</td><td class="code-cell">n8n</td><td>Orchestration visuelle, maintenable par un repreneur.</td></tr>
+            <tr><td>Hébergement</td><td class="code-cell">Vercel</td><td>Déploiement auto, mise à l'échelle sans ops.</td></tr>
+          </tbody>
+        </table></div>
+        <p>Cette stack est <b>standardisée sur l'ensemble des projets</b> du studio : chaque nouveau
+          client repart du même socle, ce qui garantit cohérence, rapidité de livraison et
+          maintenabilité dans le temps.</p>
+      </section>
+
+      <section>
+        <h2>Le périmètre livré</h2>
+        <p class="kicker eyebrow">Ce qui est construit et vérifié</p>
+        <ul>
+          <li><b>11 automatisations</b> couvrant les 4 temps forts d'une agence : leads, visites, gestion, marketing.</li>
+          <li><b>Multi-agences</b> — 3 agences de démonstration, données cloisonnées par agence.</li>
+          <li><b>Horloge de démo pilotable</b> — on avance le temps pour déclencher les rappels J-1, avis J+2, parrainage J+30 devant le prospect.</li>
+          <li><b>Import / export Excel</b> — l'agence charge ses propres biens et contacts, la démo s'adapte.</li>
+          <li><b>Moteur idempotent</b> — aucune action envoyée deux fois, même en cas de re-déclenchement.</li>
+          <li><b>9 workflows n8n</b> déployés sur instance, branchés sur la même base que l'app.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Statut & suite</h2>
+        <p class="kicker eyebrow">Où en est le chantier</p>
+        <p>L'application est <b>en production</b> et vérifiée de bout en bout (les 11 automatisations,
+          le responsive mobile/desktop, les temps de réponse). Les workflows n8n sont <b>déployés et
+          documentés</b> ; l'activation en conditions réelles (branchement des accès email, base,
+          IA) est l'étape en cours.</p>
+      </section>
+
+      <section>
+        <h2>Le modèle économique</h2>
+        <p class="kicker eyebrow">Ce qui se répète d'un client à l'autre</p>
+        <div class="callout">
+          <p class="eyebrow">Frais de mise en place + abonnement mensuel</p>
+          <p>Un <b>setup fee</b> couvre la personnalisation (données de l'agence, marque, mise en
+            service des automatisations) ; un <b>retainer mensuel</b> couvre l'hébergement, le suivi
+            et les évolutions. Le socle technique étant mutualisé, la marge s'améliore à chaque
+            nouveau client.</p>
+        </div>
+      </section>
+    </div>
+  </article>
+
+  <!-- ============ DOC 02 — PRODUIT ============ -->
+  <article class="doc" id="produit" style="--ac:var(--c-value)">
+    <div class="docbar"><div class="docbar-in">
+      <button class="back" data-back>← Sommaire</button>
+      <span class="tag">Objectif du produit</span>
+    </div></div>
+    <div class="docwrap">
+      <header class="doc-hd">
+        <span class="stamp">🎯</span>
+        <p class="eyebrow">Pour le prospect & le commercial</p>
+        <h1>Pourquoi ça vaut le coup</h1>
+        <p class="sub">Dans une agence, l'argent fuit par les interstices : un lead lu trop tard,
+          une visite oubliée, un mandat qui expire, un client satisfait qu'on ne rappelle jamais.
+          ImmoMail colmate ces fuites, automatiquement.</p>
+      </header>
+
+      <section>
+        <h2>Le problème</h2>
+        <p class="kicker eyebrow">Ce que ça coûte aujourd'hui</p>
+        <ul>
+          <li>Des <b>leads noyés</b> dans une boîte commune que personne ne traite à temps.</li>
+          <li>Des <b>no-shows</b> aux visites, faute de rappel.</li>
+          <li>Des <b>mandats qui expirent</b> sans relance — du business qui part chez le concurrent.</li>
+          <li>Des <b>avis Google</b> jamais demandés, une e-réputation en berne.</li>
+          <li>Des <b>tâches administratives</b> (quittances, diagnostics) qui grignotent les journées.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>La promesse</h2>
+        <p class="lead-in">Onze automatisations qui travaillent 24/7, à la place de l'agence, sur
+          les quatre moments où se joue le chiffre d'affaires.</p>
+
+        <div class="cards">
+          <div class="vc">
+            <span class="fam">Leads · le « wow »</span>
+            <h3>Ne perdre aucune demande</h3>
+            <dl>
+              <dt><span class="ac-code">A9</span>Tri & qualification</dt>
+              <dd>Plus aucun lead perdu dans la boîte commune.</dd>
+              <dt><span class="ac-code">A10</span>Réponse instantanée</dt>
+              <dd>Le premier qui répond décroche l'affaire.</dd>
+              <dt><span class="ac-code">A11</span>Fiche CRM auto</dt>
+              <dd>Zéro ressaisie, zéro erreur.</dd>
+            </dl>
+          </div>
+          <div class="vc">
+            <span class="fam">Visites</span>
+            <h3>Remplir l'agenda, réduire les oublis</h3>
+            <dl>
+              <dt><span class="ac-code">A1</span>Prise de RDV</dt>
+              <dd>Supprime les allers-retours téléphoniques.</dd>
+              <dt><span class="ac-code">A2</span>Confirmation + rappels</dt>
+              <dd>Réduit les no-shows (SMS J-1, H-2).</dd>
+            </dl>
+          </div>
+          <div class="vc">
+            <span class="fam">Gestion</span>
+            <h3>Ne rien laisser passer</h3>
+            <dl>
+              <dt><span class="ac-code">A3</span>Expiration de mandat</dt>
+              <dd>Récurrence de business, mandats relancés à temps.</dd>
+              <dt><span class="ac-code">A4</span>Quittances de loyer</dt>
+              <dd>Gain de temps administratif, PDF automatiques.</dd>
+              <dt><span class="ac-code">A5</span>Diagnostics & échéances</dt>
+              <dd>Conformité DPE, PNO, bail — jamais hors délai.</dd>
+            </dl>
+          </div>
+          <div class="vc">
+            <span class="fam">Marketing</span>
+            <h3>Faire revenir & recommander</h3>
+            <dl>
+              <dt><span class="ac-code">A6</span>Newsletter segmentée</dt>
+              <dd>Réactive le portefeuille d'acheteurs.</dd>
+              <dt><span class="ac-code">A7</span>Avis Google</dt>
+              <dd>E-réputation, en pilote automatique.</dd>
+              <dt><span class="ac-code">A8</span>Parrainage</dt>
+              <dd>L'acquisition la moins chère qui soit.</dd>
+            </dl>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Le moment « wow » de la démo</h2>
+        <p class="kicker eyebrow">L'intake des leads, en direct</p>
+        <p>Un email brut arrive d'un portail (SeLoger, LeBonCoin…). En moins d'une minute, sans que
+          personne ne touche à rien : le message est <b>trié</b>, le spam écarté, le lead <b>routé</b>
+          vers le bon négociateur, une <b>fiche CRM créée</b> sans ressaisie, et le prospect reçoit
+          déjà une <b>réponse personnalisée</b> avec un lien de réservation.</p>
+        <blockquote class="quote">« Le premier qui répond décroche l'affaire. »</blockquote>
+        <p>C'est la démonstration qui fait basculer un rendez-vous commercial : l'agence voit,
+          concrètement, le lead qu'elle aurait perdu être capté et traité tout seul.</p>
+      </section>
+
+      <section>
+        <div class="callout">
+          <p class="eyebrow">En une phrase</p>
+          <p>ImmoMail transforme une boîte email et un agenda en <b>machine à ne rien laisser
+            filer</b> — plus de leads captés, moins de no-shows, des mandats renouvelés, une
+            réputation qui grandit et des clients qui reviennent.</p>
+        </div>
+      </section>
+    </div>
+  </article>
+
+  <!-- ============ DOC 03 — TECHNIQUE ============ -->
+  <article class="doc" id="tech" style="--ac:var(--c-tech)">
+    <div class="docbar"><div class="docbar-in">
+      <button class="back" data-back>← Sommaire</button>
+      <span class="tag">Documentation technique n8n</span>
+    </div></div>
+    <div class="docwrap">
+      <header class="doc-hd">
+        <span class="stamp">🔧</span>
+        <p class="eyebrow">Pour le développeur & le repreneur</p>
+        <h1>Comment ça tourne</h1>
+        <p class="sub">Neuf workflows n8n rejouent les onze automatisations sur la même base
+          Supabase que l'application, avec idempotence et journalisation. Voici l'essentiel pour
+          reprendre le système.</p>
+      </header>
+
+      <section>
+        <h2>Architecture</h2>
+        <p class="kicker eyebrow">Déclencheurs → workflows → services → app</p>
+        <div class="flow">
+<b>DÉCLENCHEURS</b>            <b>n8n — 9 workflows</b>          <b>SERVICES &amp; DONNÉES</b>
+Réservation (web) <span class="a">──A1─▶</span> Visites   A1·A2 <span class="a">─emails─▶</span> SMTP
+Planificateur     <span class="a">A2-A8▶</span> Gestion A3·A4·A5 <span class="a">─SMS────▶</span> Provider SMS
+Boîte IMAP        <span class="a">A9-11▶</span> Marketing A6-A8  <span class="a">─PDF────▶</span> API app
+                            Leads A9·A10·A11 <span class="a">─IA─────▶</span> Claude
+                                   │
+                            <span class="a">SQL lit / écrit ⇅</span>  Supabase PostgreSQL
+                                   │  l'UI relit messages + activity_log
+                            App ImmoMail Studio
+        </div>
+      </section>
+
+      <section>
+        <h2>Les 9 workflows</h2>
+        <p class="kicker eyebrow">Un fichier importable par automatisation</p>
+        <div class="tablewrap"><table>
+          <thead><tr><th>Code</th><th>Rôle</th><th>Déclencheur</th></tr></thead>
+          <tbody>
+            <tr><td class="code-cell">A1</td><td>Prise de RDV</td><td>Webhook</td></tr>
+            <tr><td class="code-cell">A2</td><td>Confirmation + rappels visite</td><td>Cron 15 min</td></tr>
+            <tr><td class="code-cell">A3</td><td>Alerte expiration de mandat</td><td>Cron quotidien</td></tr>
+            <tr><td class="code-cell">A4</td><td>Quittances de loyer (PDF)</td><td>Cron quotidien</td></tr>
+            <tr><td class="code-cell">A5</td><td>Rappel diagnostics & échéances</td><td>Cron quotidien</td></tr>
+            <tr><td class="code-cell">A6</td><td>Newsletter acheteurs segmentée</td><td>Cron hebdo</td></tr>
+            <tr><td class="code-cell">A7</td><td>Avis Google (J+2 / J+5)</td><td>Cron quotidien</td></tr>
+            <tr><td class="code-cell">A8</td><td>Parrainage (J+30)</td><td>Cron quotidien</td></tr>
+            <tr><td class="code-cell">A9·A10·A11</td><td>Intake leads → CRM → réponse</td><td>IMAP</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <section>
+        <h2>Chaque nœud, un par un</h2>
+        <p class="kicker eyebrow">Déplier un flux pour voir l'objectif de chaque nœud</p>
+        <div class="nodes">
+
+          <details class="nd">
+            <summary><span class="code">A1</span> Prise de RDV <span class="cnt">3 nœuds · webhook</span><span class="chev">▸</span></summary>
+            <div class="ndbody"><div class="tablewrap"><table>
+              <thead><tr><th>Nœud</th><th>Type</th><th>Objectif</th></tr></thead><tbody>
+              <tr><td>Webhook réservation</td><td>Webhook</td><td>Reçoit le POST du formulaire de réservation publique (créneau choisi).</td></tr>
+              <tr><td>Créer le RDV</td><td>Postgres</td><td>Insère le rendez-vous (statut <code>requested</code>) et écrit la ligne d'activité A1.</td></tr>
+              <tr><td>Répondre 200</td><td>Respond</td><td>Renvoie l'identifiant du RDV au site appelant.</td></tr>
+              </tbody></table></div></div>
+          </details>
+
+          <details class="nd">
+            <summary><span class="code">A2</span> Confirmation + rappels <span class="cnt">6 nœuds · cron 15 min</span><span class="chev">▸</span></summary>
+            <div class="ndbody"><div class="tablewrap"><table>
+              <thead><tr><th>Nœud</th><th>Type</th><th>Objectif</th></tr></thead><tbody>
+              <tr><td>Toutes les 15 min</td><td>Schedule</td><td>Cadence le contrôle des rendez-vous à venir.</td></tr>
+              <tr><td>RDV : actions dues</td><td>Postgres</td><td>Sélectionne les confirmations, rappels J-1 et H-2 à envoyer (filtre d'idempotence).</td></tr>
+              <tr><td>Construire le message</td><td>Code</td><td>Compose le sujet et le corps FR selon le type d'action.</td></tr>
+              <tr><td>Email de confirmation</td><td>Send Email</td><td>Envoie le message par email.</td></tr>
+              <tr><td>SMS</td><td>HTTP Request</td><td>Envoie la version SMS via le provider.</td></tr>
+              <tr><td>Marquer envoyé + journaliser</td><td>Postgres</td><td>Pose le bon flag, réserve la clé et écrit message + activité.</td></tr>
+              </tbody></table></div></div>
+          </details>
+
+          <details class="nd">
+            <summary><span class="code">A3</span> Alerte expiration de mandat <span class="cnt">5 nœuds · cron 8h</span><span class="chev">▸</span></summary>
+            <div class="ndbody"><div class="tablewrap"><table>
+              <thead><tr><th>Nœud</th><th>Type</th><th>Objectif</th></tr></thead><tbody>
+              <tr><td>Chaque jour 8h</td><td>Schedule</td><td>Déclenche le contrôle quotidien.</td></tr>
+              <tr><td>Mandats à J-30</td><td>Postgres</td><td>Sélectionne les mandats actifs à échéance ≤ 30 j, non encore relancés.</td></tr>
+              <tr><td>Rédiger la relance</td><td>Code</td><td>Compose l'email de renouvellement au propriétaire.</td></tr>
+              <tr><td>Email au propriétaire</td><td>Send Email</td><td>Envoie la relance.</td></tr>
+              <tr><td>Journaliser A3</td><td>Postgres</td><td>Réserve la clé, écrit message + activité.</td></tr>
+              </tbody></table></div></div>
+          </details>
+
+          <details class="nd">
+            <summary><span class="code">A4</span> Quittances de loyer <span class="cnt">6 nœuds · cron 9h</span><span class="chev">▸</span></summary>
+            <div class="ndbody"><div class="tablewrap"><table>
+              <thead><tr><th>Nœud</th><th>Type</th><th>Objectif</th></tr></thead><tbody>
+              <tr><td>Chaque jour 9h</td><td>Schedule</td><td>Déclenche le contrôle quotidien.</td></tr>
+              <tr><td>Quittances dues ce mois</td><td>Postgres</td><td>Baux dont le jour d'échéance est atteint et non encore quittancés ce mois.</td></tr>
+              <tr><td>Préparer la quittance</td><td>Code</td><td>Calcule le total, la période, l'URL du PDF et le corps du mail.</td></tr>
+              <tr><td>Générer le PDF (app)</td><td>HTTP Request</td><td>Récupère le vrai PDF via l'endpoint <code>/api/receipt</code> de l'app.</td></tr>
+              <tr><td>Email quittance + PDF</td><td>Send Email</td><td>Envoie l'email avec la quittance en pièce jointe.</td></tr>
+              <tr><td>Journaliser A4</td><td>Postgres</td><td>Réserve la clé mensuelle, écrit message + activité.</td></tr>
+              </tbody></table></div></div>
+          </details>
+
+          <details class="nd">
+            <summary><span class="code">A5</span> Diagnostics & échéances <span class="cnt">4 nœuds · cron 8h</span><span class="chev">▸</span></summary>
+            <div class="ndbody"><div class="tablewrap"><table>
+              <thead><tr><th>Nœud</th><th>Type</th><th>Objectif</th></tr></thead><tbody>
+              <tr><td>Chaque jour 8h</td><td>Schedule</td><td>Déclenche le contrôle quotidien.</td></tr>
+              <tr><td>Conformité à échéance</td><td>Postgres</td><td>Sélectionne les échéances <code>pending</code> dans la fenêtre de rappel, non traitées.</td></tr>
+              <tr><td>Marquer 'reminded' + journaliser</td><td>Postgres</td><td>Passe le statut à <code>reminded</code>, réserve la clé, écrit l'activité.</td></tr>
+              <tr><td>Email interne négociateur</td><td>Send Email</td><td>Prévient l'agence qu'un diagnostic est à renouveler.</td></tr>
+              </tbody></table></div></div>
+          </details>
+
+          <details class="nd">
+            <summary><span class="code">A6</span> Newsletter segmentée <span class="cnt">5 nœuds · cron hebdo</span><span class="chev">▸</span></summary>
+            <div class="ndbody"><div class="tablewrap"><table>
+              <thead><tr><th>Nœud</th><th>Type</th><th>Objectif</th></tr></thead><tbody>
+              <tr><td>Chaque lundi 9h</td><td>Schedule</td><td>Déclenche l'envoi hebdomadaire.</td></tr>
+              <tr><td>Matching biens ↔ acheteurs</td><td>Postgres</td><td>Rapproche les biens dispo récents (7 j) des critères des contacts opt-in.</td></tr>
+              <tr><td>Composer la newsletter</td><td>Code</td><td>Construit la sélection personnalisée par contact.</td></tr>
+              <tr><td>Email newsletter</td><td>Send Email</td><td>Envoie à chacun sa sélection.</td></tr>
+              <tr><td>Journaliser A6</td><td>Postgres</td><td>Réserve la clé hebdo, écrit message + activité.</td></tr>
+              </tbody></table></div></div>
+          </details>
+
+          <details class="nd">
+            <summary><span class="code">A7</span> Avis Google <span class="cnt">6 nœuds · cron 10h</span><span class="chev">▸</span></summary>
+            <div class="ndbody"><div class="tablewrap"><table>
+              <thead><tr><th>Nœud</th><th>Type</th><th>Objectif</th></tr></thead><tbody>
+              <tr><td>Chaque jour 10h</td><td>Schedule</td><td>Déclenche le contrôle quotidien.</td></tr>
+              <tr><td>Avis : demandes & relances dues</td><td>Postgres</td><td>Sélectionne les demandes J+2 et les relances J+5 non envoyées.</td></tr>
+              <tr><td>Rédiger la demande d'avis</td><td>Code</td><td>Compose l'email et le SMS selon l'action (demande / relance).</td></tr>
+              <tr><td>Email avis</td><td>Send Email</td><td>Envoie la demande/relance par email.</td></tr>
+              <tr><td>SMS avis</td><td>HTTP Request</td><td>Envoie la version SMS.</td></tr>
+              <tr><td>Journaliser A7 + horodater</td><td>Postgres</td><td>Pose le flag (<code>review_requested_at</code>/<code>followup</code>), clé, message, activité.</td></tr>
+              </tbody></table></div></div>
+          </details>
+
+          <details class="nd">
+            <summary><span class="code">A8</span> Parrainage <span class="cnt">6 nœuds · cron 11h</span><span class="chev">▸</span></summary>
+            <div class="ndbody"><div class="tablewrap"><table>
+              <thead><tr><th>Nœud</th><th>Type</th><th>Objectif</th></tr></thead><tbody>
+              <tr><td>Chaque jour 11h</td><td>Schedule</td><td>Déclenche le contrôle quotidien.</td></tr>
+              <tr><td>Parrainages dus (J+30)</td><td>Postgres</td><td>Transactions signées il y a ≥ 30 j, sans demande de parrainage.</td></tr>
+              <tr><td>Rédiger le parrainage</td><td>Code</td><td>Compose l'email et le SMS (offre 200 €).</td></tr>
+              <tr><td>Email parrainage</td><td>Send Email</td><td>Envoie l'email.</td></tr>
+              <tr><td>SMS parrainage</td><td>HTTP Request</td><td>Envoie le SMS.</td></tr>
+              <tr><td>Journaliser A8 + horodater</td><td>Postgres</td><td>Pose <code>referral_requested_at</code>, clé, message, activité.</td></tr>
+              </tbody></table></div></div>
+          </details>
+
+          <details class="nd" open>
+            <summary><span class="code">A9·A10·A11</span> Intake leads <span class="cnt">10 nœuds · IMAP</span><span class="chev">▸</span></summary>
+            <div class="ndbody"><div class="tablewrap"><table>
+              <thead><tr><th>Nœud</th><th>Type</th><th>Objectif</th></tr></thead><tbody>
+              <tr><td>Nouveaux emails (IMAP)</td><td>Email Trigger</td><td>Déclenche à chaque email entrant de la boîte commune (portails + site).</td></tr>
+              <tr><td>⚙️ Config agence</td><td>Edit Fields</td><td>Centralise en un seul endroit l'id d'agence, le nom, l'expéditeur et l'URL de base.</td></tr>
+              <tr><td>A9 · Préparer prompt Claude</td><td>Code</td><td>Nettoie l'email et construit la requête de classification pour Claude.</td></tr>
+              <tr><td>A9 · Classifier (Claude)</td><td>HTTP Request</td><td>Appelle l'API Anthropic : classe l'email et extrait les infos du lead.</td></tr>
+              <tr><td>A9 · Lire la classification</td><td>Code</td><td>Parse la réponse JSON de Claude et produit un item propre.</td></tr>
+              <tr><td>A9 · Router la catégorie</td><td>Switch</td><td>Aiguille selon la catégorie : lead / spam / documents / suivi / autre.</td></tr>
+              <tr><td>A9 · Créer le lead + fiche CRM</td><td>Postgres</td><td>Crée le lead (A9), la fiche contact sans ressaisie (A11) et route vers le négociateur.</td></tr>
+              <tr><td>A10 · Réponse instantanée</td><td>Send Email</td><td>Envoie au prospect un accusé de réception 24/7 avec lien de réservation.</td></tr>
+              <tr><td>A10 · Horodater 1re réponse</td><td>Postgres</td><td>Pose <code>first_response_at</code>, réserve la clé, écrit message + activité.</td></tr>
+              <tr><td>A9 · Journaliser (non-lead)</td><td>Postgres</td><td>Trace les emails écartés : spam, pièces de dossier, suivi de visite.</td></tr>
+              </tbody></table></div></div>
+          </details>
+
+        </div>
+      </section>
+
+      <section>
+        <h2>Principes transversaux</h2>
+        <p class="kicker eyebrow">Ce qui garantit la robustesse</p>
+        <ul>
+          <li><b>Idempotence.</b> Chaque envoi réserve une clé unique dans <code>automation_runs.run_key</code>
+            (<code>ON CONFLICT DO NOTHING</code>) — rien n'est jamais envoyé deux fois.</li>
+          <li><b>Horloge réelle.</b> En production, l'horloge de démo est remplacée par le <code>now()</code>
+            PostgreSQL ; les fenêtres J-1, H-2, J+2, J+30 sont calculées en SQL.</li>
+          <li><b>Journalisation.</b> Chaque action écrit dans <code>messages</code> et <code>activity_log</code>,
+            donc l'UI de l'app reflète en temps réel ce que fait n8n.</li>
+          <li><b>Patron commun.</b> Déclencheur → lire (Postgres) → préparer (Code) → agir (Email/SMS/HTTP) → journaliser.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Base & connexion</h2>
+        <p class="kicker eyebrow">Piège à connaître</p>
+        <div class="callout">
+          <p class="eyebrow">Supabase — pooler mode Session</p>
+          <p>Se connecter via le <b>pooler Supabase en mode Session (port 5432)</b>, pas le mode
+            transaction (6543) : avec le driver <code>postgres-js</code>, le mode transaction bloque
+            sur la première requête. Mots de passe à caractères spéciaux : <b>encoder en %xx</b> dans l'URL.</p>
+        </div>
+      </section>
+
+      <section>
+        <h2>Credentials requis</h2>
+        <p class="kicker eyebrow">À rattacher après import</p>
+        <div class="tablewrap"><table>
+          <thead><tr><th>Credential</th><th>Type</th><th>Usage</th></tr></thead>
+          <tbody>
+            <tr><td>Supabase ImmoMail</td><td class="code-cell">Postgres</td><td>Lecture des éléments dus, écriture logs.</td></tr>
+            <tr><td>Boite leads IMAP</td><td class="code-cell">IMAP</td><td>Boîte commune des portails (A9).</td></tr>
+            <tr><td>SMTP ImmoMail</td><td class="code-cell">SMTP</td><td>Envoi des emails.</td></tr>
+            <tr><td>Anthropic API</td><td class="code-cell">Header Auth</td><td>Classification des leads par Claude (A9).</td></tr>
+            <tr><td>SMS Provider</td><td class="code-cell">Header Auth</td><td>SMS (A2 / A7 / A8).</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <section>
+        <h2>Le dépôt</h2>
+        <p class="kicker eyebrow">Où trouver le détail</p>
+        <ul>
+          <li><code>n8n-workflows/build.mjs</code> — générateur (source de vérité des workflows).</li>
+          <li><code>n8n-workflows/push.mjs</code> — déploiement vers l'instance via l'API n8n.</li>
+          <li><code>n8n-workflows/DOCUMENTATION.md</code> — logique détaillée, <b>nœud par nœud</b>.</li>
+          <li><code>n8n-workflows/README.md</code> — import, credentials, variables d'environnement.</li>
+        </ul>
+        <p>Le détail bas niveau de chaque nœud — SQL complet, expressions n8n, structure des
+          requêtes — vit dans le <code>DOCUMENTATION.md</code> du dépôt. Ce portail en donne
+          l'objectif ; le dépôt en donne le code.</p>
+        <p style="margin-top:20px"><a class="xref" href="https://claude.ai/code/artifact/782be469-3642-48b9-b3ea-cadd79c9cb7c" target="_blank" rel="noopener">→ Documentation complète de l'application</a></p>
+      </section>
+    </div>
+  </article>
+
+</div>
+
+<script>
+  (function(){
+    var hub = document.getElementById('hub');
+    var docs = { invest:document.getElementById('invest'),
+                 produit:document.getElementById('produit'),
+                 tech:document.getElementById('tech') };
+    function show(id){
+      var isDoc = docs.hasOwnProperty(id);
+      hub.style.display = isDoc ? 'none' : 'block';
+      Object.keys(docs).forEach(function(k){ docs[k].classList.toggle('active', k===id); });
+      window.scrollTo(0,0);
+      try{ history.replaceState(null,'', isDoc ? '#'+id : '#'); }catch(e){}
+      if(!isDoc){ var f=document.querySelector('.entry'); }
+    }
+    document.querySelectorAll('.entry').forEach(function(b){
+      b.addEventListener('click', function(){ show(b.getAttribute('data-doc')); });
+    });
+    document.querySelectorAll('[data-back]').forEach(function(b){
+      b.addEventListener('click', function(){ show('hub'); });
+    });
+    var h = (location.hash||'').replace('#','');
+    if(docs.hasOwnProperty(h)) show(h); else show('hub');
+  })();
+</script>

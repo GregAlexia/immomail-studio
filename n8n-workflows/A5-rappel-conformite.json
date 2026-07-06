@@ -1,0 +1,143 @@
+{
+  "name": "A5 · Rappel diagnostics & échéances",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "A5 — Rappel diagnostics & échéances\n\nQuotidien 8h. DPE, assurance PNO, renouvellement de bail…\nRappel déclenché reminder_days_before jours avant l'échéance,\nstatut passé à 'reminded' + email interne au négociateur.",
+        "height": 200,
+        "width": 500
+      },
+      "id": "f81eeaf1-dbcd-4aeb-9093-018646bd4592",
+      "name": "Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        240,
+        40
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "id": "bd0d278c-5701-4552-9c5d-0d929fe9ed8c",
+      "name": "Chaque jour 8h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT ci.id, ci.agency_id, ci.label, ci.type, ci.due_date,\n       p.title AS prop_title, p.negotiator,\n       'A5:compliance:' || ci.id AS run_key\nFROM compliance_items ci\nJOIN properties p ON p.id = ci.property_id\nWHERE ci.status = 'pending'\n  AND now() >= (ci.due_date::timestamptz - make_interval(days => ci.reminder_days_before))\n  AND NOT EXISTS (SELECT 1 FROM automation_runs ar WHERE ar.run_key = 'A5:compliance:' || ci.id);",
+        "options": {}
+      },
+      "id": "e056172c-3192-49a7-8d46-9be8cf7dea0a",
+      "name": "Conformité à échéance",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        240,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "immomail-supabase",
+          "name": "Supabase ImmoMail (pooler session 5432)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH upd AS (\n  UPDATE compliance_items SET status = 'reminded' WHERE id = {{ JSON.stringify($json.id) }}\n),\nrun AS (\n  INSERT INTO automation_runs (id, agency_id, automation_type, ref_id, run_key, executed_at, created_at)\n  VALUES (gen_random_uuid()::text, {{ JSON.stringify($json.agency_id) }}, 'A5', {{ JSON.stringify($json.id) }}, {{ JSON.stringify($json.run_key) }}, now()::text, now()::text)\n  ON CONFLICT (run_key) DO NOTHING\n)\nINSERT INTO activity_log (id, agency_id, automation_type, description, ref_id, occurred_at, created_at)\nVALUES (gen_random_uuid()::text, {{ JSON.stringify($json.agency_id) }}, 'A5',\n  {{ JSON.stringify('Échéance conformité « ') }} || {{ JSON.stringify($json.label) }} || {{ JSON.stringify(' » (') }} || {{ JSON.stringify($json.prop_title) }} || {{ JSON.stringify(') à traiter avant le ') }} || to_char({{ JSON.stringify($json.due_date) }}::timestamptz, 'DD/MM/YYYY'),\n  {{ JSON.stringify($json.id) }}, now()::text, now()::text);",
+        "options": {}
+      },
+      "id": "d5381c05-5b29-4116-af99-b0931c84255b",
+      "name": "Marquer 'reminded' + journaliser",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        480,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "immomail-supabase",
+          "name": "Supabase ImmoMail (pooler session 5432)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $env.IMMOMAIL_FROM_EMAIL || 'agence@immomail.demo' }}",
+        "toEmail": "={{ $env.IMMOMAIL_AGENCY_INBOX || 'agence@immomail.demo' }}",
+        "subject": "=Conformité à traiter : {{ $json.label }} — {{ $json.prop_title }}",
+        "emailFormat": "text",
+        "text": "=Le diagnostic « {{ $json.label }} » du bien {{ $json.prop_title }} arrive à échéance ({{ $json.due_date }}). Négociateur : {{ $json.negotiator }}. Merci de planifier son renouvellement.",
+        "options": {}
+      },
+      "id": "991fb835-0b28-4230-8acc-d594cae570d9",
+      "name": "Email interne négociateur",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        480,
+        480
+      ],
+      "credentials": {
+        "smtp": {
+          "id": "immomail-smtp",
+          "name": "SMTP ImmoMail"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Chaque jour 8h": {
+      "main": [
+        [
+          {
+            "node": "Conformité à échéance",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Conformité à échéance": {
+      "main": [
+        [
+          {
+            "node": "Marquer 'reminded' + journaliser",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Email interne négociateur",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "note": "Rappel des échéances de conformité (DPE/PNO/bail) N jours avant."
+  }
+}
