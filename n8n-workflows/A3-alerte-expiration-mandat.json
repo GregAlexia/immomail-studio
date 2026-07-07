@@ -7,7 +7,7 @@
         "height": 160,
         "width": 460
       },
-      "id": "d569f29e-9fa2-43fa-b4a6-9b5f5974d726",
+      "id": "d484f3c5-2dc4-4613-8629-96de34aaf93a",
       "name": "Note",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -27,7 +27,7 @@
           ]
         }
       },
-      "id": "fe6c80ca-97c8-44c8-aa39-543a64d5115d",
+      "id": "4b4e52e7-158c-4ba7-844e-27b3ff904694",
       "name": "Chaque jour 8h",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
@@ -42,7 +42,7 @@
         "query": "SELECT m.id, m.agency_id, m.type, m.end_date,\n       p.title AS prop_title,\n       c.id AS owner_id, c.first_name, c.last_name, c.email AS owner_email,\n       'A3:mandate_expiry:' || m.id AS run_key\nFROM mandates m\nJOIN properties p ON p.id = m.property_id\nLEFT JOIN contacts c ON c.id = m.owner_id\nWHERE m.status = 'active'\n  AND now() >= (m.end_date::timestamptz - interval '30 days')\n  AND NOT EXISTS (SELECT 1 FROM automation_runs ar WHERE ar.run_key = 'A3:mandate_expiry:' || m.id);",
         "options": {}
       },
-      "id": "dcfdc4f4-bd41-4ef5-bc0f-a4e6189196b6",
+      "id": "06e55e09-efc5-43ac-9c54-42199b6b9888",
       "name": "Mandats à J-30",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
@@ -61,7 +61,7 @@
       "parameters": {
         "jsCode": "for (const item of $input.all()) {\n  const j = item.json;\n  const owner = ((j.first_name || '') + ' ' + (j.last_name || '')).trim() || 'le propriétaire';\n  const kind = j.type === 'exclusive' ? 'exclusif' : 'simple';\n  const date = new Date(j.end_date).toLocaleDateString('fr-FR');\n  item.json.owner_name = owner;\n  item.json.subject = 'Renouvellement de votre mandat — échéance ' + date;\n  item.json.body = 'Bonjour ' + owner + ',\\n\\nVotre mandat ' + kind + ' sur le bien ' + (j.prop_title || '') + ' arrive à échéance le ' + date + '.\\nNous obtenons d\\'excellents résultats sur ce secteur et serions ravis de le renouveler avec vous. Pouvons-nous convenir d\\'un point cette semaine ?\\n\\nBien à vous,';\n}\nreturn $input.all();"
       },
-      "id": "88681737-40d0-4864-85d9-2afcc2cb3276",
+      "id": "b52edc53-dabd-40be-bbf2-7b984a1a3662",
       "name": "Rédiger la relance",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -79,7 +79,7 @@
         "text": "={{ $json.body }}",
         "options": {}
       },
-      "id": "ee9690cd-de72-41e7-ac04-051ab89a3dc4",
+      "id": "fbb55388-9f0b-47aa-a4ce-35dde7c5c742",
       "name": "Email au propriétaire",
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
@@ -97,10 +97,10 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "WITH run AS (\n  INSERT INTO automation_runs (id, agency_id, automation_type, ref_id, run_key, executed_at, created_at)\n  VALUES (gen_random_uuid()::text, {{ JSON.stringify($json.agency_id) }}, 'A3', {{ JSON.stringify($json.id) }}, {{ JSON.stringify($json.run_key) }}, now()::text, now()::text)\n  ON CONFLICT (run_key) DO NOTHING\n),\nmsg AS (\n  INSERT INTO messages (id, agency_id, channel, to_contact_id, to_name, to_address, subject, body, automation_type, sent_at, created_at)\n  VALUES (gen_random_uuid()::text, {{ JSON.stringify($json.agency_id) }}, 'email', {{ $json.owner_id ? JSON.stringify($json.owner_id) : 'NULL' }}, {{ JSON.stringify($json.owner_name) }}, {{ $json.owner_email ? JSON.stringify($json.owner_email) : 'NULL' }}, {{ JSON.stringify($json.subject) }}, {{ JSON.stringify($json.body) }}, 'A3', now()::text, now()::text)\n)\nINSERT INTO activity_log (id, agency_id, automation_type, description, ref_id, occurred_at, created_at)\nVALUES (gen_random_uuid()::text, {{ JSON.stringify($json.agency_id) }}, 'A3', {{ JSON.stringify('Mandat à relancer : ') }} || {{ JSON.stringify($json.prop_title) }}, {{ JSON.stringify($json.id) }}, now()::text, now()::text);",
+        "query": "WITH run AS (\n  INSERT INTO automation_runs (id, agency_id, automation_type, ref_id, run_key, executed_at, created_at)\n  VALUES (gen_random_uuid()::text, {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.agency_id) }}, 'A3', {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.id) }}, {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.run_key) }}, now()::text, now()::text)\n  ON CONFLICT (run_key) DO NOTHING\n),\nmsg AS (\n  INSERT INTO messages (id, agency_id, channel, to_contact_id, to_name, to_address, subject, body, automation_type, sent_at, created_at)\n  VALUES (gen_random_uuid()::text, {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.agency_id) }}, 'email', {{ $json.owner_id ? ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.owner_id) : 'NULL' }}, {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.owner_name) }}, {{ $json.owner_email ? ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.owner_email) : 'NULL' }}, {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.subject) }}, {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.body) }}, 'A3', now()::text, now()::text)\n)\nINSERT INTO activity_log (id, agency_id, automation_type, description, ref_id, occurred_at, created_at)\nVALUES (gen_random_uuid()::text, {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.agency_id) }}, 'A3', {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")('Mandat à relancer : ') }} || {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.prop_title) }}, {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.id) }}, now()::text, now()::text);",
         "options": {}
       },
-      "id": "21770288-c9ec-4c95-82b0-c774d2bb036b",
+      "id": "8f21900c-ca2e-43a7-8cbb-f74c6057a7a1",
       "name": "Journaliser A3",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,

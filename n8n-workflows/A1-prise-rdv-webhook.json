@@ -7,7 +7,7 @@
         "height": 240,
         "width": 520
       },
-      "id": "a887979d-4d44-42bc-99d3-6e4ee736f1cc",
+      "id": "2a8643f7-4202-45e0-ba95-e51f3bc31978",
       "name": "Note",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -23,7 +23,7 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "f40108a3-15f1-4695-91d6-1a8fbc330074",
+      "id": "8f48b12e-3e8d-4512-9f6c-55206a5894b3",
       "name": "Webhook réservation",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
@@ -31,15 +31,15 @@
         0,
         300
       ],
-      "webhookId": "419241ea-87d1-4d6b-a271-9c4015307ed8"
+      "webhookId": "ca5d6139-d12f-480a-97ca-b94adcc7bef4"
     },
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "WITH new_apt AS (\n  INSERT INTO appointments\n    (id, agency_id, property_id, contact_id, contact_name, contact_email, contact_phone, type, scheduled_at, status, created_at)\n  VALUES (\n    gen_random_uuid()::text,\n    {{ JSON.stringify($json.body.agencyId) }},\n    {{ $json.body.propertyId ? JSON.stringify($json.body.propertyId) : 'NULL' }},\n    {{ $json.body.contactId ? JSON.stringify($json.body.contactId) : 'NULL' }},\n    {{ JSON.stringify($json.body.contactName) }},\n    {{ $json.body.contactEmail ? JSON.stringify($json.body.contactEmail) : 'NULL' }},\n    {{ $json.body.contactPhone ? JSON.stringify($json.body.contactPhone) : 'NULL' }},\n    {{ JSON.stringify($json.body.type || 'visite') }},\n    {{ JSON.stringify($json.body.scheduledAt) }},\n    'requested', now()::text\n  )\n  RETURNING id, agency_id, contact_name, scheduled_at\n),\nlog AS (\n  INSERT INTO activity_log (id, agency_id, automation_type, description, ref_id, occurred_at, created_at)\n  SELECT gen_random_uuid()::text, agency_id, 'A1',\n         'RDV réservé en ligne pour ' || contact_name || ' le ' || scheduled_at, id, now()::text, now()::text\n  FROM new_apt\n)\nSELECT id, agency_id, contact_name, scheduled_at FROM new_apt;",
+        "query": "WITH new_apt AS (\n  INSERT INTO appointments\n    (id, agency_id, property_id, contact_id, contact_name, contact_email, contact_phone, type, scheduled_at, status, created_at)\n  VALUES (\n    gen_random_uuid()::text,\n    {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.body.agencyId) }},\n    {{ $json.body.propertyId ? ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.body.propertyId) : 'NULL' }},\n    {{ $json.body.contactId ? ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.body.contactId) : 'NULL' }},\n    {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.body.contactName) }},\n    {{ $json.body.contactEmail ? ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.body.contactEmail) : 'NULL' }},\n    {{ $json.body.contactPhone ? ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.body.contactPhone) : 'NULL' }},\n    {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.body.type || 'visite') }},\n    {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.body.scheduledAt) }},\n    'requested', now()::text\n  )\n  RETURNING id, agency_id, contact_name, scheduled_at\n),\nlog AS (\n  INSERT INTO activity_log (id, agency_id, automation_type, description, ref_id, occurred_at, created_at)\n  SELECT gen_random_uuid()::text, agency_id, 'A1',\n         'RDV réservé en ligne pour ' || contact_name || ' le ' || scheduled_at, id, now()::text, now()::text\n  FROM new_apt\n)\nSELECT id, agency_id, contact_name, scheduled_at FROM new_apt;",
         "options": {}
       },
-      "id": "fd6e2c24-2d7e-4282-b77b-fcc122e94d66",
+      "id": "b1139ca4-3a16-4edb-99fe-645b8e29d55e",
       "name": "Créer le RDV (appointments)",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
@@ -60,7 +60,7 @@
         "responseBody": "={{ JSON.stringify({ ok: true, appointmentId: $json.id }) }}",
         "options": {}
       },
-      "id": "b8ad37b7-a13b-49a0-a626-f71d8ae8a5fa",
+      "id": "83119237-7944-467a-9365-d1e255982795",
       "name": "Répondre 200",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,

@@ -243,6 +243,38 @@ curl -sI "https://immomail-studio.vercel.app/api/receipt/<un-id-de-bail>?period=
 
 ---
 
+## 6 bis. Tests unitaires (hors n8n)
+
+n8n n'a pas de framework de tests unitaires : la bonne approche est d'**extraire la
+logique testable** de chaque workflow et de la tester hors n8n. Pour ces workflows,
+la logique est concentrée dans les **requêtes SQL templées** des nœuds Postgres.
+
+Le harnais `tests/test-a1.mjs` illustre la méthode sur A1 :
+
+1. il lit le JSON du workflow et en extrait le template SQL du nœud Postgres ;
+2. il **émule le rendu des expressions n8n** (`{{ … }}` évaluées avec `$json` =
+   le payload du webhook) sur des payloads fixtures ;
+3. il exécute le SQL rendu dans une **transaction `ROLLBACK`** (aucune trace en base) ;
+4. il vérifie le `RETURNING` et des cas limites : champs optionnels absents,
+   apostrophe dans un nom, tentative d'injection SQL.
+
+```bash
+PGPASSWORD=postgres node n8n-workflows/tests/test-a1.mjs
+```
+
+> 🐛 Ce harnais a détecté (et permis de corriger) un bug réel du générateur : les
+> valeurs étaient interpolées via `JSON.stringify`, qui produit des guillemets
+> **doubles** — des identifiants pour PostgreSQL, pas des littéraux. Toutes les
+> requêtes échouaient avec `column "…" does not exist`. `build.mjs` échappe
+> désormais en apostrophes simples doublées (fonction `sqlSafe`).
+
+Pour tester **la chaîne complète** (webhook → SQL → réponse), utilisez le test
+d'intégration du §6.2 (URL `webhook-test` + `curl`) : les deux niveaux sont
+complémentaires — le test unitaire couvre les cas limites du SQL rapidement,
+le test d'intégration valide le câblage réel dans n8n.
+
+---
+
 ## 7. Activation
 
 Une fois les tests à blanc passés, activer via le **toggle « Active »** de chaque workflow,

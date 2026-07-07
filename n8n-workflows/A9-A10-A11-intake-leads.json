@@ -7,7 +7,7 @@
         "height": 300,
         "width": 620
       },
-      "id": "e83b2d6a-0189-47cb-82ea-8cc18c8bb8cd",
+      "id": "b47a9412-1cbe-413c-af11-c86e30c8f2d8",
       "name": "Note",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -21,7 +21,7 @@
         "format": "resolved",
         "options": {}
       },
-      "id": "0ec0b3a1-0fb0-463f-a865-fc134a485668",
+      "id": "afa9adfa-f4b8-4cd8-9078-02c9f50536b1",
       "name": "Nouveaux emails (IMAP)",
       "type": "n8n-nodes-base.emailReadImap",
       "typeVersion": 2,
@@ -41,25 +41,25 @@
         "assignments": {
           "assignments": [
             {
-              "id": "afa79946-98b9-4fda-8ffd-d173645cedf7",
+              "id": "0d3d528d-9f00-461c-9d0b-0c3d6d1ba995",
               "name": "agency_id",
               "value": "REMPLACER-PAR-ID-AGENCE",
               "type": "string"
             },
             {
-              "id": "d1656a94-9865-4d6d-a217-f8534924eabd",
+              "id": "c4f883b7-8d94-4e78-9eee-5f17acdcbce9",
               "name": "agency_name",
               "value": "Agence Horizon Immobilier",
               "type": "string"
             },
             {
-              "id": "7b70de40-876e-4dc8-bc7b-1eb07b7ffc85",
+              "id": "b90743fb-9ad2-4395-99cb-995dad99bfbb",
               "name": "from_email",
               "value": "contact@mon-agence.fr",
               "type": "string"
             },
             {
-              "id": "78fcdb5e-8dbf-4802-9cd6-652207ced594",
+              "id": "c744a308-126a-4a76-8e4e-80d6a8790e7a",
               "name": "base_url",
               "value": "https://immomail-studio.vercel.app",
               "type": "string"
@@ -69,7 +69,7 @@
         "includeOtherFields": true,
         "options": {}
       },
-      "id": "e2fb1a93-4453-4b84-8ae8-c584ec625da0",
+      "id": "868d4bb3-f96e-48ee-a64d-cc2d65559270",
       "name": "⚙️ Config agence",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -82,7 +82,7 @@
       "parameters": {
         "jsCode": "for (const item of $input.all()) {\n  const j = item.json;\n  const from = (typeof j.from === 'object' && j.from) ? (j.from.text || j.from.value?.[0]?.address || '') : (j.from || '');\n  const subject = j.subject || '';\n  const text = (j.text || j.textPlain || j.textAsHtml || '').toString().slice(0, 4000);\n  const system = \"Tu es l'assistant d'une agence immobilière. Tu tries les emails entrants de la boîte commune (portails SeLoger/LeBonCoin/Bien'ici + site). Réponds UNIQUEMENT en JSON strict.\";\n  const user = [\n    'Classe cet email dans une catégorie : \"spam\" (démarchage/pub), \"documents\" (pièces d\\'un dossier existant), \"visit_followup\" (suivi après une visite), ou \"lead\" (nouvelle demande acheteur/locataire/estimation).',\n    \"Si c'est un lead, extrais : name, email, phone, requestType (purchase|rental|valuation), propertyRef (réf du bien type REF-001 si mentionnée, sinon null), priority (haute|moyenne|basse).\",\n    'Format de réponse : {\"category\":\"...\",\"name\":\"...\",\"email\":\"...\",\"phone\":\"...\",\"requestType\":\"...\",\"propertyRef\":null,\"priority\":\"moyenne\"}',\n    '',\n    'DE: ' + from,\n    'SUJET: ' + subject,\n    'CORPS: ' + text,\n  ].join('\\n');\n  item.json.from_addr = from;\n  item.json.subject_clean = subject;\n  item.json.payload = {\n    model: 'claude-haiku-4-5-20251001',\n    max_tokens: 400,\n    system,\n    messages: [{ role: 'user', content: user }],\n  };\n}\nreturn $input.all();"
       },
-      "id": "e3eca4df-82e4-40cf-b61d-7bce014b4dc6",
+      "id": "394b2254-c2db-4dca-b45b-33bf17d0f17a",
       "name": "A9 · Préparer prompt Claude",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -115,7 +115,7 @@
         "jsonBody": "={{ JSON.stringify($json.payload) }}",
         "options": {}
       },
-      "id": "e7a268f5-7dea-4576-9e71-0063406a4664",
+      "id": "5cae52fd-4a92-4668-ade9-448d8b29e630",
       "name": "A9 · Classifier (Claude)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -134,7 +134,7 @@
       "parameters": {
         "jsCode": "const AGENCY = $('⚙️ Config agence').first().json.agency_id;\nconst out = [];\nconst items = $input.all();\nfor (let i = 0; i < items.length; i++) {\n  const resp = items[i].json;\n  const src = $('A9 · Préparer prompt Claude').all()[i].json;\n  let verdict = { category: 'lead', name: '', email: null, phone: null, requestType: 'purchase', propertyRef: null, priority: 'moyenne' };\n  try {\n    const raw = resp.content?.[0]?.text || resp.text || '{}';\n    verdict = { ...verdict, ...JSON.parse(raw.replace(/^[^{]*/, '').replace(/[^}]*$/, '')) };\n  } catch (e) { verdict.category = 'lead'; }\n  out.push({ json: {\n    agency_id: AGENCY,\n    from_addr: src.from_addr,\n    subject: src.subject_clean,\n    body_raw: (src.text || '').toString().slice(0, 4000),\n    category: verdict.category,\n    name: verdict.name || src.from_addr,\n    email: verdict.email,\n    phone: verdict.phone,\n    request_type: verdict.requestType || 'purchase',\n    property_ref: verdict.propertyRef,\n    priority: verdict.priority || 'moyenne',\n  }});\n}\nreturn out;"
       },
-      "id": "736dce3a-0ceb-4d43-b1ed-41b514d2c489",
+      "id": "78b5ad72-14b2-4b74-b589-a7156485e1d6",
       "name": "A9 · Lire la classification",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -239,7 +239,7 @@
           "renameFallbackOutput": "autre"
         }
       },
-      "id": "d471c597-360f-4c55-8505-cfe476c0d071",
+      "id": "d465f2a8-8d18-45ea-a6bb-5946b4e2e952",
       "name": "A9 · Router la catégorie",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
@@ -251,10 +251,10 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "WITH ins_contact AS (\n  INSERT INTO contacts (id, agency_id, first_name, last_name, email, phone, role, buyer_criteria, consent_marketing, created_at)\n  SELECT gen_random_uuid()::text, {{ JSON.stringify($json.agency_id) }},\n         split_part({{ JSON.stringify($json.name) }}, ' ', 1),\n         NULLIF(regexp_replace({{ JSON.stringify($json.name) }}, '^\\\\S+\\\\s*', ''), ''),\n         {{ $json.email ? JSON.stringify($json.email) : 'NULL' }},\n         {{ $json.phone ? JSON.stringify($json.phone) : 'NULL' }},\n         CASE {{ JSON.stringify($json.request_type) }} WHEN 'rental' THEN 'tenant' WHEN 'valuation' THEN 'owner' ELSE 'buyer' END,\n         NULL, TRUE, now()::text\n  WHERE NOT EXISTS (\n    SELECT 1 FROM contacts c WHERE c.agency_id = {{ JSON.stringify($json.agency_id) }} AND c.email = {{ $json.email ? JSON.stringify($json.email) : 'NULL' }} AND {{ $json.email ? 'TRUE' : 'FALSE' }}\n  )\n  RETURNING id\n),\ncontact_id AS (\n  SELECT COALESCE(\n    (SELECT id FROM ins_contact),\n    (SELECT id FROM contacts WHERE agency_id = {{ JSON.stringify($json.agency_id) }} AND email = {{ $json.email ? JSON.stringify($json.email) : 'NULL' }} LIMIT 1)\n  ) AS id\n),\nprop AS (\n  SELECT id, negotiator FROM properties\n  WHERE agency_id = {{ JSON.stringify($json.agency_id) }} AND ref = {{ $json.property_ref ? JSON.stringify($json.property_ref) : 'NULL' }}\n  LIMIT 1\n),\nseq AS ( SELECT 'LD-' || (501 + count(*)) AS ext FROM leads WHERE agency_id = {{ JSON.stringify($json.agency_id) }} ),\nins_lead AS (\n  INSERT INTO leads (id, agency_id, external_id, contact_id, property_id, name, email, phone, assigned_to, request_type, priority, status, created_at)\n  SELECT gen_random_uuid()::text, {{ JSON.stringify($json.agency_id) }}, (SELECT ext FROM seq),\n         (SELECT id FROM contact_id), (SELECT id FROM prop),\n         {{ JSON.stringify($json.name) }}, {{ $json.email ? JSON.stringify($json.email) : 'NULL' }}, {{ $json.phone ? JSON.stringify($json.phone) : 'NULL' }},\n         COALESCE((SELECT negotiator FROM prop), 'Accueil agence'),\n         {{ JSON.stringify($json.request_type) }}, {{ JSON.stringify($json.priority) }}, 'new', now()::text\n  RETURNING id, external_id, assigned_to, contact_id\n),\nlog AS (\n  INSERT INTO activity_log (id, agency_id, automation_type, description, ref_id, occurred_at, created_at)\n  SELECT gen_random_uuid()::text, {{ JSON.stringify($json.agency_id) }}, 'A9',\n         'Lead qualifié ' || external_id || ' : ' || {{ JSON.stringify($json.name) }} || ' → ' || assigned_to, id, now()::text, now()::text\n  FROM ins_lead\n),\nlog_crm AS (\n  INSERT INTO activity_log (id, agency_id, automation_type, description, ref_id, occurred_at, created_at)\n  SELECT gen_random_uuid()::text, {{ JSON.stringify($json.agency_id) }}, 'A11',\n         'Fiche CRM créée sans ressaisie pour ' || {{ JSON.stringify($json.name) }}, contact_id, now()::text, now()::text\n  FROM ins_lead\n)\nSELECT id AS lead_id, external_id, assigned_to FROM ins_lead;",
+        "query": "WITH ins_contact AS (\n  INSERT INTO contacts (id, agency_id, first_name, last_name, email, phone, role, buyer_criteria, consent_marketing, created_at)\n  SELECT gen_random_uuid()::text, {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.agency_id) }},\n         split_part({{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.name) }}, ' ', 1),\n         NULLIF(regexp_replace({{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.name) }}, '^\\\\S+\\\\s*', ''), ''),\n         {{ $json.email ? ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.email) : 'NULL' }},\n         {{ $json.phone ? ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.phone) : 'NULL' }},\n         CASE {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.request_type) }} WHEN 'rental' THEN 'tenant' WHEN 'valuation' THEN 'owner' ELSE 'buyer' END,\n         NULL, TRUE, now()::text\n  WHERE NOT EXISTS (\n    SELECT 1 FROM contacts c WHERE c.agency_id = {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.agency_id) }} AND c.email = {{ $json.email ? ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.email) : 'NULL' }} AND {{ $json.email ? 'TRUE' : 'FALSE' }}\n  )\n  RETURNING id\n),\ncontact_id AS (\n  SELECT COALESCE(\n    (SELECT id FROM ins_contact),\n    (SELECT id FROM contacts WHERE agency_id = {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.agency_id) }} AND email = {{ $json.email ? ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.email) : 'NULL' }} LIMIT 1)\n  ) AS id\n),\nprop AS (\n  SELECT id, negotiator FROM properties\n  WHERE agency_id = {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.agency_id) }} AND ref = {{ $json.property_ref ? ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.property_ref) : 'NULL' }}\n  LIMIT 1\n),\nseq AS ( SELECT 'LD-' || (501 + count(*)) AS ext FROM leads WHERE agency_id = {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.agency_id) }} ),\nins_lead AS (\n  INSERT INTO leads (id, agency_id, external_id, contact_id, property_id, name, email, phone, assigned_to, request_type, priority, status, created_at)\n  SELECT gen_random_uuid()::text, {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.agency_id) }}, (SELECT ext FROM seq),\n         (SELECT id FROM contact_id), (SELECT id FROM prop),\n         {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.name) }}, {{ $json.email ? ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.email) : 'NULL' }}, {{ $json.phone ? ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.phone) : 'NULL' }},\n         COALESCE((SELECT negotiator FROM prop), 'Accueil agence'),\n         {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.request_type) }}, {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.priority) }}, 'new', now()::text\n  RETURNING id, external_id, assigned_to, contact_id\n),\nlog AS (\n  INSERT INTO activity_log (id, agency_id, automation_type, description, ref_id, occurred_at, created_at)\n  SELECT gen_random_uuid()::text, {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.agency_id) }}, 'A9',\n         'Lead qualifié ' || external_id || ' : ' || {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.name) }} || ' → ' || assigned_to, id, now()::text, now()::text\n  FROM ins_lead\n),\nlog_crm AS (\n  INSERT INTO activity_log (id, agency_id, automation_type, description, ref_id, occurred_at, created_at)\n  SELECT gen_random_uuid()::text, {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.agency_id) }}, 'A11',\n         'Fiche CRM créée sans ressaisie pour ' || {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.name) }}, contact_id, now()::text, now()::text\n  FROM ins_lead\n)\nSELECT id AS lead_id, external_id, assigned_to FROM ins_lead;",
         "options": {}
       },
-      "id": "6b0979d3-3907-4ccb-85c9-8ce979ea49eb",
+      "id": "6e914822-1369-4083-9fca-e7ee06668bed",
       "name": "A9 · Créer le lead + fiche CRM (A11)",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
@@ -278,7 +278,7 @@
         "text": "=Bonjour {{ ($('A9 · Lire la classification').item.json.name || '').split(' ')[0] }},\n\nMerci pour votre demande, nous l'avons bien reçue. {{ $json.assigned_to }} vous recontacte très vite.\n\nPour réserver directement un créneau :\n👉 {{ $('⚙️ Config agence').first().json.base_url + '/book' }}\n\nÀ très vite,\n{{ $('⚙️ Config agence').first().json.agency_name }}",
         "options": {}
       },
-      "id": "27feb9e9-8cde-4110-a9fa-5c8345222fce",
+      "id": "f964886f-1829-4baa-bf73-2bc429880699",
       "name": "A10 · Réponse instantanée",
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
@@ -296,10 +296,10 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "WITH upd AS (\n  UPDATE leads SET first_response_at = now()::text, status = 'contacted' WHERE id = {{ JSON.stringify($json.lead_id) }}\n),\nrun10 AS (\n  INSERT INTO automation_runs (id, agency_id, automation_type, ref_id, run_key, executed_at, created_at)\n  VALUES (gen_random_uuid()::text, {{ JSON.stringify($('A9 · Lire la classification').item.json.agency_id) }}, 'A10', {{ JSON.stringify($json.lead_id) }}, 'A10:instant_resp:' || {{ JSON.stringify($json.lead_id) }}, now()::text, now()::text)\n  ON CONFLICT (run_key) DO NOTHING\n),\nmsg AS (\n  INSERT INTO messages (id, agency_id, channel, to_name, to_address, subject, body, automation_type, sent_at, created_at)\n  VALUES (gen_random_uuid()::text, {{ JSON.stringify($('A9 · Lire la classification').item.json.agency_id) }}, 'email', {{ JSON.stringify($('A9 · Lire la classification').item.json.name) }}, {{ $('A9 · Lire la classification').item.json.email ? JSON.stringify($('A9 · Lire la classification').item.json.email) : 'NULL' }}, 'Votre demande', 'Accusé de réception 24/7', 'A10', now()::text, now()::text)\n)\nINSERT INTO activity_log (id, agency_id, automation_type, description, ref_id, occurred_at, created_at)\nVALUES (gen_random_uuid()::text, {{ JSON.stringify($('A9 · Lire la classification').item.json.agency_id) }}, 'A10', 'Réponse instantanée envoyée (accusé 24/7)', {{ JSON.stringify($json.lead_id) }}, now()::text, now()::text);",
+        "query": "WITH upd AS (\n  UPDATE leads SET first_response_at = now()::text, status = 'contacted' WHERE id = {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.lead_id) }}\n),\nrun10 AS (\n  INSERT INTO automation_runs (id, agency_id, automation_type, ref_id, run_key, executed_at, created_at)\n  VALUES (gen_random_uuid()::text, {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($('A9 · Lire la classification').item.json.agency_id) }}, 'A10', {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.lead_id) }}, 'A10:instant_resp:' || {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.lead_id) }}, now()::text, now()::text)\n  ON CONFLICT (run_key) DO NOTHING\n),\nmsg AS (\n  INSERT INTO messages (id, agency_id, channel, to_name, to_address, subject, body, automation_type, sent_at, created_at)\n  VALUES (gen_random_uuid()::text, {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($('A9 · Lire la classification').item.json.agency_id) }}, 'email', {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($('A9 · Lire la classification').item.json.name) }}, {{ $('A9 · Lire la classification').item.json.email ? ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($('A9 · Lire la classification').item.json.email) : 'NULL' }}, 'Votre demande', 'Accusé de réception 24/7', 'A10', now()::text, now()::text)\n)\nINSERT INTO activity_log (id, agency_id, automation_type, description, ref_id, occurred_at, created_at)\nVALUES (gen_random_uuid()::text, {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($('A9 · Lire la classification').item.json.agency_id) }}, 'A10', 'Réponse instantanée envoyée (accusé 24/7)', {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.lead_id) }}, now()::text, now()::text);",
         "options": {}
       },
-      "id": "e949aa85-8f07-48ee-b4b0-defe044669de",
+      "id": "07b6570d-8917-4abc-b0cf-aeeb7683667b",
       "name": "A10 · Horodater 1re réponse",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
@@ -317,10 +317,10 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "INSERT INTO activity_log (id, agency_id, automation_type, description, ref_id, occurred_at, created_at)\nVALUES (\n  gen_random_uuid()::text, {{ JSON.stringify($json.agency_id) }}, 'A9',\n  CASE {{ JSON.stringify($json.category) }}\n    WHEN 'spam' THEN 'Spam / démarchage écarté automatiquement : ' || {{ JSON.stringify($json.subject) }}\n    WHEN 'documents' THEN 'Email classé « pièces de dossier » : ' || {{ JSON.stringify($json.from_addr) }}\n    WHEN 'visit_followup' THEN 'Email reconnu comme suivi post-visite : ' || {{ JSON.stringify($json.from_addr) }}\n    ELSE 'Email non catégorisé, à revoir : ' || {{ JSON.stringify($json.subject) }}\n  END,\n  NULL, now()::text, now()::text\n);",
+        "query": "INSERT INTO activity_log (id, agency_id, automation_type, description, ref_id, occurred_at, created_at)\nVALUES (\n  gen_random_uuid()::text, {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.agency_id) }}, 'A9',\n  CASE {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.category) }}\n    WHEN 'spam' THEN 'Spam / démarchage écarté automatiquement : ' || {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.subject) }}\n    WHEN 'documents' THEN 'Email classé « pièces de dossier » : ' || {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.from_addr) }}\n    WHEN 'visit_followup' THEN 'Email reconnu comme suivi post-visite : ' || {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.from_addr) }}\n    ELSE 'Email non catégorisé, à revoir : ' || {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.subject) }}\n  END,\n  NULL, now()::text, now()::text\n);",
         "options": {}
       },
-      "id": "bc6f952d-2805-4868-81d8-44238295a337",
+      "id": "49095328-6e07-4b63-9e4a-22eaa6203b68",
       "name": "A9 · Journaliser (non-lead)",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
