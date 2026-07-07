@@ -1,5 +1,5 @@
 import "server-only";
-import { and, desc, eq } from "drizzle-orm";
+import { and, count, desc, eq, inArray } from "drizzle-orm";
 import { db, ensureSchema } from "./db/client";
 import {
   activityLog,
@@ -40,16 +40,47 @@ export const getTransactions = (a: string) =>
 export const getSegments = (a: string) =>
   db.select().from(newsletterSegments).where(eq(newsletterSegments.agencyId, a));
 
+// messages et activity_log sont les seules tables qui grossissent sans borne
+// (chaque avancement d'horloge en ajoute) : le filtre par automatisation se
+// fait en SQL plutôt qu'en mémoire après chargement complet.
 export async function getMessages(a: string, type?: AutomationType) {
   await ensureSchema();
-  const rows = await db.select().from(messages).where(eq(messages.agencyId, a)).orderBy(desc(messages.sentAt));
-  return type ? rows.filter((m) => m.automationType === type) : rows;
+  const where = type
+    ? and(eq(messages.agencyId, a), eq(messages.automationType, type))
+    : eq(messages.agencyId, a);
+  return db.select().from(messages).where(where).orderBy(desc(messages.sentAt));
 }
 
 export async function getActivity(a: string, type?: AutomationType) {
   await ensureSchema();
-  const rows = await db.select().from(activityLog).where(eq(activityLog.agencyId, a)).orderBy(desc(activityLog.occurredAt));
-  return type ? rows.filter((m) => m.automationType === type) : rows;
+  const where = type
+    ? and(eq(activityLog.agencyId, a), eq(activityLog.automationType, type))
+    : eq(activityLog.agencyId, a);
+  return db.select().from(activityLog).where(where).orderBy(desc(activityLog.occurredAt));
+}
+
+// Dernières entrées du journal pour un sous-ensemble d'automatisations
+// (tableau de bord) : filtre + limite en SQL au lieu de tout charger.
+export async function getRecentActivity(a: string, types: AutomationType[], limit: number) {
+  await ensureSchema();
+  return db
+    .select()
+    .from(activityLog)
+    .where(and(eq(activityLog.agencyId, a), inArray(activityLog.automationType, types)))
+    .orderBy(desc(activityLog.occurredAt))
+    .limit(limit);
+}
+
+// Nombre de déclenchements par automatisation (page Automatisations) :
+// agrégation en SQL, seules les paires (type, total) transitent.
+export async function getActivityCounts(a: string): Promise<Record<string, number>> {
+  await ensureSchema();
+  const rows = await db
+    .select({ type: activityLog.automationType, total: count() })
+    .from(activityLog)
+    .where(eq(activityLog.agencyId, a))
+    .groupBy(activityLog.automationType);
+  return Object.fromEntries(rows.filter((r) => r.type).map((r) => [r.type as string, r.total]));
 }
 
 export async function propertyMap(a: string) {

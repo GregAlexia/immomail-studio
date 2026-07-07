@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { cookies } from "next/headers";
 import { db, ensureSchema } from "./db/client";
 import { agencies } from "./db/schema";
@@ -7,10 +8,12 @@ const COOKIE = "agency_id";
 
 export type Agency = typeof agencies.$inferSelect;
 
-export async function getAgencies(): Promise<Agency[]> {
+// Mémoïsé par requête : layout, page et actions appellent tous getAgencies()/
+// getSelectedAgency() sur le même rendu — évite les allers-retours DB dupliqués.
+export const getAgencies = cache(async (): Promise<Agency[]> => {
   await ensureSchema();
   return db.select().from(agencies).orderBy(agencies.name);
-}
+});
 
 export async function getSelectedAgency(): Promise<Agency | null> {
   const all = await getAgencies();

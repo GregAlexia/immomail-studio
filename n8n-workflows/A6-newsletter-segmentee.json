@@ -7,7 +7,7 @@
         "height": 200,
         "width": 520
       },
-      "id": "42600ec2-7d28-46c4-9258-44124598cc37",
+      "id": "d8736aa1-897c-4c77-a8a2-2f0694baac6f",
       "name": "Note",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -30,7 +30,7 @@
           ]
         }
       },
-      "id": "10e95f74-ed0c-438b-91c8-63b275923344",
+      "id": "fe6eed94-9cdf-4393-be2c-7825a5d5d498",
       "name": "Chaque lundi 9h",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
@@ -45,7 +45,7 @@
         "query": "WITH new_props AS (\n  SELECT * FROM properties\n  WHERE status = 'available'\n    AND created_at::timestamptz >= now() - interval '7 days'\n),\nmatches AS (\n  SELECT c.id AS contact_id, c.agency_id, c.first_name, c.last_name, c.email,\n         np.ref, np.title, np.price, np.city, np.zone, np.type, np.rooms\n  FROM contacts c\n  JOIN new_props np ON np.agency_id = c.agency_id\n  WHERE c.consent_marketing = TRUE\n    AND c.role IN ('buyer','tenant','prospect')\n    AND c.email IS NOT NULL\n    AND (c.buyer_criteria IS NULL OR c.buyer_criteria = '' OR (\n      (NULLIF(c.buyer_criteria::jsonb->>'budgetMax','') IS NULL OR np.price <= (c.buyer_criteria::jsonb->>'budgetMax')::numeric)\n      AND (NULLIF(c.buyer_criteria::jsonb->>'type','') IS NULL OR np.type = c.buyer_criteria::jsonb->>'type')\n      AND (NULLIF(c.buyer_criteria::jsonb->>'minRooms','') IS NULL OR COALESCE(np.rooms,0) >= (c.buyer_criteria::jsonb->>'minRooms')::int)\n      AND (\n        c.buyer_criteria::jsonb->'zones' IS NULL\n        OR jsonb_array_length(COALESCE(c.buyer_criteria::jsonb->'zones','[]'::jsonb)) = 0\n        OR (c.buyer_criteria::jsonb->'zones') ? np.zone\n        OR (c.buyer_criteria::jsonb->'zones') ? np.city\n      )\n    ))\n)\nSELECT contact_id, agency_id, first_name, last_name, email,\n       count(*) AS nb_biens,\n       jsonb_agg(jsonb_build_object('ref',ref,'title',title,'price',price,'city',city)) AS biens,\n       'A6:newsletter:' || contact_id || ':' || to_char(now(),'IYYY-IW') AS run_key\nFROM matches\nGROUP BY contact_id, agency_id, first_name, last_name, email\nHAVING NOT EXISTS (SELECT 1 FROM automation_runs ar WHERE ar.run_key = 'A6:newsletter:' || contact_id || ':' || to_char(now(),'IYYY-IW'));",
         "options": {}
       },
-      "id": "b16946d2-1feb-4cac-9049-5dea6c24a3b9",
+      "id": "6b7dec66-c6dc-4674-90b6-cd5941646d81",
       "name": "Matching biens ↔ acheteurs",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
@@ -64,7 +64,7 @@
       "parameters": {
         "jsCode": "const eur = (n) => new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(n);\nfor (const item of $input.all()) {\n  const j = item.json;\n  const biens = (typeof j.biens === 'string' ? JSON.parse(j.biens) : j.biens) || [];\n  const lignes = biens.map(b => '• ' + b.title + ' (' + (b.city||'') + ') — ' + eur(b.price) + ' [réf ' + (b.ref||'') + ']').join('\\n');\n  item.json.subject = j.nb_biens > 1 ? (j.nb_biens + ' nouveaux biens correspondent à votre recherche') : 'Un nouveau bien correspond à votre recherche';\n  item.json.body = 'Bonjour ' + j.first_name + ',\\n\\nVoici les nouveautés qui correspondent à vos critères :\\n\\n' + lignes + '\\n\\nRépondez à cet email pour organiser une visite.\\n\\nÀ bientôt,';\n}\nreturn $input.all();"
       },
-      "id": "3e5528e4-649a-4197-8ead-0c91406d8e55",
+      "id": "3fb82a22-4309-465c-9680-f345ae5bf786",
       "name": "Composer la newsletter",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -82,7 +82,7 @@
         "text": "={{ $json.body }}",
         "options": {}
       },
-      "id": "26b757ed-8559-4d6c-877b-85f87ed75b89",
+      "id": "bd695ae8-cd8a-4c3f-aa34-ed0b5a9b55fc",
       "name": "Email newsletter",
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
@@ -100,10 +100,10 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "WITH run AS (\n  INSERT INTO automation_runs (id, agency_id, automation_type, ref_id, run_key, executed_at, created_at)\n  VALUES (gen_random_uuid()::text, {{ JSON.stringify($json.agency_id) }}, 'A6', {{ JSON.stringify($json.contact_id) }}, {{ JSON.stringify($json.run_key) }}, now()::text, now()::text)\n  ON CONFLICT (run_key) DO NOTHING\n),\nmsg AS (\n  INSERT INTO messages (id, agency_id, channel, to_contact_id, to_name, to_address, subject, body, automation_type, sent_at, created_at)\n  VALUES (gen_random_uuid()::text, {{ JSON.stringify($json.agency_id) }}, 'email', {{ JSON.stringify($json.contact_id) }}, {{ JSON.stringify(($json.first_name||'')+' '+($json.last_name||'')) }}, {{ JSON.stringify($json.email) }}, {{ JSON.stringify($json.subject) }}, {{ JSON.stringify($json.body) }}, 'A6', now()::text, now()::text)\n)\nINSERT INTO activity_log (id, agency_id, automation_type, description, ref_id, occurred_at, created_at)\nVALUES (gen_random_uuid()::text, {{ JSON.stringify($json.agency_id) }}, 'A6', {{ JSON.stringify('Newsletter segmentée envoyée à ') }} || {{ JSON.stringify(($json.first_name||'')+' '+($json.last_name||'')) }} || {{ JSON.stringify(' (' ) }} || {{ $json.nb_biens }} || {{ JSON.stringify(' bien(s))') }}, {{ JSON.stringify($json.contact_id) }}, now()::text, now()::text);",
+        "query": "WITH run AS (\n  INSERT INTO automation_runs (id, agency_id, automation_type, ref_id, run_key, executed_at, created_at)\n  VALUES (gen_random_uuid()::text, {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.agency_id) }}, 'A6', {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.contact_id) }}, {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.run_key) }}, now()::text, now()::text)\n  ON CONFLICT (run_key) DO NOTHING\n),\nmsg AS (\n  INSERT INTO messages (id, agency_id, channel, to_contact_id, to_name, to_address, subject, body, automation_type, sent_at, created_at)\n  VALUES (gen_random_uuid()::text, {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.agency_id) }}, 'email', {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.contact_id) }}, {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")(($json.first_name||'')+' '+($json.last_name||'')) }}, {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.email) }}, {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.subject) }}, {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.body) }}, 'A6', now()::text, now()::text)\n)\nINSERT INTO activity_log (id, agency_id, automation_type, description, ref_id, occurred_at, created_at)\nVALUES (gen_random_uuid()::text, {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.agency_id) }}, 'A6', {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")('Newsletter segmentée envoyée à ') }} || {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")(($json.first_name||'')+' '+($json.last_name||'')) }} || {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")(' (' ) }} || {{ $json.nb_biens }} || {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")(' bien(s))') }}, {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.contact_id) }}, now()::text, now()::text);",
         "options": {}
       },
-      "id": "e3d39ead-890e-4efe-b347-31253cd325ec",
+      "id": "da72f462-160e-4b57-b938-458f8ff0aa60",
       "name": "Journaliser A6",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,

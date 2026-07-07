@@ -30,9 +30,37 @@ const CRED = {
 function node(name, type, typeVersion, position, parameters = {}, extra = {}) {
   return { parameters, id: randomUUID(), name, type, typeVersion, position, ...extra };
 }
+// Les templates SQL écrivent {{ JSON.stringify(x) }} par commodité, mais
+// JSON.stringify produit des guillemets DOUBLES — en PostgreSQL ce sont des
+// identifiants, pas des littéraux ('ERROR: column "..." does not exist').
+// On réécrit donc chaque occurrence en littéral SQL correct : apostrophes
+// simples, apostrophes internes doublées, null/undefined → NULL.
+// (Vérifié par n8n-workflows/tests/test-a1.mjs.)
+function sqlSafe(query) {
+  const MARK = "JSON.stringify(";
+  let out = "", i = 0;
+  while (true) {
+    const at = query.indexOf(MARK, i);
+    if (at === -1) { out += query.slice(i); break; }
+    out += query.slice(i, at);
+    // Scan de l'argument : équilibrage des parenthèses, chaînes '…'/"…" opaques.
+    let j = at + MARK.length, depth = 1, quote = null;
+    for (; j < query.length && depth > 0; j++) {
+      const ch = query[j];
+      if (quote) { if (ch === quote && query[j - 1] !== "\\") quote = null; }
+      else if (ch === "'" || ch === '"') quote = ch;
+      else if (ch === "(") depth++;
+      else if (ch === ")") depth--;
+    }
+    const arg = query.slice(at + MARK.length, j - 1);
+    out += `((v) => v == null ? 'NULL' : "'" + String(v).replace(/'/g, "''") + "'")(${arg})`;
+    i = j;
+  }
+  return out;
+}
 function pg(name, position, query, extra = {}) {
   return node(name, "n8n-nodes-base.postgres", 2.6, position,
-    { operation: "executeQuery", query, options: {} },
+    { operation: "executeQuery", query: sqlSafe(query), options: {} },
     { credentials: CRED.pg, ...extra });
 }
 function email(name, position, { to, subject, text }) {

@@ -180,6 +180,25 @@ export const DDL_STATEMENTS: string[] = [
     initial_ts TEXT NOT NULL,
     created_at TEXT NOT NULL
   )`,
+  // Toutes les requêtes de l'app filtrent par agence (isolation multi-agences) :
+  // sans index, chaque lecture fait un scan complet de table.
+  `CREATE INDEX IF NOT EXISTS idx_contacts_agency ON contacts(agency_id)`,
+  `CREATE INDEX IF NOT EXISTS idx_properties_agency ON properties(agency_id)`,
+  `CREATE INDEX IF NOT EXISTS idx_mandates_agency_status ON mandates(agency_id, status)`,
+  `CREATE INDEX IF NOT EXISTS idx_appointments_agency ON appointments(agency_id)`,
+  // Page publique /book/[id] : créneaux cherchés par bien, pas par agence.
+  `CREATE INDEX IF NOT EXISTS idx_appointments_property_slot ON appointments(property_id, scheduled_at)`,
+  `CREATE INDEX IF NOT EXISTS idx_leases_agency ON leases(agency_id)`,
+  `CREATE INDEX IF NOT EXISTS idx_compliance_items_agency_status ON compliance_items(agency_id, status)`,
+  `CREATE INDEX IF NOT EXISTS idx_transactions_agency ON transactions(agency_id)`,
+  `CREATE INDEX IF NOT EXISTS idx_newsletter_segments_agency ON newsletter_segments(agency_id)`,
+  `CREATE INDEX IF NOT EXISTS idx_inbox_emails_agency_status ON inbox_emails(agency_id, status)`,
+  `CREATE INDEX IF NOT EXISTS idx_leads_agency ON leads(agency_id)`,
+  // Composites : ces deux tables grossissent à chaque avancement d'horloge et
+  // les pages Journal / Boîte d'envoi filtrent par automatisation.
+  `CREATE INDEX IF NOT EXISTS idx_messages_agency_type ON messages(agency_id, automation_type)`,
+  `CREATE INDEX IF NOT EXISTS idx_activity_log_agency_type ON activity_log(agency_id, automation_type)`,
+  `CREATE INDEX IF NOT EXISTS idx_automation_runs_agency ON automation_runs(agency_id)`,
 ];
 
 export const TABLE_NAMES: string[] = [

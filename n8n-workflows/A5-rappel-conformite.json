@@ -7,7 +7,7 @@
         "height": 200,
         "width": 500
       },
-      "id": "f81eeaf1-dbcd-4aeb-9093-018646bd4592",
+      "id": "e0df0eda-a370-41d9-9715-50f11355f69f",
       "name": "Note",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -27,7 +27,7 @@
           ]
         }
       },
-      "id": "bd0d278c-5701-4552-9c5d-0d929fe9ed8c",
+      "id": "50f77b97-0899-4691-8bfa-27774a2fb693",
       "name": "Chaque jour 8h",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
@@ -42,7 +42,7 @@
         "query": "SELECT ci.id, ci.agency_id, ci.label, ci.type, ci.due_date,\n       p.title AS prop_title, p.negotiator,\n       'A5:compliance:' || ci.id AS run_key\nFROM compliance_items ci\nJOIN properties p ON p.id = ci.property_id\nWHERE ci.status = 'pending'\n  AND now() >= (ci.due_date::timestamptz - make_interval(days => ci.reminder_days_before))\n  AND NOT EXISTS (SELECT 1 FROM automation_runs ar WHERE ar.run_key = 'A5:compliance:' || ci.id);",
         "options": {}
       },
-      "id": "e056172c-3192-49a7-8d46-9be8cf7dea0a",
+      "id": "fe855a41-a20e-4abc-ba80-0b454fb44957",
       "name": "Conformité à échéance",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
@@ -60,10 +60,10 @@
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "WITH upd AS (\n  UPDATE compliance_items SET status = 'reminded' WHERE id = {{ JSON.stringify($json.id) }}\n),\nrun AS (\n  INSERT INTO automation_runs (id, agency_id, automation_type, ref_id, run_key, executed_at, created_at)\n  VALUES (gen_random_uuid()::text, {{ JSON.stringify($json.agency_id) }}, 'A5', {{ JSON.stringify($json.id) }}, {{ JSON.stringify($json.run_key) }}, now()::text, now()::text)\n  ON CONFLICT (run_key) DO NOTHING\n)\nINSERT INTO activity_log (id, agency_id, automation_type, description, ref_id, occurred_at, created_at)\nVALUES (gen_random_uuid()::text, {{ JSON.stringify($json.agency_id) }}, 'A5',\n  {{ JSON.stringify('Échéance conformité « ') }} || {{ JSON.stringify($json.label) }} || {{ JSON.stringify(' » (') }} || {{ JSON.stringify($json.prop_title) }} || {{ JSON.stringify(') à traiter avant le ') }} || to_char({{ JSON.stringify($json.due_date) }}::timestamptz, 'DD/MM/YYYY'),\n  {{ JSON.stringify($json.id) }}, now()::text, now()::text);",
+        "query": "WITH upd AS (\n  UPDATE compliance_items SET status = 'reminded' WHERE id = {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.id) }}\n),\nrun AS (\n  INSERT INTO automation_runs (id, agency_id, automation_type, ref_id, run_key, executed_at, created_at)\n  VALUES (gen_random_uuid()::text, {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.agency_id) }}, 'A5', {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.id) }}, {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.run_key) }}, now()::text, now()::text)\n  ON CONFLICT (run_key) DO NOTHING\n)\nINSERT INTO activity_log (id, agency_id, automation_type, description, ref_id, occurred_at, created_at)\nVALUES (gen_random_uuid()::text, {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.agency_id) }}, 'A5',\n  {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")('Échéance conformité « ') }} || {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.label) }} || {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")(' » (') }} || {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.prop_title) }} || {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")(') à traiter avant le ') }} || to_char({{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.due_date) }}::timestamptz, 'DD/MM/YYYY'),\n  {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.id) }}, now()::text, now()::text);",
         "options": {}
       },
-      "id": "d5381c05-5b29-4116-af99-b0931c84255b",
+      "id": "a0587309-be48-48b8-8334-ce39f76dd423",
       "name": "Marquer 'reminded' + journaliser",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
@@ -87,7 +87,7 @@
         "text": "=Le diagnostic « {{ $json.label }} » du bien {{ $json.prop_title }} arrive à échéance ({{ $json.due_date }}). Négociateur : {{ $json.negotiator }}. Merci de planifier son renouvellement.",
         "options": {}
       },
-      "id": "991fb835-0b28-4230-8acc-d594cae570d9",
+      "id": "5ad7d4f1-d075-4c19-a15b-07bb3839f812",
       "name": "Email interne négociateur",
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
