@@ -14,6 +14,8 @@ import {
   transactions,
   automationRuns,
 } from "./db/schema";
+type Property = typeof properties.$inferSelect;
+type Contact = typeof contacts.$inferSelect;
 import { newId, nowIso, recordActivity } from "./services/_shared";
 import { sendSms } from "./services/sms.service";
 import { sendEmail } from "./services/email.service";
@@ -53,19 +55,18 @@ const REQUEST_LABEL: Record<RequestType, string> = {
 };
 
 // Réserve une exécution (idempotence §6.3). true si nouvellement réservée.
+// INSERT ... ON CONFLICT DO NOTHING : un seul aller-retour DB au lieu de
+// SELECT puis INSERT (cette fonction est appelée pour chaque candidat de
+// chaque automatisation, à chaque évaluation de l'horloge).
 async function claim(
   agencyId: string,
   type: AutomationType,
   runKey: string,
   refId?: string | null
 ): Promise<boolean> {
-  const existing = await db
-    .select({ id: automationRuns.id })
-    .from(automationRuns)
-    .where(eq(automationRuns.runKey, runKey));
-  if (existing.length > 0) return false;
-  try {
-    await db.insert(automationRuns).values({
+  const inserted = await db
+    .insert(automationRuns)
+    .values({
       id: newId(),
       agencyId,
       automationType: type,
@@ -73,11 +74,10 @@ async function claim(
       runKey,
       executedAt: nowIso(),
       createdAt: nowIso(),
-    });
-    return true;
-  } catch {
-    return false; // contrainte unique → déjà réservé (course)
-  }
+    })
+    .onConflictDoNothing({ target: automationRuns.runKey })
+    .returning({ id: automationRuns.id });
+  return inserted.length > 0;
 }
 
 export async function runEngine(upto: Date, agencyId?: string): Promise<EngineResult> {
@@ -94,13 +94,23 @@ export async function runEngine(upto: Date, agencyId?: string): Promise<EngineRe
 
   for (const agency of agencyRows) {
     const aId = agency.id;
-    await processLeads(aId, agency.name, upto, uptoIso, push);
-    await processAppointments(aId, upto, uptoIso, push);
-    await processMandates(aId, upto, uptoIso, push);
-    await processReceipts(aId, agency.name, agency.city ?? "", upto, uptoIso, push);
-    await processCompliance(aId, upto, uptoIso, push);
-    await processReviews(aId, agency.name, upto, uptoIso, push);
-    await processReferrals(aId, agency.name, upto, uptoIso, push);
+    // Un seul aller-retour DB pour biens/contacts par agence, partagé entre
+    // les 7 traitements ci-dessous (au lieu d'une requête par traitement).
+    const [props, agencyContacts] = await Promise.all([
+      db.select().from(properties).where(eq(properties.agencyId, aId)),
+      db.select().from(contacts).where(eq(contacts.agencyId, aId)),
+    ]);
+    const propById = new Map(props.map((p) => [p.id, p]));
+    const propByRef = new Map(props.filter((p) => p.ref).map((p) => [p.ref as string, p]));
+    const contactById = new Map(agencyContacts.map((c) => [c.id, c]));
+
+    await processLeads(aId, agency.name, upto, uptoIso, push, props, propByRef);
+    await processAppointments(aId, upto, uptoIso, push, propById);
+    await processMandates(aId, upto, uptoIso, push, propById, contactById);
+    await processReceipts(aId, agency.name, agency.city ?? "", upto, uptoIso, push, propById, contactById);
+    await processCompliance(aId, upto, uptoIso, push, propById);
+    await processReviews(aId, agency.name, upto, uptoIso, push, contactById);
+    await processReferrals(aId, agency.name, upto, uptoIso, push, contactById, propById);
   }
   return result;
 }
@@ -111,7 +121,9 @@ async function processLeads(
   agencyName: string,
   upto: Date,
   uptoIso: string,
-  push: (t: AutomationType, d: string) => void
+  push: (t: AutomationType, d: string) => void,
+  props: Property[],
+  propByRef: Map<string, Property>
 ) {
   const emails = await db
     .select()
@@ -119,11 +131,12 @@ async function processLeads(
     .where(and(eq(inboxEmails.agencyId, aId), eq(inboxEmails.status, "non_traite")));
   if (emails.length === 0) return;
 
-  const props = await db.select().from(properties).where(eq(properties.agencyId, aId));
-  const propByRef = new Map(props.filter((p) => p.ref).map((p) => [p.ref as string, p]));
   const negotiators = [...new Set(props.map((p) => p.negotiator).filter(Boolean))] as string[];
   const fallbackNegotiator =
     negotiators.find((n) => n === "Sophie Martin") ?? negotiators.sort()[0] ?? "Accueil agence";
+  // Compteur tenu en mémoire : évite de recharger tous les leads de l'agence
+  // à chaque nouveau lead (auparavant un SELECT complet par email du lot).
+  let leadCount = (await db.select({ id: leads.id }).from(leads).where(eq(leads.agencyId, aId))).length;
 
   for (const email of emails) {
     if (new Date(email.receivedAt) > upto) continue; // pas encore reçu
@@ -198,8 +211,8 @@ async function processLeads(
     const assignedTo = prop?.negotiator ?? fallbackNegotiator;
 
     // numéro de lead lisible
-    const countRows = await db.select().from(leads).where(eq(leads.agencyId, aId));
-    const externalId = `LD-${501 + countRows.length}`;
+    const externalId = `LD-${501 + leadCount}`;
+    leadCount++;
 
     const leadId = newId();
     await db.insert(leads).values({
@@ -354,11 +367,10 @@ async function processAppointments(
   aId: string,
   upto: Date,
   uptoIso: string,
-  push: (t: AutomationType, d: string) => void
+  push: (t: AutomationType, d: string) => void,
+  propById: Map<string, Property>
 ) {
   const rows = await db.select().from(appointments).where(eq(appointments.agencyId, aId));
-  const props = await db.select().from(properties).where(eq(properties.agencyId, aId));
-  const propById = new Map(props.map((p) => [p.id, p]));
 
   for (const apt of rows) {
     if (["cancelled", "no_show", "done"].includes(apt.status)) continue;
@@ -406,13 +418,11 @@ async function processMandates(
   aId: string,
   upto: Date,
   uptoIso: string,
-  push: (t: AutomationType, d: string) => void
+  push: (t: AutomationType, d: string) => void,
+  propById: Map<string, Property>,
+  ownerById: Map<string, Contact>
 ) {
   const rows = await db.select().from(mandates).where(and(eq(mandates.agencyId, aId), eq(mandates.status, "active")));
-  const props = await db.select().from(properties).where(eq(properties.agencyId, aId));
-  const propById = new Map(props.map((p) => [p.id, p]));
-  const owners = await db.select().from(contacts).where(eq(contacts.agencyId, aId));
-  const ownerById = new Map(owners.map((c) => [c.id, c]));
 
   for (const m of rows) {
     const trigger = addDays(new Date(m.endDate), -30);
@@ -440,13 +450,11 @@ async function processReceipts(
   city: string,
   upto: Date,
   uptoIso: string,
-  push: (t: AutomationType, d: string) => void
+  push: (t: AutomationType, d: string) => void,
+  propById: Map<string, Property>,
+  tenantById: Map<string, Contact>
 ) {
   const rows = await db.select().from(leases).where(eq(leases.agencyId, aId));
-  const props = await db.select().from(properties).where(eq(properties.agencyId, aId));
-  const propById = new Map(props.map((p) => [p.id, p]));
-  const tenants = await db.select().from(contacts).where(eq(contacts.agencyId, aId));
-  const tenantById = new Map(tenants.map((c) => [c.id, c]));
 
   for (const lease of rows) {
     const start = new Date(lease.startDate);
@@ -487,11 +495,10 @@ async function processCompliance(
   aId: string,
   upto: Date,
   uptoIso: string,
-  push: (t: AutomationType, d: string) => void
+  push: (t: AutomationType, d: string) => void,
+  propById: Map<string, Property>
 ) {
   const rows = await db.select().from(complianceItems).where(and(eq(complianceItems.agencyId, aId), eq(complianceItems.status, "pending")));
-  const props = await db.select().from(properties).where(eq(properties.agencyId, aId));
-  const propById = new Map(props.map((p) => [p.id, p]));
 
   for (const item of rows) {
     const trigger = addDays(new Date(item.dueDate), -item.reminderDaysBefore);
@@ -510,11 +517,10 @@ async function processReviews(
   agencyName: string,
   upto: Date,
   uptoIso: string,
-  push: (t: AutomationType, d: string) => void
+  push: (t: AutomationType, d: string) => void,
+  byId: Map<string, Contact>
 ) {
   const rows = await db.select().from(transactions).where(eq(transactions.agencyId, aId));
-  const clients = await db.select().from(contacts).where(eq(contacts.agencyId, aId));
-  const byId = new Map(clients.map((c) => [c.id, c]));
   const link = reviewLink(agencyName);
 
   for (const t of rows) {
@@ -550,13 +556,11 @@ async function processReferrals(
   agencyName: string,
   upto: Date,
   uptoIso: string,
-  push: (t: AutomationType, d: string) => void
+  push: (t: AutomationType, d: string) => void,
+  byId: Map<string, Contact>,
+  propById: Map<string, Property>
 ) {
   const rows = await db.select().from(transactions).where(eq(transactions.agencyId, aId));
-  const clients = await db.select().from(contacts).where(eq(contacts.agencyId, aId));
-  const byId = new Map(clients.map((c) => [c.id, c]));
-  const props = await db.select().from(properties).where(eq(properties.agencyId, aId));
-  const propById = new Map(props.map((p) => [p.id, p]));
 
   for (const t of rows) {
     const refAt = addMonths(new Date(t.signedDate), 1);
