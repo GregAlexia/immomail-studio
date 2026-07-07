@@ -9,6 +9,7 @@ Ils tapent sur la **même base Supabase** et respectent la même logique d'idemp
 > réel piloté par n8n (cron réel, vrais SMTP/SMS, classification par Claude).
 
 📖 **Logique détaillée + rôle de chaque nœud** : voir [DOCUMENTATION.md](DOCUMENTATION.md).
+🚀 **Configuration & activation pas-à-pas** (credentials, tests à blanc, ordre d'activation, dépannage) : voir [GUIDE-ACTIVATION.md](GUIDE-ACTIVATION.md).
 
 ## Correspondance automatisations → fichiers
 

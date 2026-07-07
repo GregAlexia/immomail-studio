@@ -1,7 +1,9 @@
 # Documentation des workflows n8n — ImmoMail Studio
 
 Cette doc explique, pour chacun des 9 workflows, **la logique métier** puis **le rôle de
-chaque nœud**. Elle complète le [README](README.md) (import, credentials, variables d'env).
+chaque nœud**. Elle complète le [README](README.md) (import, credentials, variables d'env)
+et le [GUIDE-ACTIVATION](GUIDE-ACTIVATION.md) (configuration pas-à-pas, tests, activation,
+dépannage).
 
 ---
 
