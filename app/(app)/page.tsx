@@ -2,11 +2,11 @@ import Link from "next/link";
 import { Inbox, CalendarDays, ReceiptText, ArrowRight, Sparkles, MailCheck } from "lucide-react";
 import { pageContext } from "@/lib/page-context";
 import {
-  getActivity,
   getAppointments,
   getInbox,
   getLeads,
   getMessages,
+  getRecentActivity,
   propertyMap,
 } from "@/lib/queries";
 import {
@@ -27,11 +27,11 @@ const ACTIVE: AutomationType[] = ["A1", "A2", "A4", "A9", "A10", "A11"];
 export default async function DashboardPage() {
   const { agency, current } = await pageContext();
   const a = agency.id;
-  const [appointments, leads, inbox, activityAll, receipts, pm] = await Promise.all([
+  const [appointments, leads, inbox, activity, receipts, pm] = await Promise.all([
     getAppointments(a),
     getLeads(a),
     getInbox(a),
-    getActivity(a),
+    getRecentActivity(a, ACTIVE, 8),
     getMessages(a, "A4"),
     propertyMap(a),
   ]);
@@ -44,7 +44,6 @@ export default async function DashboardPage() {
   const receiptsThisMonth = receipts.filter((r) => r.sentAt.startsWith(month));
   const pendingInbox = inbox.filter((e) => e.status === "non_traite");
   const responded = leads.filter((l) => l.firstResponseAt).length;
-  const activity = activityAll.filter((ev) => ev.automationType && ACTIVE.includes(ev.automationType as AutomationType));
 
   return (
     <>
@@ -136,7 +135,7 @@ export default async function DashboardPage() {
             {activity.length === 0 ? (
               <div className="px-5 py-6"><EmptyState title="Aucune automatisation déclenchée" hint="Avancez l'horloge ou cliquez « Évaluer »." /></div>
             ) : (
-              activity.slice(0, 8).map((ev) => (
+              activity.map((ev) => (
                 <div key={ev.id} className="flex items-start gap-3 px-5 py-3">
                   {ev.automationType && <AutomationTag type={ev.automationType as AutomationType} />}
                   <div className="min-w-0 flex-1">

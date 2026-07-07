@@ -309,8 +309,9 @@ export async function importWorkbook(buffer: ArrayBuffer): Promise<ImportResult>
   }
 
   // ---- Emails : statut + lien lead ----
+  const leadByEmailId = new Map(leadRows.filter((l) => l.sourceEmailId).map((l) => [l.sourceEmailId as string, l]));
   const inboxInsert: (typeof S.inboxEmails.$inferInsert)[] = inboxParsed.map((e) => {
-    const lead = e.ext ? leadRows.find((l) => l.sourceEmailId === e.id) : undefined;
+    const lead = e.ext ? leadByEmailId.get(e.id) : undefined;
     let status = "non_traite";
     let isSpam = false;
     if (e.source === "spam") { status = "spam"; isSpam = true; }

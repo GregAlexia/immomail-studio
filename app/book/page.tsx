@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 export default async function BookIndex() {
   await ensureSchema();
-  const props = (await db.select().from(properties).where(eq(properties.status, "available"))).slice(0, 12);
+  const props = await db.select().from(properties).where(eq(properties.status, "available")).limit(12);
   return (
     <div className="min-h-screen bg-[var(--color-bg)]">
       <header className="border-b border-[var(--color-border)] bg-white px-6 py-4">

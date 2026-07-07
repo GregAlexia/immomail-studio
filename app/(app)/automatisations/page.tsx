@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 import { pageContext } from "@/lib/page-context";
-import { getActivity } from "@/lib/queries";
+import { getActivityCounts } from "@/lib/queries";
 import { Card, PageHeader, Badge, AutomationTag } from "@/components/ui";
 import { AUTOMATIONS, type AutomationType } from "@/lib/types";
 
@@ -16,11 +16,7 @@ const CATEGORIES: { key: string; label: string; href: string }[] = [
 
 export default async function AutomationsPage() {
   const { agency } = await pageContext();
-  const activity = await getActivity(agency.id);
-  const counts = activity.reduce<Record<string, number>>((acc, ev) => {
-    if (ev.automationType) acc[ev.automationType] = (acc[ev.automationType] ?? 0) + 1;
-    return acc;
-  }, {});
+  const counts = await getActivityCounts(agency.id);
   const items = ACTIVE.map((code) => AUTOMATIONS[code]);
 
   return (
