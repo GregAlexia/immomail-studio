@@ -6,6 +6,12 @@ import {
   ReceiptText,
   Play,
   Info,
+  FileSignature,
+  ShieldCheck,
+  Megaphone,
+  History,
+  Send,
+  Settings,
 } from "lucide-react";
 import { Card, PageHeader, Badge, Table, Th, Td, Tr } from "@/components/ui";
 
@@ -43,7 +49,7 @@ export default function AidePage() {
     <div className="max-w-4xl">
       <PageHeader
         title="Aide & guide d'utilisation"
-        description="Comment piloter la démonstration et utiliser les fonctionnalités des trois espaces : Boîte de réception, Agenda & visites, Locations & quittances."
+        description="Comment piloter la démonstration et utiliser chaque espace de l'application — des trois espaces principaux aux espaces complémentaires activables depuis le menu Paramétrage."
       />
 
       {/* Sommaire */}
@@ -55,6 +61,11 @@ export default function AidePage() {
             ["#reception", "2. Boîte de réception (leads)"],
             ["#agenda", "3. Agenda & visites"],
             ["#locations", "4. Locations & quittances"],
+            ["#mandats", "5. Mandats"],
+            ["#conformite", "6. Conformité"],
+            ["#marketing", "7. Marketing"],
+            ["#journal", "8. Journal d'activité"],
+            ["#envoi", "9. Boîte d'envoi"],
           ].map(([href, label]) => (
             <a key={href} href={href} className="text-[var(--color-brand-dark)] hover:underline">{label}</a>
           ))}
@@ -144,6 +155,120 @@ export default function AidePage() {
             ]} />
             <p className="mt-4 rounded-lg bg-slate-50 p-3 text-xs text-slate-600">
               💡 Le compteur « Quittances du mois » du tableau de bord se met à jour à chaque échéance franchie.
+            </p>
+          </Card>
+        </Section>
+
+        {/* Note : espaces complémentaires */}
+        <Card className="border-violet-200 bg-violet-50 p-4">
+          <p className="flex items-start gap-2 text-sm text-violet-900">
+            <Settings size={16} className="mt-0.5 shrink-0" />
+            <span>
+              Les espaces ci-dessous (<strong>Mandats, Conformité, Marketing, Journal d'activité, Boîte d'envoi</strong>) sont
+              masqués du menu par défaut. Pour les afficher : menu <strong>Paramétrage</strong> → activer l'interrupteur de
+              chaque espace → <strong>Enregistrer</strong>. Ils restent aussi accessibles par leur adresse directe.
+            </span>
+          </p>
+        </Card>
+
+        {/* 5. MANDATS */}
+        <Section id="mandats" title="5. Mandats" icon={<FileSignature size={20} />}>
+          <Card className="p-5">
+            <p className="mb-1 text-sm font-medium text-[var(--color-brand-dark)]">Alerte d'expiration &amp; relance propriétaire automatique</p>
+            <p className="mb-4 text-sm text-[var(--color-ink)]">
+              Un mandat qui expire sans relance, c'est un bien qui part chez le concurrent. Cet espace liste tous les mandats
+              (exclusifs ou simples) avec leurs dates, et <strong>30 jours avant l'échéance</strong> une relance de
+              renouvellement part automatiquement au propriétaire.
+            </p>
+            <Steps items={[
+              <>Ouvrir <strong>Mandats</strong> : chaque ligne montre le bien, le propriétaire, le type de mandat et la <strong>date d'échéance</strong>.</>,
+              <>Repérer un mandat dont l'échéance est proche, puis choisir dans le bandeau une date à <strong>moins de 30 jours</strong> de celle-ci et cliquer <strong>Évaluer</strong>.</>,
+              <>Le mandat passe en <strong>« À relancer »</strong> et la <strong>relance email au propriétaire</strong> est envoyée (visible dans la Boîte d'envoi).</>,
+            ]} />
+            <p className="mt-4 rounded-lg bg-slate-50 p-3 text-xs text-slate-600">
+              💡 La relance n'est envoyée qu'<strong>une seule fois</strong> par mandat, même si vous ré-évaluez plusieurs fois.
+            </p>
+          </Card>
+        </Section>
+
+        {/* 6. CONFORMITÉ */}
+        <Section id="conformite" title="6. Conformité" icon={<ShieldCheck size={20} />}>
+          <Card className="p-5">
+            <p className="mb-1 text-sm font-medium text-[var(--color-brand-dark)]">Suivi des diagnostics &amp; échéances réglementaires</p>
+            <p className="mb-4 text-sm text-[var(--color-ink)]">
+              DPE, assurance PNO, renouvellement de bail… chaque obligation a sa date limite. Le tableau code chaque échéance
+              par couleur — <Badge tone="green">À venir</Badge> <Badge tone="amber">Imminent</Badge> <Badge tone="red">Dépassé</Badge> —
+              et un <strong>rappel interne</strong> est déclenché automatiquement avant l'échéance (délai propre à chaque ligne, 30 jours par défaut).
+            </p>
+            <Steps items={[
+              <>Ouvrir <strong>Conformité</strong> : chaque ligne montre le bien, le type d'obligation, la date limite et le délai de rappel.</>,
+              <>Avancer l'horloge à l'intérieur de la fenêtre de rappel d'une échéance, puis cliquer <strong>Évaluer</strong>.</>,
+              <>Le statut passe à <strong>« Rappelé »</strong> et l'événement apparaît dans le Journal d'activité.</>,
+            ]} />
+            <p className="mt-4 rounded-lg bg-slate-50 p-3 text-xs text-slate-600">
+              💡 Le délai de rappel se règle <em>par échéance</em> (colonne « Rappel (jours avant) » du fichier Excel d'import).
+            </p>
+          </Card>
+        </Section>
+
+        {/* 7. MARKETING */}
+        <Section id="marketing" title="7. Marketing" icon={<Megaphone size={20} />}>
+          <Card className="p-5">
+            <p className="mb-1 text-sm font-medium text-[var(--color-brand-dark)]">Newsletter segmentée · avis Google · parrainage</p>
+            <p className="mb-4 text-sm text-[var(--color-ink)]">
+              Trois automatisations de fidélisation réunies : la <strong>newsletter</strong> qui envoie à chaque acheteur les
+              biens correspondant à ses critères, la <strong>collecte d'avis Google</strong> (demande 2 jours après une
+              signature, relance au 5ᵉ jour), et la <strong>demande de parrainage</strong> un mois après la signature.
+            </p>
+            <Steps items={[
+              <>Ouvrir <strong>Marketing</strong> : les segments d'acheteurs sont listés avec leurs critères (budget, type, zones).</>,
+              <>Cliquer <strong>« Envoyer la newsletter »</strong> sur un segment : chaque contact reçoit <em>sa</em> sélection personnalisée de biens.</>,
+              <>Pour les avis : avancer l'horloge à <strong>J+2</strong> d'une signature → Évaluer → la demande part (email + SMS). À <strong>J+5</strong> sans avis, une relance unique part.</>,
+              <>Cliquer <strong>« Simuler : avis laissé »</strong> sur une transaction pour stopper la relance (c'est ce que ferait la détection réelle).</>,
+              <>À <strong>J+30</strong> de la signature : la proposition de <strong>parrainage</strong> (bon de 200 €) part automatiquement.</>,
+            ]} />
+            <p className="mt-4 rounded-lg bg-slate-50 p-3 text-xs text-slate-600">
+              💡 Seuls les contacts <strong>opt-in marketing</strong> avec des critères renseignés reçoivent la newsletter — et jamais deux fois la même semaine.
+            </p>
+          </Card>
+        </Section>
+
+        {/* 8. JOURNAL D'ACTIVITÉ */}
+        <Section id="journal" title="8. Journal d'activité" icon={<History size={20} />}>
+          <Card className="p-5">
+            <p className="mb-1 text-sm font-medium text-[var(--color-brand-dark)]">La preuve horodatée de tout ce qui s'exécute</p>
+            <p className="mb-4 text-sm text-[var(--color-ink)]">
+              C'est l'écran de preuve de la démo : une <strong>timeline horodatée</strong> (à la date de démo) de chaque action
+              exécutée par les automatisations — tri d'un email, envoi d'un rappel, génération d'une quittance, relance de
+              mandat… Rien ne se passe « dans l'ombre ».
+            </p>
+            <Steps items={[
+              <>Ouvrir <strong>Journal d'activité</strong> : les événements sont listés du plus récent au plus ancien.</>,
+              <>Utiliser les <strong>pastilles de filtre</strong> (A1, A2, A4…) pour n'afficher que les événements d'une automatisation.</>,
+              <>Après chaque clic sur <strong>Évaluer</strong>, revenir ici pour montrer la trace exacte de ce qui vient de se déclencher.</>,
+            ]} />
+            <p className="mt-4 rounded-lg bg-slate-50 p-3 text-xs text-slate-600">
+              💡 Chaque événement porte la <strong>date de démo</strong> à laquelle il s'est produit — pas la date réelle — pour un scénario cohérent.
+            </p>
+          </Card>
+        </Section>
+
+        {/* 9. BOÎTE D'ENVOI */}
+        <Section id="envoi" title="9. Boîte d'envoi" icon={<Send size={20} />}>
+          <Card className="p-5">
+            <p className="mb-1 text-sm font-medium text-[var(--color-brand-dark)]">L'aperçu fidèle de chaque message envoyé</p>
+            <p className="mb-4 text-sm text-[var(--color-ink)]">
+              Tous les <strong>SMS, emails et PDF</strong> générés par les automatisations, présentés <strong>tels que le client
+              les recevrait</strong> : objet, corps personnalisé, pièce jointe. En démo, aucun envoi réel ne part — c'est la
+              vitrine du rendu final.
+            </p>
+            <Steps items={[
+              <>Ouvrir <strong>Boîte d'envoi</strong> : les compteurs en haut distinguent <strong>emails</strong> et <strong>SMS</strong>.</>,
+              <>Filtrer par automatisation avec les pastilles (A2 pour les rappels, A4 pour les quittances…).</>,
+              <>Ouvrir un message pour montrer le <strong>texte exact</strong> reçu par le client ; les quittances offrent le <strong>téléchargement du PDF</strong> joint.</>,
+            ]} />
+            <p className="mt-4 rounded-lg bg-slate-50 p-3 text-xs text-slate-600">
+              💡 Argument clé en rendez-vous : « voilà précisément ce que reçoivent vos clients, sans que personne n'ait rien rédigé ».
             </p>
           </Card>
         </Section>
