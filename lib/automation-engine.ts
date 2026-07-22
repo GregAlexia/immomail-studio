@@ -55,15 +55,19 @@ const REQUEST_LABEL: Record<RequestType, string> = {
 };
 
 // Réserve une exécution (idempotence §6.3). true si nouvellement réservée.
-// INSERT ... ON CONFLICT DO NOTHING : un seul aller-retour DB au lieu de
-// SELECT puis INSERT (cette fonction est appelée pour chaque candidat de
-// chaque automatisation, à chaque évaluation de l'horloge).
+// `claimed` contient les run_keys déjà réservées (préchargées en 1 requête
+// par agence) : les ré-évaluations ne coûtent AUCUN aller-retour DB pour les
+// actions déjà exécutées — c'était le principal poids du bouton « Évaluer »
+// en production (latence réseau × dizaines de tentatives redondantes).
+// L'INSERT ... ON CONFLICT reste la garantie finale contre les courses.
 async function claim(
   agencyId: string,
   type: AutomationType,
   runKey: string,
-  refId?: string | null
+  refId: string | null | undefined,
+  claimed: Set<string>
 ): Promise<boolean> {
+  if (claimed.has(runKey)) return false;
   const inserted = await db
     .insert(automationRuns)
     .values({
@@ -77,6 +81,7 @@ async function claim(
     })
     .onConflictDoNothing({ target: automationRuns.runKey })
     .returning({ id: automationRuns.id });
+  claimed.add(runKey); // réservée par nous ou par un run concurrent : plus jamais retentée
   return inserted.length > 0;
 }
 
@@ -92,26 +97,35 @@ export async function runEngine(upto: Date, agencyId?: string): Promise<EngineRe
     ? await db.select().from(agencies).where(eq(agencies.id, agencyId))
     : await db.select().from(agencies);
 
-  for (const agency of agencyRows) {
-    const aId = agency.id;
-    // Un seul aller-retour DB pour biens/contacts par agence, partagé entre
-    // les 7 traitements ci-dessous (au lieu d'une requête par traitement).
-    const [props, agencyContacts] = await Promise.all([
-      db.select().from(properties).where(eq(properties.agencyId, aId)),
-      db.select().from(contacts).where(eq(contacts.agencyId, aId)),
-    ]);
-    const propById = new Map(props.map((p) => [p.id, p]));
-    const propByRef = new Map(props.filter((p) => p.ref).map((p) => [p.ref as string, p]));
-    const contactById = new Map(agencyContacts.map((c) => [c.id, c]));
+  // Les agences sont indépendantes → traitées en parallèle (latence réseau
+  // masquée au lieu d'être additionnée).
+  await Promise.all(
+    agencyRows.map(async (agency) => {
+      const aId = agency.id;
+      // 3 allers-retours de préchargement, en parallèle : biens, contacts,
+      // et surtout les run_keys déjà exécutées (voir claim()).
+      const [props, agencyContacts, runRows] = await Promise.all([
+        db.select().from(properties).where(eq(properties.agencyId, aId)),
+        db.select().from(contacts).where(eq(contacts.agencyId, aId)),
+        db.select({ runKey: automationRuns.runKey }).from(automationRuns).where(eq(automationRuns.agencyId, aId)),
+      ]);
+      const propById = new Map(props.map((p) => [p.id, p]));
+      const propByRef = new Map(props.filter((p) => p.ref).map((p) => [p.ref as string, p]));
+      const contactById = new Map(agencyContacts.map((c) => [c.id, c]));
+      const claimed = new Set(runRows.map((r) => r.runKey));
 
-    await processLeads(aId, agency.name, upto, uptoIso, push, props, propByRef);
-    await processAppointments(aId, upto, uptoIso, push, propById);
-    await processMandates(aId, upto, uptoIso, push, propById, contactById);
-    await processReceipts(aId, agency.name, agency.city ?? "", upto, uptoIso, push, propById, contactById);
-    await processCompliance(aId, upto, uptoIso, push, propById);
-    await processReviews(aId, agency.name, upto, uptoIso, push, contactById);
-    await processReferrals(aId, agency.name, upto, uptoIso, push, contactById, propById);
-  }
+      // Les 7 traitements touchent des tables/flags disjoints : parallèle.
+      await Promise.all([
+        processLeads(aId, agency.name, upto, uptoIso, push, props, propByRef, claimed),
+        processAppointments(aId, upto, uptoIso, push, propById, claimed),
+        processMandates(aId, upto, uptoIso, push, propById, contactById, claimed),
+        processReceipts(aId, agency.name, agency.city ?? "", upto, uptoIso, push, propById, contactById, claimed),
+        processCompliance(aId, upto, uptoIso, push, propById, claimed),
+        processReviews(aId, agency.name, upto, uptoIso, push, contactById, claimed),
+        processReferrals(aId, agency.name, upto, uptoIso, push, contactById, propById, claimed),
+      ]);
+    })
+  );
   return result;
 }
 
@@ -123,7 +137,8 @@ async function processLeads(
   uptoIso: string,
   push: (t: AutomationType, d: string) => void,
   props: Property[],
-  propByRef: Map<string, Property>
+  propByRef: Map<string, Property>,
+  claimed: Set<string>
 ) {
   const emails = await db
     .select()
@@ -151,7 +166,7 @@ async function processLeads(
     });
 
     if (verdict.category === "spam") {
-      if (await claim(aId, "A9", `triage:${email.id}`, email.id)) {
+      if (await claim(aId, "A9", `triage:${email.id}`, email.id, claimed)) {
         await db
           .update(inboxEmails)
           .set({ isSpam: true, status: "spam" })
@@ -169,7 +184,7 @@ async function processLeads(
     }
 
     if (verdict.category === "documents") {
-      if (await claim(aId, "A9", `triage:${email.id}`, email.id)) {
+      if (await claim(aId, "A9", `triage:${email.id}`, email.id, claimed)) {
         await db
           .update(inboxEmails)
           .set({ status: "pieces_dossier" })
@@ -187,7 +202,7 @@ async function processLeads(
     }
 
     if (verdict.category === "visit_followup") {
-      if (await claim(aId, "A9", `triage:${email.id}`, email.id)) {
+      if (await claim(aId, "A9", `triage:${email.id}`, email.id, claimed)) {
         await db
           .update(inboxEmails)
           .set({ status: "suivi_visite" })
@@ -205,7 +220,7 @@ async function processLeads(
     }
 
     // ---- Nouveau lead ----
-    if (!(await claim(aId, "A9", `triage:${email.id}`, email.id))) continue;
+    if (!(await claim(aId, "A9", `triage:${email.id}`, email.id, claimed))) continue;
 
     const prop = verdict.propertyRef ? propByRef.get(verdict.propertyRef) : undefined;
     const assignedTo = prop?.negotiator ?? fallbackNegotiator;
@@ -254,7 +269,7 @@ async function processLeads(
     push("A9", `Lead ${externalId} qualifié et routé vers ${assignedTo}`);
 
     // ---- A11 : création/maj fiche CRM ----
-    if (await claim(aId, "A11", `crm:${leadId}`, leadId)) {
+    if (await claim(aId, "A11", `crm:${leadId}`, leadId, claimed)) {
       const [firstName, ...rest] = verdict.name.split(" ");
       const lastName = rest.join(" ") || "—";
       const existingContact = verdict.email
@@ -315,7 +330,7 @@ async function processLeads(
     }
 
     // ---- A10 : réponse instantanée ----
-    if (await claim(aId, "A10", `instant_resp:${leadId}`, leadId)) {
+    if (await claim(aId, "A10", `instant_resp:${leadId}`, leadId, claimed)) {
       const bookingLink = prop ? `/book/${prop.id}` : "/book";
       const propLine = prop
         ? `votre intérêt pour le bien ${prop.ref} — ${prop.title} (${eur(prop.price)}${
@@ -368,7 +383,8 @@ async function processAppointments(
   upto: Date,
   uptoIso: string,
   push: (t: AutomationType, d: string) => void,
-  propById: Map<string, Property>
+  propById: Map<string, Property>,
+  claimed: Set<string>
 ) {
   const rows = await db.select().from(appointments).where(eq(appointments.agencyId, aId));
 
@@ -380,12 +396,14 @@ async function processAppointments(
     const scheduled = new Date(apt.scheduledAt);
 
     // Confirmation immédiate
-    if (!apt.confirmationSentAt && (await claim(aId, "A2", `confirm:${apt.id}`, apt.id))) {
+    if (!apt.confirmationSentAt && (await claim(aId, "A2", `confirm:${apt.id}`, apt.id, claimed))) {
       const body = `Bonjour ${name}, votre ${apt.type === "estimation" ? "rendez-vous d'estimation" : "visite"} est confirmé(e) le ${fmtDate(
         apt.scheduledAt
       )} à ${fmtTime(apt.scheduledAt)} (${where}). Répondez STOP pour annuler.`;
-      await sendSms({ agencyId: aId, toContactId: apt.contactId, toName: name, toPhone: apt.contactPhone, body, automationType: "A2", sentAt: uptoIso });
-      await sendEmail({ agencyId: aId, toContactId: apt.contactId, toName: name, toEmail: apt.contactEmail, subject: `Confirmation de votre rendez-vous — ${fmtDate(apt.scheduledAt)}`, body, automationType: "A2", sentAt: uptoIso });
+      await Promise.all([
+        sendSms({ agencyId: aId, toContactId: apt.contactId, toName: name, toPhone: apt.contactPhone, body, automationType: "A2", sentAt: uptoIso }),
+        sendEmail({ agencyId: aId, toContactId: apt.contactId, toName: name, toEmail: apt.contactEmail, subject: `Confirmation de votre rendez-vous — ${fmtDate(apt.scheduledAt)}`, body, automationType: "A2", sentAt: uptoIso }),
+      ]);
       await db.update(appointments).set({ confirmationSentAt: uptoIso }).where(eq(appointments.id, apt.id));
       await recordActivity({ agencyId: aId, automationType: "A2", description: `Confirmation envoyée à ${name} pour le RDV du ${fmtDateTime(apt.scheduledAt)}`, refId: apt.id, occurredAt: uptoIso });
       push("A2", `Confirmation → ${name}`);
@@ -393,7 +411,7 @@ async function processAppointments(
 
     // Rappel J-1
     const j1 = addDays(scheduled, -1);
-    if (!apt.reminderJ1SentAt && upto >= j1 && (await claim(aId, "A2", `reminder_j1:${apt.id}`, apt.id))) {
+    if (!apt.reminderJ1SentAt && upto >= j1 && (await claim(aId, "A2", `reminder_j1:${apt.id}`, apt.id, claimed))) {
       const body = `Rappel : ${name}, votre ${apt.type === "estimation" ? "rendez-vous" : "visite"} a lieu demain à ${fmtTime(apt.scheduledAt)} (${where}). À demain !`;
       await sendSms({ agencyId: aId, toContactId: apt.contactId, toName: name, toPhone: apt.contactPhone, body, automationType: "A2", sentAt: uptoIso });
       await db.update(appointments).set({ reminderJ1SentAt: uptoIso, status: apt.status === "confirmed" || apt.status === "requested" ? "reminded" : apt.status }).where(eq(appointments.id, apt.id));
@@ -403,7 +421,7 @@ async function processAppointments(
 
     // Rappel H-2
     const h2 = new Date(scheduled.getTime() - 2 * 3600 * 1000);
-    if (!apt.reminderH2SentAt && upto >= h2 && (await claim(aId, "A2", `reminder_h2:${apt.id}`, apt.id))) {
+    if (!apt.reminderH2SentAt && upto >= h2 && (await claim(aId, "A2", `reminder_h2:${apt.id}`, apt.id, claimed))) {
       const body = `${name}, votre visite est dans 2 h (${fmtTime(apt.scheduledAt)}, ${where}). À tout à l'heure !`;
       await sendSms({ agencyId: aId, toContactId: apt.contactId, toName: name, toPhone: apt.contactPhone, body, automationType: "A2", sentAt: uptoIso });
       await db.update(appointments).set({ reminderH2SentAt: uptoIso }).where(eq(appointments.id, apt.id));
@@ -420,14 +438,15 @@ async function processMandates(
   uptoIso: string,
   push: (t: AutomationType, d: string) => void,
   propById: Map<string, Property>,
-  ownerById: Map<string, Contact>
+  ownerById: Map<string, Contact>,
+  claimed: Set<string>
 ) {
   const rows = await db.select().from(mandates).where(and(eq(mandates.agencyId, aId), eq(mandates.status, "active")));
 
   for (const m of rows) {
     const trigger = addDays(new Date(m.endDate), -30);
     if (upto < trigger) continue;
-    if (!(await claim(aId, "A3", `mandate_expiry:${m.id}`, m.id))) continue;
+    if (!(await claim(aId, "A3", `mandate_expiry:${m.id}`, m.id, claimed))) continue;
     const prop = propById.get(m.propertyId);
     const owner = ownerById.get(m.ownerId);
     const ownerName = owner ? `${owner.firstName} ${owner.lastName}` : "le propriétaire";
@@ -452,7 +471,8 @@ async function processReceipts(
   uptoIso: string,
   push: (t: AutomationType, d: string) => void,
   propById: Map<string, Property>,
-  tenantById: Map<string, Contact>
+  tenantById: Map<string, Contact>,
+  claimed: Set<string>
 ) {
   const rows = await db.select().from(leases).where(eq(leases.agencyId, aId));
 
@@ -466,7 +486,7 @@ async function processReceipts(
       if (due > upto) break;
       if (due >= start) {
         const periodKey = format(due, "yyyy-MM");
-        if (await claim(aId, "A4", `receipt:${lease.id}:${periodKey}`, lease.id)) {
+        if (await claim(aId, "A4", `receipt:${lease.id}:${periodKey}`, lease.id, claimed)) {
           const prop = propById.get(lease.propertyId);
           const tenant = tenantById.get(lease.tenantId);
           const tenantName = tenant ? `${tenant.firstName} ${tenant.lastName}` : "le locataire";
@@ -496,14 +516,15 @@ async function processCompliance(
   upto: Date,
   uptoIso: string,
   push: (t: AutomationType, d: string) => void,
-  propById: Map<string, Property>
+  propById: Map<string, Property>,
+  claimed: Set<string>
 ) {
   const rows = await db.select().from(complianceItems).where(and(eq(complianceItems.agencyId, aId), eq(complianceItems.status, "pending")));
 
   for (const item of rows) {
     const trigger = addDays(new Date(item.dueDate), -item.reminderDaysBefore);
     if (upto < trigger) continue;
-    if (!(await claim(aId, "A5", `compliance:${item.id}`, item.id))) continue;
+    if (!(await claim(aId, "A5", `compliance:${item.id}`, item.id, claimed))) continue;
     const prop = propById.get(item.propertyId);
     await db.update(complianceItems).set({ status: "reminded" }).where(eq(complianceItems.id, item.id));
     await recordActivity({ agencyId: aId, automationType: "A5", description: `Échéance conformité « ${item.label} » (${prop?.title ?? ""}) à traiter avant le ${fmtDate(item.dueDate)} — rappel déclenché`, refId: item.id, occurredAt: uptoIso });
@@ -518,7 +539,8 @@ async function processReviews(
   upto: Date,
   uptoIso: string,
   push: (t: AutomationType, d: string) => void,
-  byId: Map<string, Contact>
+  byId: Map<string, Contact>,
+  claimed: Set<string>
 ) {
   const rows = await db.select().from(transactions).where(eq(transactions.agencyId, aId));
   const link = reviewLink(agencyName);
@@ -531,9 +553,11 @@ async function processReviews(
 
     // J+2 : demande d'avis
     const reqAt = addDays(signed, 2);
-    if (!t.reviewRequestedAt && upto >= reqAt && (await claim(aId, "A7", `review_req:${t.id}`, t.id))) {
-      await sendEmail({ agencyId: aId, toContactId: client.id, toName: name, toEmail: client.email, subject: `Votre avis compte pour ${agencyName} 🙏`, body: reviewEmailBody(name, agencyName, link), automationType: "A7", sentAt: uptoIso });
-      await sendSms({ agencyId: aId, toContactId: client.id, toName: name, toPhone: client.phone, body: reviewSmsBody(name, link), automationType: "A7", sentAt: uptoIso });
+    if (!t.reviewRequestedAt && upto >= reqAt && (await claim(aId, "A7", `review_req:${t.id}`, t.id, claimed))) {
+      await Promise.all([
+        sendEmail({ agencyId: aId, toContactId: client.id, toName: name, toEmail: client.email, subject: `Votre avis compte pour ${agencyName} 🙏`, body: reviewEmailBody(name, agencyName, link), automationType: "A7", sentAt: uptoIso }),
+        sendSms({ agencyId: aId, toContactId: client.id, toName: name, toPhone: client.phone, body: reviewSmsBody(name, link), automationType: "A7", sentAt: uptoIso }),
+      ]);
       await db.update(transactions).set({ reviewRequestedAt: uptoIso }).where(eq(transactions.id, t.id));
       await recordActivity({ agencyId: aId, automationType: "A7", description: `Demande d'avis Google envoyée à ${name} (J+2 de la signature)`, refId: t.id, occurredAt: uptoIso });
       push("A7", `Demande d'avis → ${name}`);
@@ -541,7 +565,7 @@ async function processReviews(
 
     // J+5 : relance si pas d'avis déposé
     const followAt = addDays(signed, 5);
-    if (t.reviewRequestedAt && !t.reviewCompletedAt && !t.reviewFollowupAt && upto >= followAt && (await claim(aId, "A7", `review_followup:${t.id}`, t.id))) {
+    if (t.reviewRequestedAt && !t.reviewCompletedAt && !t.reviewFollowupAt && upto >= followAt && (await claim(aId, "A7", `review_followup:${t.id}`, t.id, claimed))) {
       await sendEmail({ agencyId: aId, toContactId: client.id, toName: name, toEmail: client.email, subject: `Petit rappel — votre avis pour ${agencyName}`, body: reviewFollowupBody(name, agencyName, link), automationType: "A7", sentAt: uptoIso });
       await db.update(transactions).set({ reviewFollowupAt: uptoIso }).where(eq(transactions.id, t.id));
       await recordActivity({ agencyId: aId, automationType: "A7", description: `Relance d'avis (J+5) envoyée à ${name} — pas encore d'avis déposé`, refId: t.id, occurredAt: uptoIso });
@@ -558,14 +582,15 @@ async function processReferrals(
   uptoIso: string,
   push: (t: AutomationType, d: string) => void,
   byId: Map<string, Contact>,
-  propById: Map<string, Property>
+  propById: Map<string, Property>,
+  claimed: Set<string>
 ) {
   const rows = await db.select().from(transactions).where(eq(transactions.agencyId, aId));
 
   for (const t of rows) {
     const refAt = addMonths(new Date(t.signedDate), 1);
     if (t.referralRequestedAt || upto < refAt) continue;
-    if (!(await claim(aId, "A8", `referral:${t.id}`, t.id))) continue;
+    if (!(await claim(aId, "A8", `referral:${t.id}`, t.id, claimed))) continue;
     const client = byId.get(t.contactId);
     if (!client) continue;
     const name = `${client.firstName} ${client.lastName}`;
@@ -578,8 +603,10 @@ Si vous connaissez un proche qui souhaite acheter, vendre ou louer, recommandez-
 
 Merci de votre confiance,
 ${agencyName}`;
-    await sendEmail({ agencyId: aId, toContactId: client.id, toName: name, toEmail: client.email, subject: `Un mois déjà — parrainez vos proches 🎁`, body, automationType: "A8", sentAt: uptoIso });
-    await sendSms({ agencyId: aId, toContactId: client.id, toName: name, toPhone: client.phone, body: `${client.firstName}, parrainez un proche chez ${agencyName} et recevez 200 € par mise en relation aboutie ! Merci de votre confiance.`, automationType: "A8", sentAt: uptoIso });
+    await Promise.all([
+      sendEmail({ agencyId: aId, toContactId: client.id, toName: name, toEmail: client.email, subject: `Un mois déjà — parrainez vos proches 🎁`, body, automationType: "A8", sentAt: uptoIso }),
+      sendSms({ agencyId: aId, toContactId: client.id, toName: name, toPhone: client.phone, body: `${client.firstName}, parrainez un proche chez ${agencyName} et recevez 200 € par mise en relation aboutie ! Merci de votre confiance.`, automationType: "A8", sentAt: uptoIso }),
+    ]);
     await db.update(transactions).set({ referralRequestedAt: uptoIso }).where(eq(transactions.id, t.id));
     await recordActivity({ agencyId: aId, automationType: "A8", description: `Demande de parrainage (J+30) envoyée à ${name}`, refId: t.id, occurredAt: uptoIso });
     push("A8", `Parrainage → ${name}`);
