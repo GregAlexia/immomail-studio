@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
+import { createPortal } from "react-dom";
 import {
   CalendarClock,
   ChevronRight,
@@ -21,7 +22,18 @@ export function DemoClockBar({
 }) {
   const [pending, startTransition] = useTransition();
   const [toast, setToast] = useState<EngineResult | null>(null);
+  const [mounted, setMounted] = useState(false);
   const today = currentISO.slice(0, 10);
+
+  useEffect(() => { setMounted(true); }, []);
+
+  // Fermeture au clavier (Échap)
+  useEffect(() => {
+    if (!toast) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setToast(null); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [toast]);
 
   const run = (fn: () => Promise<EngineResult>) =>
     startTransition(async () => {
@@ -78,49 +90,82 @@ export function DemoClockBar({
           className="inline-flex items-center gap-1 rounded-md border border-[var(--color-border)] bg-white px-2.5 py-1.5 text-sm font-medium text-rose-600 shadow-sm transition hover:bg-rose-50 disabled:opacity-50"
           title="Réinitialiser la démo"
         >
-          <RotateCcw size={14} /> Réinitialiser
+          <RotateCcw size={14} /> <span className="hidden sm:inline">Réinitialiser</span>
         </button>
 
         {pending && <span className="text-sm text-[var(--color-muted)]">…</span>}
       </div>
 
-      {toast && (
-        <div className="fixed bottom-6 right-6 z-50 w-96 max-w-[calc(100vw-3rem)] rounded-xl border border-[var(--color-border)] bg-white shadow-2xl">
-          <div className="flex items-center justify-between border-b border-[var(--color-border)] px-4 py-3">
-            <div className="flex items-center gap-2 font-semibold text-[var(--color-ink)]">
-              <Sparkles size={18} className="text-[var(--color-brand)]" />
-              {toast.events.length > 0
-                ? `${toast.events.length} automatisation${toast.events.length > 1 ? "s" : ""} déclenchée${toast.events.length > 1 ? "s" : ""}`
-                : "Aucune nouvelle automatisation"}
+      {mounted && toast && createPortal(
+        // Mobile : bottom sheet pleine largeur avec fond assombri.
+        // Desktop (sm+) : carte flottante en bas à droite, sans fond.
+        <>
+          <div
+            className="fixed inset-0 z-[70] bg-slate-900/40 sm:hidden"
+            onClick={() => setToast(null)}
+            aria-hidden
+          />
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Automatisations déclenchées"
+            className="fixed inset-x-0 bottom-0 z-[71] flex max-h-[75dvh] flex-col rounded-t-2xl border border-[var(--color-border)] bg-white shadow-2xl sm:inset-x-auto sm:bottom-6 sm:right-6 sm:w-96 sm:max-h-[70vh] sm:rounded-xl"
+          >
+            <div className="flex items-center justify-between gap-2 border-b border-[var(--color-border)] px-4 py-3">
+              <div className="flex min-w-0 items-center gap-2 font-semibold text-[var(--color-ink)]">
+                <Sparkles size={18} className="shrink-0 text-[var(--color-brand)]" />
+                <span className="truncate">
+                  {toast.events.length > 0
+                    ? `${toast.events.length} automatisation${toast.events.length > 1 ? "s" : ""} déclenchée${toast.events.length > 1 ? "s" : ""}`
+                    : "Aucune nouvelle automatisation"}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setToast(null)}
+                aria-label="Fermer"
+                className="-m-2 shrink-0 rounded-lg p-2 text-[var(--color-muted)] transition hover:bg-slate-100 hover:text-[var(--color-ink)]"
+              >
+                <X size={20} />
+              </button>
             </div>
-            <button onClick={() => setToast(null)} className="text-[var(--color-muted)] hover:text-[var(--color-ink)]">
-              <X size={18} />
-            </button>
+
+            <div className="min-h-0 flex-1 overflow-y-auto px-4 py-2">
+              {toast.events.length === 0 ? (
+                <p className="py-3 text-sm text-[var(--color-muted)]">
+                  Tout est déjà à jour pour cette date. Avancez encore l'horloge pour déclencher les échéances suivantes.
+                </p>
+              ) : (
+                <ul className="space-y-2 py-1">
+                  {toast.events.slice(0, 12).map((e, i) => (
+                    <li key={i} className="flex items-start gap-2 text-sm leading-snug">
+                      <span className="mt-0.5 shrink-0 rounded bg-[var(--color-brand-soft)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--color-brand-dark)]">
+                        {e.type}
+                      </span>
+                      <span className="min-w-0 text-[var(--color-ink)]">{e.description}</span>
+                    </li>
+                  ))}
+                  {toast.events.length > 12 && (
+                    <li className="flex items-center gap-1 pt-1 text-xs text-[var(--color-muted)]">
+                      <ChevronRight size={12} /> et {toast.events.length - 12} autre(s) — voir le Journal d'activité
+                    </li>
+                  )}
+                </ul>
+              )}
+            </div>
+
+            <div className="border-t border-[var(--color-border)] p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+              <button
+                type="button"
+                onClick={() => setToast(null)}
+                className="w-full rounded-lg bg-[var(--color-brand)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:brightness-95"
+              >
+                Fermer
+              </button>
+            </div>
           </div>
-          <div className="max-h-72 overflow-y-auto px-4 py-2">
-            {toast.events.length === 0 ? (
-              <p className="py-3 text-sm text-[var(--color-muted)]">
-                Tout est déjà à jour pour cette date. Avancez encore l'horloge pour déclencher les échéances suivantes.
-              </p>
-            ) : (
-              <ul className="space-y-1.5 py-1">
-                {toast.events.slice(0, 12).map((e, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm">
-                    <span className="mt-0.5 rounded bg-[var(--color-brand-soft)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--color-brand-dark)]">
-                      {e.type}
-                    </span>
-                    <span className="text-[var(--color-ink)]">{e.description}</span>
-                  </li>
-                ))}
-                {toast.events.length > 12 && (
-                  <li className="flex items-center gap-1 pt-1 text-xs text-[var(--color-muted)]">
-                    <ChevronRight size={12} /> et {toast.events.length - 12} autre(s) — voir le Journal d'activité
-                  </li>
-                )}
-              </ul>
-            )}
-          </div>
-        </div>
+        </>,
+        document.body
       )}
     </>
   );
