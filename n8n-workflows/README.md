@@ -1,6 +1,6 @@
 # Workflows n8n — ImmoMail Studio
 
-Ces 9 workflows externalisent dans **n8n** les 11 automatisations (A1–A11) que l'app
+Ces 11 workflows externalisent dans **n8n** les 11 automatisations (A1–A11) que l'app
 exécute aujourd'hui en interne (moteur `lib/automation-engine.ts` + horloge de démo).
 Ils tapent sur la **même base Supabase** et respectent la même logique d'idempotence
 (`automation_runs.run_key`).
@@ -25,6 +25,8 @@ Ils tapent sur la **même base Supabase** et respectent la même logique d'idemp
 | **A7** | Collecte d'avis Google (J+2 / J+5) | `A7-avis-google.json` | Cron quotidien 10h |
 | **A8** | Demande de parrainage (J+30) | `A8-parrainage.json` | Cron quotidien 11h |
 | **A9 · A10 · A11** | Tri des leads + réponse instantanée + fiche CRM | `A9-A10-A11-intake-leads.json` | IMAP (nouveaux emails) |
+| **A6b** | Newsletter à la demande (un segment) | `A6b-newsletter-webhook.json` | Webhook `POST /webhook/immomail/newsletter` |
+| **A7b** | Avis déposé → stop relance | `A7b-avis-depose-webhook.json` | Webhook `POST /webhook/immomail/review-done` |
 
 > A9/A10/A11 forment **un seul** workflow : un email entrant déclenche la chaîne complète
 > (classer → créer le lead → créer la fiche CRM → répondre). Les séparer casserait
@@ -33,7 +35,7 @@ Ils tapent sur la **même base Supabase** et respectent la même logique d'idemp
 ## Import dans n8n
 
 1. n8n → **Workflows → Import from File**.
-2. Importer les 9 `.json` (un par un).
+2. Importer les 11 `.json` (un par un).
 3. Sur chaque nœud rouge (credential manquant), **sélectionner/créer** la credential (voir ci-dessous).
 4. Vérifier, puis **activer** chaque workflow.
 

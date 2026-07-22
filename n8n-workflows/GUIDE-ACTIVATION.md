@@ -1,7 +1,7 @@
 # Guide de configuration & d'activation — workflows n8n ImmoMail Studio
 
 Ce guide est le **mode d'emploi opérationnel** : il part d'une instance n8n vierge et
-aboutit aux 9 workflows actifs en production. Il complète :
+aboutit aux 11 workflows actifs en production. Il complète :
 
 - [README.md](README.md) — vue d'ensemble, tableau de correspondance, principes ;
 - [DOCUMENTATION.md](DOCUMENTATION.md) — logique métier et rôle de chaque nœud.
@@ -121,12 +121,12 @@ sans configuration, ils tournent avec les valeurs de démo. À personnaliser pou
 
 ---
 
-## 4. Importer les 9 workflows
+## 4. Importer les 11 workflows
 
 ### Option A — import manuel (recommandé la première fois)
 
 1. n8n → **Workflows → ⋯ → Import from File**.
-2. Importer les 9 fichiers `A*.json`, un par un.
+2. Importer les 11 fichiers `A*.json`, un par un.
 3. Ouvrir chaque workflow : les nœuds à credential apparaissent avec un **triangle rouge**
    si la credential n'a pas été retrouvée par nom → cliquer le nœud, sélectionner la bonne
    credential dans la liste déroulante. Nœuds concernés : Postgres (tous), Send Email
@@ -290,6 +290,7 @@ dans cet ordre (du moins risqué au plus visible) :
 | 6 | A7 avis, puis A8 parrainage | Emails + SMS clients post-signature |
 | 7 | A6 newsletter | Envoi groupé hebdo — activer en dernier |
 | 8 | A9-A10-A11 intake | Répond automatiquement aux **vrais prospects** — activer quand tout le reste est validé |
+| 9 | A6b + A7b (webhooks) | Sans risque : ne font rien tant que personne n'appelle leur URL — activer quand l'émetteur (app, Zapier, GBP…) est branché |
 
 **Points d'attention au moment d'activer :**
 
@@ -355,7 +356,7 @@ plus le bouton « Évaluer » / l'horloge de démo — laissez n8n seul aux comm
 
 - [ ] 5 credentials créées et testées (Postgres 5432, SMTP, IMAP, Anthropic, SMS)
 - [ ] Variables d'environnement définies (ou fallbacks assumés / nœud Set)
-- [ ] 9 workflows importés, aucun nœud rouge
+- [ ] 11 workflows importés, aucun nœud rouge
 - [ ] `agency_id` renseigné dans « ⚙️ Config agence » (A9)
 - [ ] Tests à blanc passés, **y compris le test d'idempotence** (2e exécution = 0 envoi)
 - [ ] Clés du passé pré-réservées (A7/A8) si historique en base

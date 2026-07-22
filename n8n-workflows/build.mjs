@@ -860,3 +860,123 @@ VALUES (
 }
 
 console.log("\\nTerminé.");
+
+/* =========================================================================
+ *  A6b — Newsletter à la demande (webhook, miroir du bouton de l'app)
+ * ========================================================================= */
+{
+  const trigger = node("Webhook newsletter segment", "n8n-nodes-base.webhook", 2, [0, 300], {
+    httpMethod: "POST", path: "immomail/newsletter", options: {},
+  }, { webhookId: randomUUID() });
+
+  const select = pg("Destinataires + biens du segment", [260, 300], `WITH seg AS (
+  SELECT * FROM newsletter_segments WHERE id = {{ JSON.stringify($json.body.segmentId) }}
+),
+biens AS (
+  SELECT p.* FROM properties p, seg s
+  WHERE p.agency_id = s.agency_id AND p.status = 'available'
+    AND (s.criteria::jsonb->>'transaction' IS NULL OR p.transaction_type = s.criteria::jsonb->>'transaction')
+    AND (s.criteria::jsonb->>'type' IS NULL OR p.type = s.criteria::jsonb->>'type')
+    AND (s.criteria::jsonb->>'budgetMax' IS NULL OR p.price <= (s.criteria::jsonb->>'budgetMax')::numeric)
+)
+SELECT c.id AS contact_id, c.first_name, c.last_name, c.email, c.buyer_criteria,
+       s.name AS seg_name, s.id AS segment_id, s.agency_id,
+       (SELECT COALESCE(jsonb_agg(jsonb_build_object(
+          'title', b.title, 'price', b.price, 'ref', b.ref, 'city', b.city,
+          'transaction', b.transaction_type, 'type', b.type,
+          'surface', b.surface, 'rooms', b.rooms)), '[]'::jsonb) FROM biens b) AS biens
+FROM contacts c, seg s
+WHERE c.agency_id = s.agency_id
+  AND c.consent_marketing = TRUE
+  AND c.buyer_criteria IS NOT NULL
+  AND c.email IS NOT NULL
+  AND (s.criteria::jsonb->>'transaction' IS NULL
+       OR c.buyer_criteria::jsonb->>'transaction' = s.criteria::jsonb->>'transaction');`);
+
+  const compose = code("Composer la sélection par contact", [520, 300], `const out = [];
+for (const item of $input.all()) {
+  const j = item.json;
+  const bc = typeof j.buyer_criteria === 'string' ? JSON.parse(j.buyer_criteria || '{}') : (j.buyer_criteria || {});
+  const all = typeof j.biens === 'string' ? JSON.parse(j.biens || '[]') : (j.biens || []);
+  // Filtre personnel : budget max et type recherché (même logique que le bouton de l'app)
+  const mine = all.filter((p) => (!bc.budgetMax || p.price <= bc.budgetMax) && (!bc.type || p.type === bc.type));
+  if (mine.length === 0) continue; // rien à proposer à ce contact
+  const eur = (n) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
+  const lines = mine.map((p) => '• ' + p.title + ' — ' + eur(p.price) + (p.transaction === 'rental' ? '/mois' : '') + ' (' + (p.surface ?? '?') + ' m², ' + (p.rooms ?? '?') + ' p.) — réf ' + (p.ref || ''));
+  item.json.nb_biens = mine.length;
+  item.json.subject = mine.length + (mine.length > 1 ? ' nouveaux biens' : ' nouveau bien') + ' pour vous — ' + ($env.IMMOMAIL_AGENCY_NAME || 'Notre agence');
+  item.json.body = 'Bonjour ' + j.first_name + ',\\n\\n' + mine.length + (mine.length > 1 ? ' biens correspondant' : ' bien correspondant') + ' à votre recherche ' + j.seg_name + ' :\\n\\n' + lines.join('\\n') + '\\n\\nUn de ces biens vous intéresse ? Réservez une visite en un clic.\\n\\nÀ bientôt,\\n' + ($env.IMMOMAIL_AGENCY_NAME || 'Notre agence');
+  out.push(item);
+}
+return out;`);
+
+  const mail = email("Email newsletter", [780, 300], {
+    to: "={{ $json.email }}",
+    subject: "={{ $json.subject }}",
+    text: "={{ $json.body }}",
+  });
+
+  const journal = pg("Journaliser A6", [1040, 300], `WITH msg AS (
+  INSERT INTO messages (id, agency_id, channel, to_contact_id, to_name, to_address, subject, body, automation_type, sent_at, created_at)
+  VALUES (gen_random_uuid()::text, {{ JSON.stringify($json.agency_id) }}, 'email',
+          {{ JSON.stringify($json.contact_id) }},
+          {{ JSON.stringify(($json.first_name || '') + ' ' + ($json.last_name || '')) }},
+          {{ JSON.stringify($json.email) }},
+          {{ JSON.stringify($json.subject) }},
+          {{ JSON.stringify($json.body) }},
+          'A6', now()::text, now()::text)
+)
+INSERT INTO activity_log (id, agency_id, automation_type, description, ref_id, occurred_at, created_at)
+VALUES (gen_random_uuid()::text, {{ JSON.stringify($json.agency_id) }}, 'A6',
+        'Newsletter « ' || {{ JSON.stringify($json.seg_name) }} || ' » envoyée à ' || {{ JSON.stringify(($json.first_name || '') + ' ' + ($json.last_name || '')) }} || ' (' || {{ $json.nb_biens }} || ' bien(s))',
+        {{ JSON.stringify($json.segment_id) }}, now()::text, now()::text);`);
+
+  const note = sticky(
+    "A6b — Newsletter à la demande (webhook)\n\nMiroir du bouton « Envoyer la newsletter » de l'app : envoie\nimmédiatement la sélection d'un SEGMENT donné, sans attendre\nle cron hebdomadaire d'A6.\n\nURL : POST /webhook/immomail/newsletter\nBody attendu : { segmentId }\n(IDs : SELECT id, name FROM newsletter_segments;)\n\nRéponse HTTP immédiate (200) ; le résultat se lit dans la\nBoîte d'envoi et le Journal (A6).",
+    [0, 0], 540, 260);
+
+  save("A6b-newsletter-webhook.json", wf("A6b · Newsletter à la demande (segment)",
+    [note, trigger, select, compose, mail, journal],
+    chain("Webhook newsletter segment", "Destinataires + biens du segment", "Composer la sélection par contact", "Email newsletter", "Journaliser A6"),
+    "Webhook d'envoi immédiat de la newsletter d'un segment — équivalent du bouton de l'app."));
+}
+
+/* =========================================================================
+ *  A7b — Avis déposé (webhook, stoppe la relance A7)
+ * ========================================================================= */
+{
+  const trigger = node("Webhook avis déposé", "n8n-nodes-base.webhook", 2, [0, 300], {
+    httpMethod: "POST", path: "immomail/review-done", responseMode: "responseNode", options: {},
+  }, { webhookId: randomUUID() });
+
+  const update = pg("Marquer l'avis déposé", [260, 300], `WITH upd AS (
+  UPDATE transactions
+  SET review_completed_at = now()::text
+  WHERE id = {{ JSON.stringify($json.body.transactionId) }}
+    AND review_completed_at IS NULL
+  RETURNING id, agency_id
+),
+log AS (
+  INSERT INTO activity_log (id, agency_id, automation_type, description, ref_id, occurred_at, created_at)
+  SELECT gen_random_uuid()::text, agency_id, 'A7',
+         'Avis Google déposé par le client — relance automatique stoppée', id, now()::text, now()::text
+  FROM upd
+)
+SELECT {{ JSON.stringify($json.body.transactionId) }} AS transaction_id,
+       EXISTS(SELECT 1 FROM upd) AS updated;`);
+
+  const respond = node("Répondre 200", "n8n-nodes-base.respondToWebhook", 1.1, [520, 300], {
+    respondWith: "json",
+    responseBody: '={{ JSON.stringify({ ok: true, transactionId: $json.transaction_id, updated: $json.updated }) }}',
+    options: {},
+  });
+
+  const note = sticky(
+    "A7b — Avis déposé (webhook)\n\nMiroir du bouton « Simuler : avis laissé » de l'app : marque\nl'avis Google comme déposé pour une transaction, ce qui STOPPE\nla relance J+5 du workflow A7.\n\nEn production réelle : à appeler depuis l'outil qui détecte les\nnouveaux avis (Google Business Profile API, Zapier…).\n\nURL : POST /webhook/immomail/review-done\nBody attendu : { transactionId }\nRéponse : { ok, transactionId, updated } — updated=false si déjà marqué.",
+    [0, 0], 560, 280);
+
+  save("A7b-avis-depose-webhook.json", wf("A7b · Avis déposé (stop relance)",
+    [note, trigger, update, respond],
+    chain("Webhook avis déposé", "Marquer l'avis déposé", "Répondre 200"),
+    "Webhook qui marque l'avis Google déposé et stoppe la relance A7 — équivalent du bouton de l'app."));
+}

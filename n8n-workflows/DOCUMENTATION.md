@@ -1,6 +1,6 @@
 # Documentation des workflows n8n — ImmoMail Studio
 
-Cette doc explique, pour chacun des 9 workflows, **la logique métier** puis **le rôle de
+Cette doc explique, pour chacun des 11 workflows, **la logique métier** puis **le rôle de
 chaque nœud**. Elle complète le [README](README.md) (import, credentials, variables d'env)
 et le [GUIDE-ACTIVATION](GUIDE-ACTIVATION.md) (configuration pas-à-pas, tests, activation,
 dépannage).
@@ -28,7 +28,7 @@ Chaque workflow suit le même patron en 4 temps :
 ### Vue d'ensemble
 
 ```
- DÉCLENCHEURS              n8n (9 workflows)            SERVICES & DONNÉES
+ DÉCLENCHEURS              n8n (11 workflows)            SERVICES & DONNÉES
 ┌───────────────┐       ┌──────────────────┐
 │ Réservation   │──A1──▶│ Visites   A1·A2  │────────────────┐
 │ (site public) │       ├──────────────────┤                │
@@ -49,7 +49,7 @@ Chaque workflow suit le même patron en 4 temps :
                                            └───────────────────────┘
 ```
 
-Les 9 workflows partagent tous la même base Supabase (lecture des éléments dus + écriture
+Les 11 workflows partagent tous la même base Supabase (lecture des éléments dus + écriture
 des logs) ; l'app relit `messages`/`activity_log` pour afficher l'activité en temps réel.
 
 ### Concept n8n clé : « 1 item = 1 exécution »
@@ -355,6 +355,55 @@ Nouveaux emails (IMAP)
 
 > ⚠️ **Multi-agences** : l'agence cible est fixée dans le nœud **⚙️ Config agence** (`agency_id`).
 > En production réelle, mieux vaut dériver l'agence de l'adresse de réception (une boîte/alias par agence).
+
+---
+
+### A6b · Newsletter à la demande (webhook)
+
+**Logique** : miroir du bouton « Envoyer la newsletter » de l'app — envoie immédiatement
+la sélection d'un **segment** donné, sans attendre le cron hebdomadaire d'A6. Le SQL
+croise les critères du segment avec le stock disponible et les contacts opt-in ; le nœud
+Code applique ensuite le **filtre personnel** de chaque contact (budget max, type
+recherché) et écarte ceux qui n'ont aucun bien à recevoir.
+
+**Déclencheur** : Webhook `POST /webhook/immomail/newsletter` — body `{ segmentId }`.
+Réponse HTTP immédiate (200) ; le résultat se lit dans la Boîte d'envoi / le Journal.
+
+```
+Webhook newsletter segment → Destinataires + biens du segment → Composer la sélection par contact → Email newsletter → Journaliser A6
+```
+
+| Nœud | Type | Rôle |
+|------|------|------|
+| **Webhook newsletter segment** | webhook | Reçoit `{ segmentId }` (IDs : `SELECT id, name FROM newsletter_segments;`). Répond 200 immédiatement. |
+| **Destinataires + biens du segment** | postgres | CTE : segment → biens `available` correspondant aux critères du segment (`::jsonb`) → contacts opt-in avec email et critères compatibles. Une ligne par destinataire, biens agrégés en `jsonb_agg`. |
+| **Composer la sélection par contact** | code | Applique le filtre personnel (budgetMax, type), écarte les contacts sans bien, compose sujet + corps FR (mêmes textes que l'app). |
+| **Email newsletter** | emailSend | Envoie la sélection personnalisée. |
+| **Journaliser A6** | postgres | Insère `messages` + `activity_log` (A6) pour chaque destinataire. |
+
+> ⚠️ Pas d'idempotence volontairement : comme le bouton de l'app, chaque appel renvoie la
+> sélection courante (utile pour re-déclencher après un nouvel arrivage de biens).
+
+---
+
+### A7b · Avis déposé (webhook, stop relance)
+
+**Logique** : miroir du bouton « Simuler : avis laissé » de l'app — marque
+`review_completed_at` sur la transaction, ce qui **stoppe la relance J+5** du workflow
+A7 (sa requête exclut les transactions complétées). En production réelle, ce webhook est
+appelé par l'outil qui détecte les nouveaux avis (Google Business Profile API, Zapier…).
+
+**Déclencheur** : Webhook `POST /webhook/immomail/review-done` — body `{ transactionId }`.
+
+```
+Webhook avis déposé → Marquer l'avis déposé → Répondre 200
+```
+
+| Nœud | Type | Rôle |
+|------|------|------|
+| **Webhook avis déposé** | webhook | Reçoit `{ transactionId }`. `responseMode: responseNode`. |
+| **Marquer l'avis déposé** | postgres | `UPDATE transactions SET review_completed_at = now()` (seulement si pas déjà marqué) + CTE `activity_log` (A7). Renvoie toujours une ligne : `{ transaction_id, updated }`. |
+| **Répondre 200** | respondToWebhook | `{ ok, transactionId, updated }` — `updated=false` si la transaction était inconnue ou déjà marquée. |
 
 ---
 
