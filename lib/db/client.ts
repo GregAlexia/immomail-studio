@@ -22,7 +22,10 @@ export const client =
   postgres(url, {
     prepare: false, // requis avec le pooler Supabase (pgbouncer transaction mode)
     fetch_types: false, // évite le blocage en mode pooler (pas de 2e requête de types)
-    max: 1, // contexte serverless : 1 connexion par instance
+    // 4 connexions par instance : le moteur d'automatisations parallélise
+    // agences et traitements — avec max:1 tout se resérialisait au driver.
+    // Le pooler session (défaut 15 clients) supporte quelques instances chaudes.
+    max: 4,
     idle_timeout: 20,
     connect_timeout: 15, // échoue vite plutôt que de pendre
     ssl: process.env.DATABASE_SSL === "disable" ? false : "require",
