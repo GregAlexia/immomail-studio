@@ -1,5 +1,6 @@
 import { getAgencies, getSelectedAgency } from "@/lib/agency";
 import { getClock } from "@/lib/demo-clock";
+import { getMenuKeys } from "@/lib/menu-settings";
 import { fmtDayLong } from "@/lib/date";
 import { Sidebar } from "@/components/app-shell/Sidebar";
 import { MobileNav } from "@/components/app-shell/MobileNav";
@@ -28,14 +29,15 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   }
 
   const clock = await getClock();
+  const menuKeys = await getMenuKeys();
 
   return (
     <div className="flex min-h-screen">
-      <Sidebar />
+      <Sidebar enabledKeys={menuKeys} />
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-3 border-b border-[var(--color-border)] bg-[var(--color-surface)]/95 px-4 py-3 backdrop-blur sm:px-5">
           <div className="flex items-center gap-2">
-            <MobileNav />
+            <MobileNav enabledKeys={menuKeys} />
             <AgencySelector
               agencies={agencies.map((a) => ({ id: a.id, name: a.name, city: a.city }))}
               selectedId={selected.id}

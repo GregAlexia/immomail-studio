@@ -6,6 +6,8 @@ import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { contacts, newsletterSegments, properties, transactions } from "@/lib/db/schema";
 import { AGENCY_COOKIE, getSelectedAgency } from "@/lib/agency";
+import { MENU_COOKIE } from "@/lib/menu-settings";
+import { LOCKED_KEYS, NAV } from "@/components/app-shell/nav-items";
 import { getClock, getCurrentDate, setClock } from "@/lib/demo-clock";
 import { runEngine, type EngineResult } from "@/lib/automation-engine";
 import { createEvent, isSlotTaken } from "@/lib/services/calendar.service";
@@ -23,6 +25,15 @@ function revalidateAll() {
 export async function setAgency(agencyId: string) {
   const store = await cookies();
   store.set(AGENCY_COOKIE, agencyId, { path: "/", maxAge: 60 * 60 * 24 * 365 });
+  revalidateAll();
+}
+
+// ---------- Paramétrage : menus actifs ----------
+export async function saveMenuKeys(keys: string[]): Promise<void> {
+  const valid = new Set(NAV.map((n) => n.key));
+  const clean = [...new Set([...keys.filter((k) => valid.has(k)), ...LOCKED_KEYS])];
+  const store = await cookies();
+  store.set(MENU_COOKIE, JSON.stringify(clean), { path: "/", maxAge: 60 * 60 * 24 * 365 });
   revalidateAll();
 }
 
