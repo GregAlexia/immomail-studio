@@ -22,11 +22,13 @@ export const client =
   postgres(url, {
     prepare: false, // requis avec le pooler Supabase (pgbouncer transaction mode)
     fetch_types: false, // évite le blocage en mode pooler (pas de 2e requête de types)
-    // 4 connexions par instance : le moteur d'automatisations parallélise
-    // agences et traitements — avec max:1 tout se resérialisait au driver.
-    // Le pooler session (défaut 15 clients) supporte quelques instances chaudes.
-    max: 4,
-    idle_timeout: 20,
+    // IMPÉRATIVEMENT 1 : le pooler session Supabase (Free) limite à pool_size=15
+    // clients, et chaque instance serverless gelée par Vercel GARDE ses
+    // connexions ouvertes. max:4 a saturé le pooler en production
+    // (EMAXCONNSESSION). Les requêtes concurrentes du moteur se sérialisent au
+    // driver, ce qui est indolore depuis la région dub1 (~1-2 ms par requête).
+    max: 1,
+    idle_timeout: 10, // relâche vite la connexion entre deux invocations
     connect_timeout: 15, // échoue vite plutôt que de pendre
     ssl: process.env.DATABASE_SSL === "disable" ? false : "require",
   });
