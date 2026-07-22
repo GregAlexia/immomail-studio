@@ -1,0 +1,105 @@
+{
+  "name": "A7b · Avis déposé (stop relance)",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "A7b — Avis déposé (webhook)\n\nMiroir du bouton « Simuler : avis laissé » de l'app : marque\nl'avis Google comme déposé pour une transaction, ce qui STOPPE\nla relance J+5 du workflow A7.\n\nEn production réelle : à appeler depuis l'outil qui détecte les\nnouveaux avis (Google Business Profile API, Zapier…).\n\nURL : POST /webhook/immomail/review-done\nBody attendu : { transactionId }\nRéponse : { ok, transactionId, updated } — updated=false si déjà marqué.",
+        "height": 280,
+        "width": 560
+      },
+      "id": "4f5de1f0-1188-4ed5-998b-68c20ded5710",
+      "name": "Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "immomail/review-done",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "3bdd9ac9-a468-4da8-9e3a-2e088d5d7af7",
+      "name": "Webhook avis déposé",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        300
+      ],
+      "webhookId": "3d8ca46d-e63d-49a1-94f6-e22d8395e85d"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH upd AS (\n  UPDATE transactions\n  SET review_completed_at = now()::text\n  WHERE id = {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.body.transactionId) }}\n    AND review_completed_at IS NULL\n  RETURNING id, agency_id\n),\nlog AS (\n  INSERT INTO activity_log (id, agency_id, automation_type, description, ref_id, occurred_at, created_at)\n  SELECT gen_random_uuid()::text, agency_id, 'A7',\n         'Avis Google déposé par le client — relance automatique stoppée', id, now()::text, now()::text\n  FROM upd\n)\nSELECT {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.body.transactionId) }} AS transaction_id,\n       EXISTS(SELECT 1 FROM upd) AS updated;",
+        "options": {}
+      },
+      "id": "a61fa0ef-1ec1-4e84-b44b-8252e12628f9",
+      "name": "Marquer l'avis déposé",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        260,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "immomail-supabase",
+          "name": "Supabase ImmoMail (pooler session 5432)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: true, transactionId: $json.transaction_id, updated: $json.updated }) }}",
+        "options": {}
+      },
+      "id": "e2f8c9fb-0991-4401-87c1-5b7b03d6181b",
+      "name": "Répondre 200",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        520,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook avis déposé": {
+      "main": [
+        [
+          {
+            "node": "Marquer l'avis déposé",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marquer l'avis déposé": {
+      "main": [
+        [
+          {
+            "node": "Répondre 200",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "note": "Webhook qui marque l'avis Google déposé et stoppe la relance A7 — équivalent du bouton de l'app."
+  }
+}

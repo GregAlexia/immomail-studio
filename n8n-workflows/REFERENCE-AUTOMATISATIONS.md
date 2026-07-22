@@ -1,6 +1,6 @@
 # Référence des automatisations n8n — ImmoMail Studio
 
-Document de référence des **9 workflows n8n** couvrant les 11 automatisations
+Document de référence des **11 workflows n8n** couvrant les 11 automatisations
 métier (A1–A11) : le rôle de chacun, **tout ce qui se paramètre** (où et avec
 quelle valeur par défaut), et les **outils d'IA** utilisés.
 
@@ -24,6 +24,27 @@ Documents complémentaires :
 | `A7-avis-google` | A7 | Demander un avis Google à J+2, relancer à J+5 | Cron **10h/j** | — |
 | `A8-parrainage` | A8 | Proposer le parrainage (bon 200 €) à J+30 de la signature | Cron **11h/j** | — |
 | `A9-A10-A11-intake-leads` | A9 · A10 · A11 | Trier chaque email entrant, créer lead + fiche CRM, répondre 24/7 | **IMAP** (email reçu) | ✅ **Claude Haiku** |
+| `A6b-newsletter-webhook` | A6 (à la demande) | Envoyer immédiatement la newsletter d'un segment (miroir du bouton de l'app) | Webhook HTTP | — |
+| `A7b-avis-depose-webhook` | A7 (complément) | Marquer un avis Google déposé et stopper la relance J+5 | Webhook HTTP | — |
+
+### Couverture fonctionnalités de l'application ↔ workflows n8n
+
+| Fonctionnalité de l'app | Workflow n8n | Couverture |
+|---|---|---|
+| Réservation en ligne (`bookAppointment`, page `/book`) | `A1-prise-rdv-webhook` | ✅ |
+| Confirmations & rappels de visite | `A2-confirmation-rappels-visites` | ✅ |
+| Alerte mandats / relance propriétaire | `A3-alerte-expiration-mandat` | ✅ |
+| Quittances PDF mensuelles | `A4-quittances-loyer` | ✅ |
+| Rappels de conformité | `A5-rappel-conformite` | ✅ |
+| Newsletter automatique (nouveaux biens) | `A6-newsletter-segmentee` (cron hebdo) | ✅ |
+| Bouton « Envoyer la newsletter » d'un segment (`sendNewsletter`) | `A6b-newsletter-webhook` | ✅ |
+| Demande d'avis J+2 + relance J+5 | `A7-avis-google` | ✅ |
+| Bouton « Simuler : avis laissé » (`markReviewDone`) | `A7b-avis-depose-webhook` | ✅ |
+| Parrainage J+30 | `A8-parrainage` | ✅ |
+| Tri des emails, fiche CRM, réponse instantanée | `A9-A10-A11-intake-leads` | ✅ |
+| Horloge de démo, « Évaluer », « Réinitialiser » | — | N/A : artifices de démo, remplacés en production par les crons réels |
+| Sélecteur d'agence, menu Paramétrage | — | N/A : préférences d'interface (cookies), pas des automatisations |
+| Import / Export Excel | — | N/A : gestion de données via l'UI de l'app |
 
 Tous partagent : la **même base Supabase** que l'application, l'**idempotence**
 par `automation_runs.run_key` (jamais de doublon d'envoi), et la
@@ -243,6 +264,49 @@ proche, par email + SMS. Le message s'adapte (« emménagé » pour une location
 
 ---
 
+### A6b — Newsletter à la demande (webhook)
+
+**Rôle** : équivalent n8n du bouton « Envoyer la newsletter » de l'app — envoie
+immédiatement à chaque contact éligible la sélection de biens d'un **segment**
+donné, sans attendre le cron hebdomadaire d'A6. Chaque contact ne reçoit que les
+biens compatibles avec **ses** critères personnels (budget max, type recherché).
+
+**À paramétrer** :
+
+| Élément | Où | Défaut |
+|---|---|---|
+| URL appelée | côté émetteur | `POST https://<n8n>/webhook/immomail/newsletter` |
+| Corps attendu | contrat d'interface | `{ "segmentId": "…" }` (IDs : `SELECT id, name FROM newsletter_segments;`) |
+| Signature des messages | variable `IMMOMAIL_AGENCY_NAME` | `Notre agence` |
+| Critères du segment | donnée métier : `newsletter_segments.criteria` (JSON) | issus de l'import Excel |
+
+> Pas d'idempotence volontairement (comme le bouton de l'app) : chaque appel envoie
+> la sélection courante. Ne pas brancher ce webhook sur un déclencheur récurrent —
+> c'est le rôle du cron A6.
+
+**IA** : aucune.
+
+---
+
+### A7b — Avis déposé (webhook)
+
+**Rôle** : équivalent n8n du bouton « Simuler : avis laissé » de l'app — marque
+l'avis Google comme déposé pour une transaction, ce qui **stoppe la relance J+5**
+du workflow A7. En production réelle, à appeler depuis l'outil qui détecte les
+nouveaux avis (Google Business Profile API, Zapier, saisie manuelle…).
+
+**À paramétrer** :
+
+| Élément | Où | Défaut |
+|---|---|---|
+| URL appelée | côté émetteur | `POST https://<n8n>/webhook/immomail/review-done` |
+| Corps attendu | contrat d'interface | `{ "transactionId": "…" }` |
+| Réponse | — | `{ ok, transactionId, updated }` — `updated=false` si transaction inconnue ou déjà marquée |
+
+**IA** : aucune.
+
+---
+
 ## 4. Les outils d'IA utilisés
 
 ### Claude (Anthropic) — le seul composant IA des workflows
@@ -262,7 +326,7 @@ proche, par email + SMS. Le message s'adapte (« emménagé » pour une location
   par mots-clés). Le workflow n8n remplace ce mock par Claude pour la
   production réelle — c'est le seul endroit où la version n8n diffère
   fonctionnellement du moteur interne.
-- Les 8 autres workflows n'utilisent **aucune IA** : leurs déclencheurs sont
+- Les 10 autres workflows n'utilisent **aucune IA** : leurs déclencheurs sont
   purement temporels (fenêtres SQL du type J-30, J+2, J+30) et leurs textes
   sont des gabarits fixes. C'est un choix délibéré : déterminisme, coût nul,
   auditabilité.

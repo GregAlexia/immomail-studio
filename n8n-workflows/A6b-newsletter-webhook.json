@@ -1,0 +1,169 @@
+{
+  "name": "A6b · Newsletter à la demande (segment)",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "A6b — Newsletter à la demande (webhook)\n\nMiroir du bouton « Envoyer la newsletter » de l'app : envoie\nimmédiatement la sélection d'un SEGMENT donné, sans attendre\nle cron hebdomadaire d'A6.\n\nURL : POST /webhook/immomail/newsletter\nBody attendu : { segmentId }\n(IDs : SELECT id, name FROM newsletter_segments;)\n\nRéponse HTTP immédiate (200) ; le résultat se lit dans la\nBoîte d'envoi et le Journal (A6).",
+        "height": 260,
+        "width": 540
+      },
+      "id": "5e409b06-9110-49e0-aa96-f05a1d5ebf7b",
+      "name": "Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "immomail/newsletter",
+        "options": {}
+      },
+      "id": "a7b1036a-d7d3-4b8a-b105-cd489aa93a1f",
+      "name": "Webhook newsletter segment",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        300
+      ],
+      "webhookId": "1a4ba0c7-9679-4118-acd3-bb874bd11532"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH seg AS (\n  SELECT * FROM newsletter_segments WHERE id = {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.body.segmentId) }}\n),\nbiens AS (\n  SELECT p.* FROM properties p, seg s\n  WHERE p.agency_id = s.agency_id AND p.status = 'available'\n    AND (s.criteria::jsonb->>'transaction' IS NULL OR p.transaction_type = s.criteria::jsonb->>'transaction')\n    AND (s.criteria::jsonb->>'type' IS NULL OR p.type = s.criteria::jsonb->>'type')\n    AND (s.criteria::jsonb->>'budgetMax' IS NULL OR p.price <= (s.criteria::jsonb->>'budgetMax')::numeric)\n)\nSELECT c.id AS contact_id, c.first_name, c.last_name, c.email, c.buyer_criteria,\n       s.name AS seg_name, s.id AS segment_id, s.agency_id,\n       (SELECT COALESCE(jsonb_agg(jsonb_build_object(\n          'title', b.title, 'price', b.price, 'ref', b.ref, 'city', b.city,\n          'transaction', b.transaction_type, 'type', b.type,\n          'surface', b.surface, 'rooms', b.rooms)), '[]'::jsonb) FROM biens b) AS biens\nFROM contacts c, seg s\nWHERE c.agency_id = s.agency_id\n  AND c.consent_marketing = TRUE\n  AND c.buyer_criteria IS NOT NULL\n  AND c.email IS NOT NULL\n  AND (s.criteria::jsonb->>'transaction' IS NULL\n       OR c.buyer_criteria::jsonb->>'transaction' = s.criteria::jsonb->>'transaction');",
+        "options": {}
+      },
+      "id": "3933ee7e-2e45-4b3a-a705-13fb3d9c4bd7",
+      "name": "Destinataires + biens du segment",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        260,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "immomail-supabase",
+          "name": "Supabase ImmoMail (pooler session 5432)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const out = [];\nfor (const item of $input.all()) {\n  const j = item.json;\n  const bc = typeof j.buyer_criteria === 'string' ? JSON.parse(j.buyer_criteria || '{}') : (j.buyer_criteria || {});\n  const all = typeof j.biens === 'string' ? JSON.parse(j.biens || '[]') : (j.biens || []);\n  // Filtre personnel : budget max et type recherché (même logique que le bouton de l'app)\n  const mine = all.filter((p) => (!bc.budgetMax || p.price <= bc.budgetMax) && (!bc.type || p.type === bc.type));\n  if (mine.length === 0) continue; // rien à proposer à ce contact\n  const eur = (n) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);\n  const lines = mine.map((p) => '• ' + p.title + ' — ' + eur(p.price) + (p.transaction === 'rental' ? '/mois' : '') + ' (' + (p.surface ?? '?') + ' m², ' + (p.rooms ?? '?') + ' p.) — réf ' + (p.ref || ''));\n  item.json.nb_biens = mine.length;\n  item.json.subject = mine.length + (mine.length > 1 ? ' nouveaux biens' : ' nouveau bien') + ' pour vous — ' + ($env.IMMOMAIL_AGENCY_NAME || 'Notre agence');\n  item.json.body = 'Bonjour ' + j.first_name + ',\\n\\n' + mine.length + (mine.length > 1 ? ' biens correspondant' : ' bien correspondant') + ' à votre recherche ' + j.seg_name + ' :\\n\\n' + lines.join('\\n') + '\\n\\nUn de ces biens vous intéresse ? Réservez une visite en un clic.\\n\\nÀ bientôt,\\n' + ($env.IMMOMAIL_AGENCY_NAME || 'Notre agence');\n  out.push(item);\n}\nreturn out;"
+      },
+      "id": "e516a659-1049-4c4a-a881-96bf036ae832",
+      "name": "Composer la sélection par contact",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        520,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $env.IMMOMAIL_FROM_EMAIL || 'agence@immomail.demo' }}",
+        "toEmail": "={{ $json.email }}",
+        "subject": "={{ $json.subject }}",
+        "emailFormat": "text",
+        "text": "={{ $json.body }}",
+        "options": {}
+      },
+      "id": "df331a7b-6afa-4e31-a2b9-969df95cc5ef",
+      "name": "Email newsletter",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        780,
+        300
+      ],
+      "credentials": {
+        "smtp": {
+          "id": "immomail-smtp",
+          "name": "SMTP ImmoMail"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "WITH msg AS (\n  INSERT INTO messages (id, agency_id, channel, to_contact_id, to_name, to_address, subject, body, automation_type, sent_at, created_at)\n  VALUES (gen_random_uuid()::text, {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.agency_id) }}, 'email',\n          {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.contact_id) }},\n          {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")(($json.first_name || '') + ' ' + ($json.last_name || '')) }},\n          {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.email) }},\n          {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.subject) }},\n          {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.body) }},\n          'A6', now()::text, now()::text)\n)\nINSERT INTO activity_log (id, agency_id, automation_type, description, ref_id, occurred_at, created_at)\nVALUES (gen_random_uuid()::text, {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.agency_id) }}, 'A6',\n        'Newsletter « ' || {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.seg_name) }} || ' » envoyée à ' || {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")(($json.first_name || '') + ' ' + ($json.last_name || '')) }} || ' (' || {{ $json.nb_biens }} || ' bien(s))',\n        {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.segment_id) }}, now()::text, now()::text);",
+        "options": {}
+      },
+      "id": "16031d85-e072-4c4c-b55e-e666b89f5e9e",
+      "name": "Journaliser A6",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1040,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "immomail-supabase",
+          "name": "Supabase ImmoMail (pooler session 5432)"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook newsletter segment": {
+      "main": [
+        [
+          {
+            "node": "Destinataires + biens du segment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Destinataires + biens du segment": {
+      "main": [
+        [
+          {
+            "node": "Composer la sélection par contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Composer la sélection par contact": {
+      "main": [
+        [
+          {
+            "node": "Email newsletter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email newsletter": {
+      "main": [
+        [
+          {
+            "node": "Journaliser A6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "note": "Webhook d'envoi immédiat de la newsletter d'un segment — équivalent du bouton de l'app."
+  }
+}
