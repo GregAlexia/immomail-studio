@@ -10,6 +10,7 @@ Ils tapent sur la **même base Supabase** et respectent la même logique d'idemp
 
 📖 **Logique détaillée + rôle de chaque nœud** : voir [DOCUMENTATION.md](DOCUMENTATION.md).
 🚀 **Configuration & activation pas-à-pas** (credentials, tests à blanc, ordre d'activation, dépannage) : voir [GUIDE-ACTIVATION.md](GUIDE-ACTIVATION.md).
+📇 **Référence par automatisation** (rôle, tout ce qui se paramètre, outils IA) : voir [REFERENCE-AUTOMATISATIONS.md](REFERENCE-AUTOMATISATIONS.md).
 
 ## Correspondance automatisations → fichiers
 
