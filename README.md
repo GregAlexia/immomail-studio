@@ -4,7 +4,7 @@ Vitrine fonctionnelle des **11 automatisations métier** (A1–A11) du PRD v2.0,
 
 **🔗 Démo en ligne : https://immomail-studio.vercel.app**
 
-> **Note d'interface (démo déployée).** Le menu est volontairement épuré : *Tableau de bord, Boîte de réception, Agenda & visites, Locations & quittances, Automatisations, Import / Export, Aide & guide*. Les automatisations A3, A5, A6–A8 et leurs pages existent dans le code mais sont masquées de la navigation. L'horloge de démo se pilote par un **sélecteur de date + bouton Évaluer** (les raccourcis +1 j/sem/mois ont été retirés), et les codes « Ax » ne sont plus affichés dans l'UI. Le guide intégré (**Aide & guide**) documente l'usage des espaces visibles.
+> **Note d'interface (démo déployée).** Le menu est volontairement épuré par défaut : *Tableau de bord, Boîte de réception, Agenda & visites, Locations & quittances, Automatisations, Import / Export, Aide & guide, Paramétrage*. Les automatisations A3, A5, A6–A8 et leurs pages (Mandats, Conformité, Marketing, Journal, Boîte d'envoi) existent dans le code et peuvent être **activées à la demande depuis le menu Paramétrage** (réglage mémorisé par navigateur, via cookie). L'horloge de démo se pilote par un **sélecteur de date + bouton Évaluer** (les raccourcis +1 j/sem/mois ont été retirés), et les codes « Ax » ne sont plus affichés dans l'UI. Le guide intégré (**Aide & guide**) documente l'usage des espaces visibles.
 
 ## Stack
 

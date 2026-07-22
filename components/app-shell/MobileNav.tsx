@@ -8,10 +8,11 @@ import { Menu, X, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NAV } from "./nav-items";
 
-export function MobileNav() {
+export function MobileNav({ enabledKeys }: { enabledKeys: string[] }) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
+  const items = NAV.filter((item) => enabledKeys.includes(item.key));
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -58,7 +59,7 @@ export function MobileNav() {
               </button>
             </div>
             <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-2">
-              {NAV.map((item) => {
+              {items.map((item) => {
                 const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
                 const Icon = item.icon;
                 return (
