@@ -7,10 +7,28 @@ const geistSans = Geist({
   subsets: ["latin"],
 });
 
+const SITE_URL = "https://immomail-studio.vercel.app";
+const TITLE = "ImmoMail Studio — Démo automatisations agences immobilières";
+const DESCRIPTION =
+  "SaaS de démonstration : 11 automatisations métier pour agences immobilières, avec horloge simulée.";
+
 export const metadata: Metadata = {
-  title: "ImmoMail Studio — Démo automatisations agences immobilières",
-  description:
-    "SaaS de démonstration : 11 automatisations métier pour agences immobilières, avec horloge simulée.",
+  metadataBase: new URL(SITE_URL),
+  title: TITLE,
+  description: DESCRIPTION,
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    url: SITE_URL,
+    siteName: "ImmoMail Studio",
+    locale: "fr_FR",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+  },
 };
 
 export default function RootLayout({
