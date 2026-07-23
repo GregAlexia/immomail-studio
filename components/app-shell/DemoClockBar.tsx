@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import {
   CalendarClock,
   ChevronRight,
+  Loader2,
   RotateCcw,
   Play,
   X,
@@ -53,16 +54,19 @@ export function DemoClockBar({
   const [pending, startTransition] = useTransition();
   const [toast, setToast] = useState<EngineResult | null>(null);
   const [locked, setLocked] = useState(false);
+  const [confirmReset, setConfirmReset] = useState(false);
   const mounted = useMounted();
   const today = currentISO.slice(0, 10);
 
   // Fermeture au clavier (Échap)
   useEffect(() => {
-    if (!toast && !locked) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") { setToast(null); setLocked(false); } };
+    if (!toast && !locked && !confirmReset) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") { setToast(null); setLocked(false); setConfirmReset(false); }
+    };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [toast, locked]);
+  }, [toast, locked, confirmReset]);
 
   const run = (fn: () => Promise<ClockResult>) =>
     startTransition(async () => {
@@ -92,19 +96,12 @@ export function DemoClockBar({
         />
 
         <Btn onClick={() => run(() => evaluateNow())} disabled={pending} title="Évaluer les automatisations échues maintenant">
-          <Play size={14} /> Évaluer
+          {pending ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} />} Évaluer
         </Btn>
 
         <button
           type="button"
-          onClick={() => {
-            if (confirm("Réinitialiser la démo (recharger les données seed) ?"))
-              startTransition(async () => {
-                const r = await resetDemo();
-                if (r?.denied) { setLocked(true); return; }
-                setToast(null);
-              });
-          }}
+          onClick={() => setConfirmReset(true)}
           disabled={pending}
           className="inline-flex items-center gap-1 rounded-md border border-[var(--color-border)] bg-white px-2.5 py-1.5 text-sm font-medium text-rose-600 shadow-sm transition hover:bg-rose-50 disabled:opacity-50"
           title="Réinitialiser la démo"
@@ -112,8 +109,59 @@ export function DemoClockBar({
           <RotateCcw size={14} /> <span className="hidden sm:inline">Réinitialiser</span>
         </button>
 
-        {pending && <span className="text-sm text-[var(--color-muted)]">…</span>}
+        {pending && (
+          <span className="inline-flex items-center gap-1.5 text-sm text-[var(--color-muted)]" role="status">
+            <Loader2 size={14} className="animate-spin" /> Traitement…
+          </span>
+        )}
       </div>
+
+      {mounted && confirmReset && createPortal(
+        <>
+          <div className="fixed inset-0 z-[70] bg-slate-900/40" onClick={() => setConfirmReset(false)} aria-hidden />
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Confirmer la réinitialisation"
+            className="fixed inset-x-0 bottom-0 z-[71] flex flex-col rounded-t-2xl border border-rose-200 bg-white shadow-2xl sm:inset-x-auto sm:left-1/2 sm:top-1/2 sm:bottom-auto sm:w-96 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-xl"
+          >
+            <div className="flex items-start gap-3 px-4 py-4">
+              <span className="rounded-lg bg-rose-100 p-2 text-rose-700"><RotateCcw size={18} /></span>
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-[var(--color-ink)]">Réinitialiser la démo ?</p>
+                <p className="mt-1 text-sm text-[var(--color-muted)]">
+                  Toutes les données actuelles (leads, rendez-vous, messages, journal) seront remplacées
+                  par le jeu de démonstration initial et l'horloge reviendra à sa date de départ.
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2 border-t border-[var(--color-border)] p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+              <button
+                type="button"
+                onClick={() => setConfirmReset(false)}
+                className="flex-1 rounded-lg border border-[var(--color-border)] bg-white px-4 py-2.5 text-sm font-semibold text-[var(--color-ink)] shadow-sm transition hover:bg-slate-50"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setConfirmReset(false);
+                  startTransition(async () => {
+                    const r = await resetDemo();
+                    if (r?.denied) { setLocked(true); return; }
+                    setToast(null);
+                  });
+                }}
+                className="flex-1 rounded-lg bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-700"
+              >
+                Réinitialiser
+              </button>
+            </div>
+          </div>
+        </>,
+        document.body
+      )}
 
       {mounted && locked && createPortal(
         <>
