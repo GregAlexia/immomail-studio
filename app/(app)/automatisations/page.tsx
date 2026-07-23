@@ -90,14 +90,6 @@ export default async function AutomationsPage() {
           );
         })}
 
-        <Card className="border-violet-200 bg-violet-50 p-4">
-          <p className="text-sm text-violet-900">
-            💡 Les espaces <strong>Mandats, Conformité et Marketing</strong> sont masqués du menu par défaut :
-            activez-les depuis le menu <Link href="/parametres" className="font-semibold underline">Paramétrage</Link> pour
-            explorer les sorties de A3, A5, A6, A7 et A8. Le fonctionnement détaillé de chaque flux n8n est décrit
-            dans <code>n8n-workflows/GUIDE-DEBUTANT.md</code> (lien app ↔ flux) et <code>REFERENCE-AUTOMATISATIONS.md</code>.
-          </p>
-        </Card>
       </div>
     </>
   );
