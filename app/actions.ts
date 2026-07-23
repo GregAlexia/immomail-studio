@@ -8,6 +8,13 @@ import { contacts, newsletterSegments, properties, transactions } from "@/lib/db
 import { AGENCY_COOKIE, getSelectedAgency } from "@/lib/agency";
 import { MENU_COOKIE } from "@/lib/menu-settings";
 import { LOCKED_KEYS, NAV } from "@/components/app-shell/nav-items";
+import {
+  PRESENTER_COOKIE,
+  expectedPresenterToken,
+  isPresenter,
+  passwordMatches,
+  presenterProtectionEnabled,
+} from "@/lib/admin";
 import { getClock, getCurrentDate, setClock } from "@/lib/demo-clock";
 import { runEngine, type EngineResult } from "@/lib/automation-engine";
 import { createEvent, isSlotTaken } from "@/lib/services/calendar.service";
@@ -37,8 +44,37 @@ export async function saveMenuKeys(keys: string[]): Promise<void> {
   revalidateAll();
 }
 
+// ---------- Mode présentateur ----------
+// Type de retour des actions protégées : résultat moteur OU refus.
+export type ClockResult = EngineResult & { denied?: boolean };
+const DENIED: ClockResult = { events: [], counts: {}, denied: true };
+
+export async function getPresenterStatus(): Promise<{ protectionEnabled: boolean; unlocked: boolean }> {
+  return { protectionEnabled: presenterProtectionEnabled(), unlocked: await isPresenter() };
+}
+
+export async function unlockPresenter(password: string): Promise<{ ok: boolean }> {
+  if (!passwordMatches(password)) return { ok: false };
+  const store = await cookies();
+  store.set(PRESENTER_COOKIE, expectedPresenterToken(), {
+    path: "/",
+    httpOnly: true,
+    sameSite: "lax",
+    maxAge: 60 * 60 * 24 * 30,
+  });
+  revalidateAll();
+  return { ok: true };
+}
+
+export async function lockPresenter(): Promise<void> {
+  const store = await cookies();
+  store.delete(PRESENTER_COOKIE);
+  revalidateAll();
+}
+
 // ---------- Horloge de démo (§5) ----------
-export async function advanceClock(kind: "day" | "week" | "month"): Promise<EngineResult> {
+export async function advanceClock(kind: "day" | "week" | "month"): Promise<ClockResult> {
+  if (!(await isPresenter())) return DENIED;
   const current = await getCurrentDate();
   const next =
     kind === "day" ? addDays(current, 1) : kind === "week" ? addDays(current, 7) : addMonths(current, 1);
@@ -48,7 +84,8 @@ export async function advanceClock(kind: "day" | "week" | "month"): Promise<Engi
   return result;
 }
 
-export async function setClockDate(dateStr: string): Promise<EngineResult> {
+export async function setClockDate(dateStr: string): Promise<ClockResult> {
+  if (!(await isPresenter())) return DENIED;
   const current = await getCurrentDate();
   // garde-fou : l'horloge ne recule pas en exécutant des effets
   const target = new Date(`${dateStr}T12:00:00`);
@@ -66,9 +103,11 @@ export async function evaluateNow(): Promise<EngineResult> {
   return result;
 }
 
-export async function resetDemo(): Promise<void> {
+export async function resetDemo(): Promise<{ denied?: boolean }> {
+  if (!(await isPresenter())) return { denied: true };
   await seedDatabase();
   revalidateAll();
+  return {};
 }
 
 // ---------- A1 : réservation publique ----------

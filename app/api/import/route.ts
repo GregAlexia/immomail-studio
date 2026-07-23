@@ -1,10 +1,17 @@
 import { importWorkbook } from "@/lib/excel-io";
+import { isPresenter } from "@/lib/admin";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 export async function POST(request: Request) {
   try {
+    if (!(await isPresenter())) {
+      return Response.json(
+        { ok: false, error: "Import verrouillé : déverrouillez le mode présentateur (menu Paramétrage)." },
+        { status: 401 }
+      );
+    }
     const form = await request.formData();
     const file = form.get("file");
     if (!(file instanceof File)) {

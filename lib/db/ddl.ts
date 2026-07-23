@@ -199,6 +199,24 @@ export const DDL_STATEMENTS: string[] = [
   `CREATE INDEX IF NOT EXISTS idx_messages_agency_type ON messages(agency_id, automation_type)`,
   `CREATE INDEX IF NOT EXISTS idx_activity_log_agency_type ON activity_log(agency_id, automation_type)`,
   `CREATE INDEX IF NOT EXISTS idx_automation_runs_agency ON automation_runs(agency_id)`,
+  // Sécurité : RLS activé sans policy → l'API Data Supabase (PostgREST,
+  // clé anon publique) ne peut ni lire ni écrire ces tables. L'app n'est
+  // pas affectée (connexion avec le rôle postgres, propriétaire des tables).
+  `ALTER TABLE agencies ENABLE ROW LEVEL SECURITY`,
+  `ALTER TABLE contacts ENABLE ROW LEVEL SECURITY`,
+  `ALTER TABLE properties ENABLE ROW LEVEL SECURITY`,
+  `ALTER TABLE mandates ENABLE ROW LEVEL SECURITY`,
+  `ALTER TABLE appointments ENABLE ROW LEVEL SECURITY`,
+  `ALTER TABLE leases ENABLE ROW LEVEL SECURITY`,
+  `ALTER TABLE compliance_items ENABLE ROW LEVEL SECURITY`,
+  `ALTER TABLE transactions ENABLE ROW LEVEL SECURITY`,
+  `ALTER TABLE newsletter_segments ENABLE ROW LEVEL SECURITY`,
+  `ALTER TABLE inbox_emails ENABLE ROW LEVEL SECURITY`,
+  `ALTER TABLE leads ENABLE ROW LEVEL SECURITY`,
+  `ALTER TABLE messages ENABLE ROW LEVEL SECURITY`,
+  `ALTER TABLE activity_log ENABLE ROW LEVEL SECURITY`,
+  `ALTER TABLE automation_runs ENABLE ROW LEVEL SECURITY`,
+  `ALTER TABLE demo_clock ENABLE ROW LEVEL SECURITY`,
 ];
 
 export const TABLE_NAMES: string[] = [
