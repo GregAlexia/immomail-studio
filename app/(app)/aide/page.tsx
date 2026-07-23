@@ -100,6 +100,12 @@ export default function AidePage() {
               <Info size={16} className="mt-0.5 shrink-0" />
               À chaque évaluation, une fenêtre récapitule les automatisations déclenchées. Aucune action n'est jamais exécutée deux fois.
             </p>
+            <p className="flex items-start gap-2 border-t border-[var(--color-border)] px-5 py-3 text-sm text-[var(--color-muted)]">
+              <Info size={16} className="mt-0.5 shrink-0" />
+              La date de démo est <strong>partagée par tous les visiteurs</strong> (un seul état de démonstration).
+              Si plusieurs personnes utilisent le site en même temps, leurs actions se cumulent — d'où l'intérêt du
+              mode présentateur (Paramétrage) pour réserver le pilotage de l'horloge, et de « Réinitialiser » avant un rendez-vous.
+            </p>
           </Card>
         </Section>
 
