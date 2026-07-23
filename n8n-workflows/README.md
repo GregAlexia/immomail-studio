@@ -8,6 +8,7 @@ Ils tapent sur la **même base Supabase** et respectent la même logique d'idemp
 > Objectif : passer de la démo (horloge simulée + services mockés) à un fonctionnement
 > réel piloté par n8n (cron réel, vrais SMTP/SMS, classification par Claude).
 
+🧭 **Débutant sur n8n ?** Commencez par le [GUIDE-DEBUTANT.md](GUIDE-DEBUTANT.md) — sans jargon : quel flux fait quoi dans l'app, comment l'activer, comment vérifier.
 📖 **Logique détaillée + rôle de chaque nœud** : voir [DOCUMENTATION.md](DOCUMENTATION.md).
 🚀 **Configuration & activation pas-à-pas** (credentials, tests à blanc, ordre d'activation, dépannage) : voir [GUIDE-ACTIVATION.md](GUIDE-ACTIVATION.md).
 📇 **Référence par automatisation** (rôle, tout ce qui se paramètre, outils IA) : voir [REFERENCE-AUTOMATISATIONS.md](REFERENCE-AUTOMATISATIONS.md).
