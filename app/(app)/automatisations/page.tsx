@@ -1,24 +1,9 @@
 import Link from "next/link";
-import { CheckCircle2, Workflow } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import { pageContext } from "@/lib/page-context";
 import { getActivityCounts } from "@/lib/queries";
 import { Card, PageHeader, Badge } from "@/components/ui";
 import { AUTOMATIONS, type AutomationType } from "@/lib/types";
-
-// Flux n8n correspondant à chaque automatisation (voir n8n-workflows/).
-const N8N_FLOW: Record<AutomationType, { file: string; extra?: string }> = {
-  A1: { file: "A1-prise-rdv-webhook.json" },
-  A2: { file: "A2-confirmation-rappels-visites.json" },
-  A3: { file: "A3-alerte-expiration-mandat.json" },
-  A4: { file: "A4-quittances-loyer.json" },
-  A5: { file: "A5-rappel-conformite.json" },
-  A6: { file: "A6-newsletter-segmentee.json", extra: "A6b-newsletter-webhook.json (envoi à la demande)" },
-  A7: { file: "A7-avis-google.json", extra: "A7b-avis-depose-webhook.json (avis déposé)" },
-  A8: { file: "A8-parrainage.json" },
-  A9: { file: "A9-A10-A11-intake-leads.json" },
-  A10: { file: "A9-A10-A11-intake-leads.json" },
-  A11: { file: "A9-A10-A11-intake-leads.json" },
-};
 
 // Page de l'app où l'automatisation produit sa sortie visible.
 const DETAIL_HREF: Record<AutomationType, string> = {
@@ -66,16 +51,6 @@ export default async function AutomationsPage() {
                     <p className="mt-1 text-sm text-[var(--color-muted)]">{a.value}</p>
                     <div className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600">
                       <span className="font-semibold">Sortie visible :</span> {a.output}
-                    </div>
-                    <div className="mt-2 flex items-start gap-1.5 rounded-lg bg-violet-50 px-3 py-2 text-xs text-violet-800">
-                      <Workflow size={13} className="mt-0.5 shrink-0" />
-                      <span className="min-w-0">
-                        <span className="font-semibold">Flux n8n :</span>{" "}
-                        <code className="break-all">{N8N_FLOW[a.code].file}</code>
-                        {N8N_FLOW[a.code].extra && (
-                          <> · <code className="break-all">{N8N_FLOW[a.code].extra}</code></>
-                        )}
-                      </span>
                     </div>
                     <div className="mt-3 flex items-center justify-between">
                       <span className="text-xs text-[var(--color-muted)]">
