@@ -20,6 +20,15 @@ export async function POST(request: Request) {
     if (!/\.xlsx$/i.test(file.name)) {
       return Response.json({ ok: false, error: "Format attendu : .xlsx" }, { status: 400 });
     }
+    // Garde-fou mémoire/timeout : un classeur de démo pèse quelques dizaines
+    // de Ko — 5 Mo laissent une marge très large.
+    const MAX_BYTES = 5 * 1024 * 1024;
+    if (file.size > MAX_BYTES) {
+      return Response.json(
+        { ok: false, error: `Fichier trop volumineux (${Math.round(file.size / 1024 / 1024)} Mo) — maximum 5 Mo.` },
+        { status: 413 }
+      );
+    }
     const buf = await file.arrayBuffer();
     const result = await importWorkbook(buf);
     return Response.json(result);
