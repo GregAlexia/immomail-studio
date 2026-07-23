@@ -1,7 +1,8 @@
 import "server-only";
 import ExcelJS from "exceljs";
+import { sql } from "drizzle-orm";
 import { format, parse as parseDateFns, isValid } from "date-fns";
-import { db, ensureSchema, client } from "./db/client";
+import { db, ensureSchema } from "./db/client";
 import { TABLE_NAMES } from "./db/ddl";
 import * as S from "./db/schema";
 
@@ -440,19 +441,24 @@ export async function importWorkbook(buffer: ArrayBuffer): Promise<ImportResult>
   if (unmatched.size > 0) warnings.push(`Agence(s) citée(s) mais absente(s) de l'onglet « Agences », créée(s) automatiquement : ${[...unmatched].join(", ")}.`);
 
   // ---- Écriture ----
-  for (const t of TABLE_NAMES) await client.unsafe(`DELETE FROM ${t}`);
-  await db.insert(S.agencies).values(agencyRows);
-  if (contactRows.length) await db.insert(S.contacts).values(contactRows);
-  if (propertyRows.length) await db.insert(S.properties).values(propertyRows);
-  if (mandateRows.length) await db.insert(S.mandates).values(mandateRows);
-  if (leaseRows.length) await db.insert(S.leases).values(leaseRows);
-  if (compRows.length) await db.insert(S.complianceItems).values(compRows);
-  if (txRows.length) await db.insert(S.transactions).values(txRows);
-  if (segRows.length) await db.insert(S.newsletterSegments).values(segRows);
-  if (apptRows.length) await db.insert(S.appointments).values(apptRows);
-  if (leadRows.length) await db.insert(S.leads).values(leadRows);
-  if (inboxInsert.length) await db.insert(S.inboxEmails).values(inboxInsert);
-  await db.insert(S.demoClock).values({ id: "global", currentDate: initialStamp, initialDate: initialStamp, createdAt });
+  // Transaction unique : si quoi que ce soit échoue (données invalides,
+  // coupure réseau…), tout est annulé et la base reste dans son état
+  // d'avant l'import — jamais de base à moitié vidée.
+  await db.transaction(async (tx) => {
+    for (const t of TABLE_NAMES) await tx.execute(sql.raw(`DELETE FROM ${t}`));
+    await tx.insert(S.agencies).values(agencyRows);
+    if (contactRows.length) await tx.insert(S.contacts).values(contactRows);
+    if (propertyRows.length) await tx.insert(S.properties).values(propertyRows);
+    if (mandateRows.length) await tx.insert(S.mandates).values(mandateRows);
+    if (leaseRows.length) await tx.insert(S.leases).values(leaseRows);
+    if (compRows.length) await tx.insert(S.complianceItems).values(compRows);
+    if (txRows.length) await tx.insert(S.transactions).values(txRows);
+    if (segRows.length) await tx.insert(S.newsletterSegments).values(segRows);
+    if (apptRows.length) await tx.insert(S.appointments).values(apptRows);
+    if (leadRows.length) await tx.insert(S.leads).values(leadRows);
+    if (inboxInsert.length) await tx.insert(S.inboxEmails).values(inboxInsert);
+    await tx.insert(S.demoClock).values({ id: "global", currentDate: initialStamp, initialDate: initialStamp, createdAt });
+  });
 
   return {
     ok: true, agencies: agencyRows.map((a) => a.name), warnings,

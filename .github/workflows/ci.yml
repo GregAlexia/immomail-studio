@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: immomail
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/immomail
+      DATABASE_SSL: disable
+      PGPASSWORD: postgres
+      PGHOST: 127.0.0.1
+      PGUSER: postgres
+      PGDATABASE: immomail
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # `server-only` est un alias interne de Next : shim nécessaire pour
+      # exécuter le moteur hors de Next (tsx) dans les tests.
+      - name: Shim server-only for standalone engine tests
+        run: |
+          mkdir -p node_modules/server-only
+          echo '{"name":"server-only","version":"0.0.1","main":"index.js"}' > node_modules/server-only/package.json
+          echo '' > node_modules/server-only/index.js
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Build
+        run: npm run build
+
+      - name: Seed database
+        run: npm run seed
+
+      - name: Engine integration test (idempotence)
+        run: npx tsx scripts/ci-engine-test.ts
+
+      - name: Reseed for n8n SQL tests
+        run: npm run seed
+
+      - name: n8n workflow SQL unit tests
+        run: |
+          node n8n-workflows/tests/test-a1.mjs
+          node n8n-workflows/tests/test-webhooks.mjs
