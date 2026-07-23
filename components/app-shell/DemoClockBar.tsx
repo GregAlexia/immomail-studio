@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState, useSyncExternalStore, useTransition } from "react";
 import { createPortal } from "react-dom";
 import {
   CalendarClock,
@@ -15,6 +15,34 @@ import { Lock } from "lucide-react";
 import { setClockDate, evaluateNow, resetDemo, type ClockResult } from "@/app/actions";
 import type { EngineResult } from "@/lib/automation-engine";
 
+// Détection d'hydratation sans effet : false côté serveur, true côté client.
+const emptySubscribe = () => () => {};
+const useMounted = () => useSyncExternalStore(emptySubscribe, () => true, () => false);
+
+function Btn({
+  onClick,
+  disabled,
+  children,
+  title,
+}: {
+  onClick: () => void;
+  disabled: boolean;
+  children: React.ReactNode;
+  title?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      title={title}
+      className="inline-flex items-center gap-1 rounded-md border border-[var(--color-border)] bg-white px-2.5 py-1.5 text-sm font-medium text-[var(--color-ink)] shadow-sm transition hover:bg-slate-50 disabled:opacity-50"
+    >
+      {children}
+    </button>
+  );
+}
+
 export function DemoClockBar({
   currentISO,
   currentLabel,
@@ -25,10 +53,8 @@ export function DemoClockBar({
   const [pending, startTransition] = useTransition();
   const [toast, setToast] = useState<EngineResult | null>(null);
   const [locked, setLocked] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useMounted();
   const today = currentISO.slice(0, 10);
-
-  useEffect(() => { setMounted(true); }, []);
 
   // Fermeture au clavier (Échap)
   useEffect(() => {
@@ -44,18 +70,6 @@ export function DemoClockBar({
       if (res.denied) { setLocked(true); return; }
       setToast(res);
     });
-
-  const Btn = ({ onClick, children, title }: { onClick: () => void; children: React.ReactNode; title?: string }) => (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={pending}
-      title={title}
-      className="inline-flex items-center gap-1 rounded-md border border-[var(--color-border)] bg-white px-2.5 py-1.5 text-sm font-medium text-[var(--color-ink)] shadow-sm transition hover:bg-slate-50 disabled:opacity-50"
-    >
-      {children}
-    </button>
-  );
 
   return (
     <>
@@ -77,7 +91,7 @@ export function DemoClockBar({
           className="rounded-md border border-[var(--color-border)] bg-white px-2 py-1.5 text-sm shadow-sm focus:border-[var(--color-brand)] focus:outline-none"
         />
 
-        <Btn onClick={() => run(() => evaluateNow())} title="Évaluer les automatisations échues maintenant">
+        <Btn onClick={() => run(() => evaluateNow())} disabled={pending} title="Évaluer les automatisations échues maintenant">
           <Play size={14} /> Évaluer
         </Btn>
 

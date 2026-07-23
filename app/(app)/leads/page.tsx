@@ -1,7 +1,7 @@
 import { Play, ArrowRight, Mail, ShieldX, FileCheck2, RotateCw } from "lucide-react";
 import { pageContext } from "@/lib/page-context";
 import { getInbox, getLeads, propertyMap } from "@/lib/queries";
-import { Card, CardHeader, PageHeader, Badge, EmptyState, Table, Th, Td, Tr, AutomationTag } from "@/components/ui";
+import { Card, PageHeader, Badge, EmptyState, Table, Th, Td, Tr, AutomationTag } from "@/components/ui";
 import { ActionButton } from "@/components/ActionButton";
 import { evaluateNow } from "@/app/actions";
 import { fmtDateTime } from "@/lib/date";

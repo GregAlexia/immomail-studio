@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FileSpreadsheet, Info } from "lucide-react";
+import { Info } from "lucide-react";
 import { PageHeader, Card } from "@/components/ui";
 import { ImportPanel } from "@/components/ImportPanel";
 

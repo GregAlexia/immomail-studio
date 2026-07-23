@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -8,16 +8,15 @@ import { Menu, X, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NAV } from "./nav-items";
 
+// Détection d'hydratation sans effet : false côté serveur, true côté client.
+const emptySubscribe = () => () => {};
+const useMounted = () => useSyncExternalStore(emptySubscribe, () => true, () => false);
+
 export function MobileNav({ enabledKeys }: { enabledKeys: string[] }) {
   const [open, setOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useMounted();
   const pathname = usePathname();
   const items = NAV.filter((item) => enabledKeys.includes(item.key));
-
-  useEffect(() => { setMounted(true); }, []);
-
-  // Ferme le tiroir à chaque navigation
-  useEffect(() => { setOpen(false); }, [pathname]);
 
   // Bloque le scroll du body quand le tiroir est ouvert
   useEffect(() => {
@@ -66,6 +65,7 @@ export function MobileNav({ enabledKeys }: { enabledKeys: string[] }) {
                   <Link
                     key={item.href}
                     href={item.href}
+                    onClick={() => setOpen(false)}
                     className={cn(
                       "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                       active

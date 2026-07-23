@@ -5,7 +5,7 @@ import { properties, agencies } from "@/lib/db/schema";
 import { listSlots } from "@/lib/services/calendar.service";
 import { getCurrentDate } from "@/lib/demo-clock";
 import { BookingForm, type Slot } from "@/components/BookingForm";
-import { eur, fmtDayLong, fmtTime, fromISO } from "@/lib/date";
+import { eur, fmtDayLong, fmtTime } from "@/lib/date";
 
 export const dynamic = "force-dynamic";
 
