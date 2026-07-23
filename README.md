@@ -150,5 +150,19 @@ Chaque action est protégée par la table `automation_runs` (`run_key` unique, e
 - [x] Couche service isolée et documentée pour un futur branchement réel
 - [x] README décrit le scénario de démo pas-à-pas
 
+## Sécurité de la démo publique
+
+- **Base Supabase** : la Row Level Security est activée sur toutes les tables
+  (sans policy) — l'API Data de Supabase (clé anon) ne peut ni lire ni écrire ;
+  seule l'application (connexion Postgres directe) accède aux données. Le DDL
+  (`lib/db/ddl.ts`) applique ce réglage à tout nouvel environnement.
+- **Mode présentateur** : définissez la variable d'environnement
+  `DEMO_ADMIN_PASSWORD` (sur Vercel : Settings → Environment Variables →
+  Production, puis redéployer) pour verrouiller les actions destructives —
+  avancement de l'horloge, réinitialisation, import Excel. Les visiteurs
+  peuvent alors naviguer et cliquer « Évaluer », mais seul le présentateur
+  (déverrouillage dans **Paramétrage**, mémorisé 30 jours par navigateur)
+  peut piloter la démo. Sans la variable, tout reste ouvert (mode historique).
+
 ## Hors périmètre V1 (rappel)
 Authentification, envois réels, app mobile, connexion boîte mail réelle, CRM tiers réel, paiement en ligne. Architecture prête pour la V2 (voir Mock Service Layer).

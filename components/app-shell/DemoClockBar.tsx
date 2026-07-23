@@ -10,7 +10,9 @@ import {
   X,
   Sparkles,
 } from "lucide-react";
-import { setClockDate, evaluateNow, resetDemo } from "@/app/actions";
+import Link from "next/link";
+import { Lock } from "lucide-react";
+import { setClockDate, evaluateNow, resetDemo, type ClockResult } from "@/app/actions";
 import type { EngineResult } from "@/lib/automation-engine";
 
 export function DemoClockBar({
@@ -22,6 +24,7 @@ export function DemoClockBar({
 }) {
   const [pending, startTransition] = useTransition();
   const [toast, setToast] = useState<EngineResult | null>(null);
+  const [locked, setLocked] = useState(false);
   const [mounted, setMounted] = useState(false);
   const today = currentISO.slice(0, 10);
 
@@ -29,15 +32,16 @@ export function DemoClockBar({
 
   // Fermeture au clavier (Échap)
   useEffect(() => {
-    if (!toast) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setToast(null); };
+    if (!toast && !locked) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") { setToast(null); setLocked(false); } };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [toast]);
+  }, [toast, locked]);
 
-  const run = (fn: () => Promise<EngineResult>) =>
+  const run = (fn: () => Promise<ClockResult>) =>
     startTransition(async () => {
       const res = await fn();
+      if (res.denied) { setLocked(true); return; }
       setToast(res);
     });
 
@@ -82,7 +86,8 @@ export function DemoClockBar({
           onClick={() => {
             if (confirm("Réinitialiser la démo (recharger les données seed) ?"))
               startTransition(async () => {
-                await resetDemo();
+                const r = await resetDemo();
+                if (r?.denied) { setLocked(true); return; }
                 setToast(null);
               });
           }}
@@ -95,6 +100,42 @@ export function DemoClockBar({
 
         {pending && <span className="text-sm text-[var(--color-muted)]">…</span>}
       </div>
+
+      {mounted && locked && createPortal(
+        <>
+          <div className="fixed inset-0 z-[70] bg-slate-900/40 sm:hidden" onClick={() => setLocked(false)} aria-hidden />
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Action verrouillée"
+            className="fixed inset-x-0 bottom-0 z-[71] flex flex-col rounded-t-2xl border border-amber-200 bg-white shadow-2xl sm:inset-x-auto sm:bottom-6 sm:right-6 sm:w-96 sm:rounded-xl"
+          >
+            <div className="flex items-start gap-3 px-4 py-4">
+              <span className="rounded-lg bg-amber-100 p-2 text-amber-700"><Lock size={18} /></span>
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-[var(--color-ink)]">Action verrouillée</p>
+                <p className="mt-1 text-sm text-[var(--color-muted)]">
+                  Cette démo est protégée : l'horloge, la réinitialisation et l'import sont réservés au présentateur.
+                  Déverrouillez le mode présentateur dans{" "}
+                  <Link href="/parametres" className="font-medium text-[var(--color-brand-dark)] underline" onClick={() => setLocked(false)}>
+                    Paramétrage
+                  </Link>.
+                </p>
+              </div>
+            </div>
+            <div className="border-t border-[var(--color-border)] p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+              <button
+                type="button"
+                onClick={() => setLocked(false)}
+                className="w-full rounded-lg bg-[var(--color-brand)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:brightness-95"
+              >
+                Fermer
+              </button>
+            </div>
+          </div>
+        </>,
+        document.body
+      )}
 
       {mounted && toast && createPortal(
         // Mobile : bottom sheet pleine largeur avec fond assombri.
