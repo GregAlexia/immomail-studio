@@ -31,12 +31,15 @@ function renderQuery(template, item) {
 
 function runSql(sql) {
   const wrapped = `BEGIN;\n${sql}\nROLLBACK;`;
+  // SQL passé en stdin UTF-8 (et non en argument -c) : évite la conversion
+  // CP1252 des arguments sous Windows, qui casse les accents (« réservé »…).
   const r = spawnSync(
     "psql",
     ["-h", process.env.PGHOST ?? "127.0.0.1", "-p", process.env.PGPORT ?? "5432",
      "-U", process.env.PGUSER ?? "postgres", "-d", process.env.PGDATABASE ?? "immomail",
-     "-v", "ON_ERROR_STOP=1", "-c", wrapped],
-    { encoding: "utf8" }
+     "-v", "ON_ERROR_STOP=1", "-f", "-"],
+    { encoding: "utf8", input: Buffer.from(wrapped, "utf8"),
+      env: { ...process.env, PGCLIENTENCODING: "UTF8", PGPASSWORD: process.env.PGPASSWORD ?? "postgres" } }
   );
   return { ok: r.status === 0, out: r.stdout, err: r.stderr };
 }

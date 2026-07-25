@@ -14,8 +14,12 @@ const DIR = dirname(fileURLToPath(import.meta.url));
 const PSQL = ["-h", process.env.PGHOST ?? "127.0.0.1", "-p", process.env.PGPORT ?? "5432",
   "-U", process.env.PGUSER ?? "postgres", "-d", process.env.PGDATABASE ?? "immomail"];
 
-const psql = (args) => spawnSync("psql", [...PSQL, ...args], { encoding: "utf8" });
-const lookup = (sql) => psql(["-tAc", sql]).stdout.trim();
+// SQL passé en stdin UTF-8 (et non en argument) : évite la conversion CP1252
+// des arguments sous Windows, qui casse les accents (« Éléa », « T3 »…).
+const runPsql = (sql, extra = []) => spawnSync("psql", [...PSQL, ...extra, "-f", "-"],
+  { encoding: "utf8", input: Buffer.from(sql, "utf8"),
+    env: { ...process.env, PGCLIENTENCODING: "UTF8", PGPASSWORD: process.env.PGPASSWORD ?? "postgres" } });
+const lookup = (sql) => runPsql(sql, ["-tA"]).stdout.trim();
 const render = (tpl, ctx) => tpl.replace(/\{\{([\s\S]*?)\}\}/g, (_, e) => {
   const $json = ctx.json, $env = ctx.env ?? {}; // eslint-disable-line no-unused-vars
   return String(eval(e));
@@ -27,7 +31,7 @@ const queryOf = (file, nodeName) => {
 
 let fail = 0;
 const run = (sql, label, expect) => {
-  const r = psql(["-v", "ON_ERROR_STOP=1", "-c", `BEGIN;\n${sql}\nROLLBACK;`]);
+  const r = runPsql(`BEGIN;\n${sql}\nROLLBACK;`, ["-v", "ON_ERROR_STOP=1"]);
   const ok = r.status === 0 && (!expect || r.stdout.includes(expect));
   console.log(ok ? `✓ ${label}` : `✗ ${label}\n  ${(r.stderr || r.stdout).trim().split("\n")[0]}`);
   if (!ok) fail++;

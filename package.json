@@ -8,7 +8,10 @@
     "start": "next start",
     "lint": "eslint .",
     "seed": "tsx scripts/seed.ts",
-    "db:push": "drizzle-kit push"
+    "db:push": "drizzle-kit push",
+    "test:a1": "node n8n-workflows/tests/test-a1.mjs",
+    "test:webhooks": "node n8n-workflows/tests/test-webhooks.mjs",
+    "test:n8n": "npm run test:a1 && npm run test:webhooks"
   },
   "dependencies": {
     "@libsql/client": "^0.17.4",
