@@ -107,6 +107,9 @@ acceptées dans la page **Aide → Fichier Excel source** (`/aide#excel`).
 
 ## Architecture
 
+> 📘 **Documentation technique détaillée** : [`docs/DOCUMENTATION-TECHNIQUE.md`](docs/DOCUMENTATION-TECHNIQUE.md)
+> (stack, base de données, moteur d'automatisations, sécurité, CI/CD, exploitation, décisions notables).
+
 ```
 lib/
   db/            schéma Drizzle (Postgres) + client postgres-js + DDL (CREATE TABLE auto)
