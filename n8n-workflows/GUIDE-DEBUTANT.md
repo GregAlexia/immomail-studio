@@ -1,4 +1,4 @@
-# Guide débutant — comprendre et activer les automatisations n8n d'ImmoMail Studio
+# Guide débutant — comprendre et activer les automatisations n8n de Keo
 
 > **À qui s'adresse ce guide ?** À une personne qui n'a **jamais utilisé n8n**.
 > Pas de jargon, pas de code : uniquement ce qu'il faut comprendre pour relier
@@ -30,7 +30,7 @@ tout seul, jour et nuit, sans que personne ne clique nulle part.
 | 📧 **Email reçu** (IMAP) | « dès qu'un email arrive dans la boîte » | tri des leads |
 | 🔗 **Appel d'URL** (webhook) | « quand une application appelle cette adresse » | réservation en ligne, bouton newsletter |
 
-**Le point clé** : l'application ImmoMail et n8n travaillent sur **la même base
+**Le point clé** : l'application Keo et n8n travaillent sur **la même base
 de données**. Tout ce que n8n fait s'affiche donc immédiatement dans
 l'application — dans le **Journal d'activité** (la trace) et la **Boîte
 d'envoi** (les messages envoyés). L'application est la vitrine ; n8n est le

@@ -1,4 +1,4 @@
-// Générateur des workflows n8n d'ImmoMail Studio.
+// Générateur des workflows n8n de Keo (anciennement ImmoMail Studio).
 // Émet un fichier .json importable par automatisation (Import from File dans n8n).
 // Exécuter :  node n8n-workflows/build.mjs
 //
@@ -65,7 +65,7 @@ function pg(name, position, query, extra = {}) {
 }
 function email(name, position, { to, subject, text }) {
   return node(name, "n8n-nodes-base.emailSend", 2.1, position, {
-    fromEmail: "={{ $env.IMMOMAIL_FROM_EMAIL || 'agence@immomail.demo' }}",
+    fromEmail: "={{ $env.IMMOMAIL_FROM_EMAIL || 'agence@keo.demo' }}",
     toEmail: to, subject, emailFormat: "text", text, options: {},
   }, { credentials: CRED.smtp });
 }
@@ -77,7 +77,7 @@ function sms(name, position, { to, body }) {
     authentication: "genericCredentialType",
     genericAuthType: "httpHeaderAuth",
     sendBody: true, specifyBody: "json",
-    jsonBody: `={{ JSON.stringify({ sender: 'ImmoMail', recipient: ${to}, content: ${body} }) }}`,
+    jsonBody: `={{ JSON.stringify({ sender: 'Keo', recipient: ${to}, content: ${body} }) }}`,
     options: {},
   }, { credentials: CRED.sms });
 }
@@ -351,12 +351,12 @@ return $input.all();`);
   // Récupère le vrai PDF généré par l'app (endpoint existant /api/receipt).
   const pdf = node("Générer le PDF (app)", "n8n-nodes-base.httpRequest", 4.2, [720, 300], {
     method: "GET",
-    url: "={{ ($env.IMMOMAIL_BASE_URL || 'https://immomail-studio.vercel.app') + $json.attachment_url }}",
+    url: "={{ ($env.IMMOMAIL_BASE_URL || 'https://keo.vercel.app') + $json.attachment_url }}",
     options: { response: { response: { responseFormat: "file", outputPropertyName: "data" } } },
   });
 
   const mailNode = node("Email quittance + PDF", "n8n-nodes-base.emailSend", 2.1, [960, 300], {
-    fromEmail: "={{ $env.IMMOMAIL_FROM_EMAIL || 'agence@immomail.demo' }}",
+    fromEmail: "={{ $env.IMMOMAIL_FROM_EMAIL || 'agence@keo.demo' }}",
     toEmail: "={{ $('Préparer la quittance').item.json.tenant_email }}",
     subject: "={{ $('Préparer la quittance').item.json.subject }}",
     emailFormat: "text",
@@ -411,7 +411,7 @@ VALUES (gen_random_uuid()::text, {{ JSON.stringify($json.agency_id) }}, 'A5',
   {{ JSON.stringify($json.id) }}, now()::text, now()::text);`);
 
   const alert = email("Email interne négociateur", [480, 480], {
-    to: "={{ $env.IMMOMAIL_AGENCY_INBOX || 'agence@immomail.demo' }}",
+    to: "={{ $env.IMMOMAIL_AGENCY_INBOX || 'agence@keo.demo' }}",
     subject: "=Conformité à traiter : {{ $json.label }} — {{ $json.prop_title }}",
     text: "=Le diagnostic « {{ $json.label }} » du bien {{ $json.prop_title }} arrive à échéance ({{ $json.due_date }}). Négociateur : {{ $json.negotiator }}. Merci de planifier son renouvellement.",
   });
@@ -652,7 +652,7 @@ VALUES (gen_random_uuid()::text, {{ JSON.stringify($json.agency_id) }}, 'A8', {{
       { id: randomUUID(), name: "agency_id", value: "REMPLACER-PAR-ID-AGENCE", type: "string" },
       { id: randomUUID(), name: "agency_name", value: "Agence Horizon Immobilier", type: "string" },
       { id: randomUUID(), name: "from_email", value: "contact@mon-agence.fr", type: "string" },
-      { id: randomUUID(), name: "base_url", value: "https://immomail-studio.vercel.app", type: "string" },
+      { id: randomUUID(), name: "base_url", value: "https://keo.vercel.app", type: "string" },
     ] },
     includeOtherFields: true,
     options: {},

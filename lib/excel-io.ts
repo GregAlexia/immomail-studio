@@ -480,7 +480,7 @@ const fmtD = (iso?: string | null) => (iso ? format(new Date(iso), "dd/MM/yyyy")
 export async function buildWorkbook(): Promise<ArrayBuffer> {
   await ensureSchema();
   const wb = new ExcelJS.Workbook();
-  wb.creator = "ImmoMail Studio";
+  wb.creator = "Keo";
 
   const agencies = await db.select().from(S.agencies);
   const clock = (await db.select().from(S.demoClock))[0];

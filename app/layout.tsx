@@ -7,8 +7,12 @@ const geistSans = Geist({
   subsets: ["latin"],
 });
 
-const SITE_URL = "https://immomail-studio.vercel.app";
-const TITLE = "ImmoMail Studio — Démo automatisations agences immobilières";
+// URL de production fournie par Vercel : suit automatiquement un renommage
+// de projet (donc de domaine) sans retoucher le code.
+const SITE_URL = process.env.VERCEL_PROJECT_PRODUCTION_URL
+  ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+  : "http://localhost:3000";
+const TITLE = "Keo — Démo automatisations agences immobilières";
 const DESCRIPTION =
   "SaaS de démonstration : 11 automatisations métier pour agences immobilières, avec horloge simulée.";
 
@@ -20,7 +24,7 @@ export const metadata: Metadata = {
     title: TITLE,
     description: DESCRIPTION,
     url: SITE_URL,
-    siteName: "ImmoMail Studio",
+    siteName: "Keo",
     locale: "fr_FR",
     type: "website",
   },

@@ -1,4 +1,4 @@
-# Workflows n8n — ImmoMail Studio
+# Workflows n8n — Keo
 
 Ces 11 workflows externalisent dans **n8n** les 11 automatisations (A1–A11) que l'app
 exécute aujourd'hui en interne (moteur `lib/automation-engine.ts` + horloge de démo).
@@ -60,7 +60,7 @@ Ils tapent sur la **même base Supabase** et respectent la même logique d'idemp
 | `IMMOMAIL_AGENCY_NAME` | `Agence Horizon Immobilier` | Signature des messages. |
 | `IMMOMAIL_FROM_EMAIL` | `contact@horizon-immo.fr` | Expéditeur SMTP. |
 | `IMMOMAIL_AGENCY_INBOX` | `gestion@horizon-immo.fr` | Destinataire des alertes internes A5. |
-| `IMMOMAIL_BASE_URL` | `https://immomail-studio.vercel.app` | Base pour le PDF quittance (A4) et le lien de réservation (A10). |
+| `IMMOMAIL_BASE_URL` | `https://keo.vercel.app` | Base pour le PDF quittance (A4) et le lien de réservation (A10). |
 | `GOOGLE_REVIEW_LINK` | `https://g.page/r/…/review` | Lien d'avis Google (A7). |
 | `SMS_API_URL` | `https://api.brevo.com/v3/transactionalSMS/sms` | Endpoint SMS. |
 

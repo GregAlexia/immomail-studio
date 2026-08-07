@@ -16,8 +16,8 @@ export function Sidebar({ enabledKeys }: { enabledKeys: string[] }) {
           <Zap size={18} />
         </div>
         <div>
-          <p className="font-bold leading-tight text-[var(--color-ink)]">ImmoMail</p>
-          <p className="text-xs leading-tight text-[var(--color-muted)]">Studio · démo</p>
+          <p className="font-bold leading-tight text-[var(--color-ink)]">Keo</p>
+          <p className="text-xs leading-tight text-[var(--color-muted)]">Démo agences immobilières</p>
         </div>
       </div>
       <nav className="flex-1 space-y-1 px-3 py-2">

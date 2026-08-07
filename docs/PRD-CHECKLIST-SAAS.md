@@ -2,7 +2,7 @@
 
 > Points à **vérifier ou à ajouter** dans le PRD de chaque nouveau SaaS.
 > Chaque point est issu d'une optimisation réellement appliquée (et souvent d'un
-> incident réellement vécu) sur ImmoMail Studio. Copier les sections utiles dans
+> incident réellement vécu) sur Keo (anciennement ImmoMail Studio). Copier les sections utiles dans
 > le PRD du projet et cocher au fil de l'eau : chaque item a son **critère de
 > vérification** (la « preuve » qu'il est fait).
 
