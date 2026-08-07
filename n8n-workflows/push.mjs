@@ -1,6 +1,6 @@
 // Pousse les workflows générés sur une instance n8n via l'API publique.
 // Usage :  N8N_API_KEY=xxx N8N_BASE_URL=https://.../api/v1 node n8n-workflows/push.mjs
-// Les workflows sont créés DÉSACTIVÉS, préfixés "ImmoMail Studio · " et tagués.
+// Les workflows sont créés DÉSACTIVÉS, préfixés "Keo · " et tagués.
 
 import { readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -9,8 +9,8 @@ import { fileURLToPath } from "node:url";
 const DIR = dirname(fileURLToPath(import.meta.url));
 const BASE = process.env.N8N_BASE_URL || "https://n8n.srv843744.hstgr.cloud/api/v1";
 const KEY = process.env.N8N_API_KEY;
-const PREFIX = "ImmoMail Studio · ";
-const TAG = "ImmoMail Studio";
+const PREFIX = "Keo · ";
+const TAG = "Keo";
 if (!KEY) { console.error("N8N_API_KEY manquant"); process.exit(1); }
 
 const H = { "X-N8N-API-KEY": KEY, "Content-Type": "application/json" };

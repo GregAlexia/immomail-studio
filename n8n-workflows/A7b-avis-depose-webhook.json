@@ -7,7 +7,7 @@
         "height": 280,
         "width": 560
       },
-      "id": "4f5de1f0-1188-4ed5-998b-68c20ded5710",
+      "id": "b17bd20b-39ee-4392-87ef-5cd117e3ecc9",
       "name": "Note",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -23,7 +23,7 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "3bdd9ac9-a468-4da8-9e3a-2e088d5d7af7",
+      "id": "04c7e296-1e4c-4fd0-90e4-c31c3cd6eef4",
       "name": "Webhook avis déposé",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
@@ -31,7 +31,7 @@
         0,
         300
       ],
-      "webhookId": "3d8ca46d-e63d-49a1-94f6-e22d8395e85d"
+      "webhookId": "d2f9011d-9d93-49d7-a078-b0d6f28f0bce"
     },
     {
       "parameters": {
@@ -39,7 +39,7 @@
         "query": "WITH upd AS (\n  UPDATE transactions\n  SET review_completed_at = now()::text\n  WHERE id = {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.body.transactionId) }}\n    AND review_completed_at IS NULL\n  RETURNING id, agency_id\n),\nlog AS (\n  INSERT INTO activity_log (id, agency_id, automation_type, description, ref_id, occurred_at, created_at)\n  SELECT gen_random_uuid()::text, agency_id, 'A7',\n         'Avis Google déposé par le client — relance automatique stoppée', id, now()::text, now()::text\n  FROM upd\n)\nSELECT {{ ((v) => v == null ? 'NULL' : \"'\" + String(v).replace(/'/g, \"''\") + \"'\")($json.body.transactionId) }} AS transaction_id,\n       EXISTS(SELECT 1 FROM upd) AS updated;",
         "options": {}
       },
-      "id": "a61fa0ef-1ec1-4e84-b44b-8252e12628f9",
+      "id": "28fb92fc-4c3c-4626-b4bd-95bc590a43de",
       "name": "Marquer l'avis déposé",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 2.6,
@@ -60,7 +60,7 @@
         "responseBody": "={{ JSON.stringify({ ok: true, transactionId: $json.transaction_id, updated: $json.updated }) }}",
         "options": {}
       },
-      "id": "e2f8c9fb-0991-4401-87c1-5b7b03d6181b",
+      "id": "354bdd20-92ab-484b-8f77-e4a2f346648e",
       "name": "Répondre 200",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,

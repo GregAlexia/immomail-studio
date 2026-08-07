@@ -1,8 +1,10 @@
-# ImmoMail Studio — SaaS de démonstration des automatisations pour agences immobilières
+# Keo — SaaS de démonstration des automatisations pour agences immobilières
+
+> Anciennement « ImmoMail Studio ».
 
 Vitrine fonctionnelle des **11 automatisations métier** (A1–A11) du PRD v2.0, avec **horloge de démo pilotable** pour déclencher en direct les automatisations différées (J-1, J+2, J+30…). Données 100 % fictives, **aucune API externe réelle** (SMS/email/avis simulés).
 
-**🔗 Démo en ligne : https://immomail-studio.vercel.app**
+**🔗 Démo en ligne : https://keo.vercel.app**
 
 > **Note d'interface (démo déployée).** Le menu est volontairement épuré par défaut : *Tableau de bord, Boîte de réception, Agenda & visites, Locations & quittances, Automatisations, Import / Export, Aide & guide, Paramétrage*. Les automatisations A3, A5, A6–A8 et leurs pages (Mandats, Conformité, Marketing, Journal, Boîte d'envoi) existent dans le code et peuvent être **activées à la demande depuis le menu Paramétrage** (réglage mémorisé par navigateur, via cookie). L'horloge de démo se pilote par un **sélecteur de date + bouton Évaluer** (les raccourcis +1 j/sem/mois ont été retirés), et les codes « Ax » ne sont plus affichés dans l'UI. Le guide intégré (**Aide & guide**) documente l'usage des espaces visibles.
 
@@ -125,7 +127,7 @@ Toutes les intégrations passent par `lib/services/*`. Chaque « envoi » crée 
 ### Idempotence
 Chaque action est protégée par la table `automation_runs` (`run_key` unique, ex. `reminder_j1:{appointment_id}`). Avancer/réévaluer l'horloge ne produit **jamais de doublon**.
 
-## Déploiement (déjà en ligne : https://immomail-studio.vercel.app)
+## Déploiement (déjà en ligne : https://keo.vercel.app)
 
 1. Créer un projet **Supabase** en région EU et récupérer la connection string du
    **pooler en mode session (port 5432)**.

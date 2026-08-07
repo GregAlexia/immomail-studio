@@ -1,4 +1,4 @@
-# Guide de configuration & d'activation — workflows n8n ImmoMail Studio
+# Guide de configuration & d'activation — workflows n8n Keo
 
 Ce guide est le **mode d'emploi opérationnel** : il part d'une instance n8n vierge et
 aboutit aux 11 workflows actifs en production. Il complète :
@@ -100,7 +100,7 @@ sans configuration, ils tournent avec les valeurs de démo. À personnaliser pou
 | `IMMOMAIL_FROM_EMAIL` | `agence@immomail.demo` | Adresse expéditrice de tous les emails |
 | `IMMOMAIL_AGENCY_NAME` | `Notre agence` | Signature des messages |
 | `IMMOMAIL_AGENCY_INBOX` | valeur de `IMMOMAIL_FROM_EMAIL` | Destinataire des alertes internes (A5) |
-| `IMMOMAIL_BASE_URL` | `https://immomail-studio.vercel.app` | Base des URLs : PDF quittance (A4), lien de réservation (A10) |
+| `IMMOMAIL_BASE_URL` | `https://keo.vercel.app` | Base des URLs : PDF quittance (A4), lien de réservation (A10) |
 | `GOOGLE_REVIEW_LINK` | lien G exemple | Lien « laisser un avis » (A7) |
 | `SMS_API_URL` | endpoint Brevo SMS | Endpoint du provider SMS (A2, A7, A8) |
 
@@ -111,7 +111,7 @@ sans configuration, ils tournent avec les valeurs de démo. À personnaliser pou
   ```yaml
   environment:
     - IMMOMAIL_FROM_EMAIL=contact@mon-agence.fr
-    - IMMOMAIL_BASE_URL=https://immomail-studio.vercel.app
+    - IMMOMAIL_BASE_URL=https://keo.vercel.app
   ```
 - **VPS / systemd** : dans le fichier d'environnement du service n8n.
 - **n8n Cloud** : `$env` n'est **pas accessible** ; deux options :
@@ -141,7 +141,7 @@ N8N_API_KEY=<clé API n8n>  N8N_BASE_URL=https://votre-n8n/api/v1  node n8n-work
 ```
 
 (Clé API : n8n → Settings → n8n API → Create API key.)
-Les workflows sont créés **désactivés**, préfixés `ImmoMail Studio · `, tagués. Il reste à
+Les workflows sont créés **désactivés**, préfixés `Keo · `, tagués. Il reste à
 rattacher les credentials à la main (l'API publique ne le permet pas) : ouvrir chaque
 workflow et corriger les nœuds rouges comme en option A, étape 3.
 
@@ -192,7 +192,7 @@ L'app déployée (Vercel) doit être accessible depuis l'instance n8n. Test rapi
 le serveur n8n :
 
 ```bash
-curl -sI "https://immomail-studio.vercel.app/api/receipt/<un-id-de-bail>?period=2026-07" | head -1
+curl -sI "https://keo.vercel.app/api/receipt/<un-id-de-bail>?period=2026-07" | head -1
 ```
 
 ---

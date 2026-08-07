@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 
 // Image de partage (OpenGraph/Twitter) générée à la volée — reprend les
 // couleurs de marque de globals.css (teal #0d9488).
-export const alt = "ImmoMail Studio — Démo automatisations agences immobilières";
+export const alt = "Keo — Démo automatisations agences immobilières";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -47,7 +47,7 @@ export default function Image() {
               <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
             </svg>
           </div>
-          ImmoMail Studio
+          Keo
         </div>
         <div style={{ marginTop: 36, fontSize: 34, lineHeight: 1.4, opacity: 0.92, maxWidth: 940 }}>
           11 automatisations métier pour agences immobilières — démo interactive avec horloge simulée

@@ -7,7 +7,7 @@ export async function GET() {
   return new Response(Buffer.from(buf as ArrayBuffer), {
     headers: {
       "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "Content-Disposition": `attachment; filename="immomail-donnees.xlsx"`,
+      "Content-Disposition": `attachment; filename="keo-donnees.xlsx"`,
     },
   });
 }

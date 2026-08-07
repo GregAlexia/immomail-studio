@@ -1,4 +1,4 @@
-# Documentation des workflows n8n — ImmoMail Studio
+# Documentation des workflows n8n — Keo
 
 Cette doc explique, pour chacun des 11 workflows, **la logique métier** puis **le rôle de
 chaque nœud**. Elle complète le [README](README.md) (import, credentials, variables d'env)
@@ -45,7 +45,7 @@ Chaque workflow suit le même patron en 4 temps :
                                            └───────────┬───────────┘
                                        l'UI lit messages│+ activity_log
                                            ┌────────────▼──────────┐
-                                           │  App ImmoMail Studio  │
+                                           │  App Keo               │
                                            └───────────────────────┘
 ```
 

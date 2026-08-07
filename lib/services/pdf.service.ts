@@ -137,7 +137,7 @@ export async function generateReceipt(data: ReceiptData): Promise<Uint8Array> {
 
   // Pied de page
   page.drawText(
-    "Document de démonstration — ImmoMail Studio (données fictives)",
+    "Document de démonstration — Keo (données fictives)",
     { x: M, y: 40, size: 8, font, color: rgb(0.6, 0.62, 0.66) }
   );
 

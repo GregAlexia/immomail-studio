@@ -35,7 +35,7 @@ export function MobileNav({ enabledKeys }: { enabledKeys: string[] }) {
         <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[var(--color-brand)] text-white">
           <Zap size={16} />
         </span>
-        <span className="font-bold leading-none">ImmoMail</span>
+        <span className="font-bold leading-none">Keo</span>
         <Menu size={16} className="text-[var(--color-muted)]" />
       </button>
 
@@ -49,8 +49,8 @@ export function MobileNav({ enabledKeys }: { enabledKeys: string[] }) {
                   <Zap size={18} />
                 </div>
                 <div>
-                  <p className="font-bold leading-tight text-[var(--color-ink)]">ImmoMail</p>
-                  <p className="text-xs leading-tight text-[var(--color-muted)]">Studio · démo</p>
+                  <p className="font-bold leading-tight text-[var(--color-ink)]">Keo</p>
+                  <p className="text-xs leading-tight text-[var(--color-muted)]">Démo agences immobilières</p>
                 </div>
               </div>
               <button type="button" onClick={() => setOpen(false)} aria-label="Fermer le menu" className="text-[var(--color-muted)] hover:text-[var(--color-ink)]">
