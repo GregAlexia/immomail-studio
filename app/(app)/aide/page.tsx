@@ -79,7 +79,7 @@ export default function AidePage() {
             <Card className="p-5">
               <h3 className="font-semibold text-[var(--color-ink)]">Choisir l'agence</h3>
               <p className="mt-1 text-sm text-[var(--color-muted)]">
-                En haut à gauche, le sélecteur isole les données d'une agence. L'agence <strong>Horizon Immobilier</strong> contient le scénario complet.
+                En haut à gauche, le sélecteur isole les données d'une agence. Deux agences contiennent un scénario complet : <strong>Horizon Immobilier</strong> (Lyon) et <strong>Artik M.</strong> (Charleville-Mézières), cette dernière sur un marché de province aux prix bien plus bas.
               </p>
             </Card>
             <Card className="p-5">
