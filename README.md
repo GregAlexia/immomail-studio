@@ -24,7 +24,7 @@ Vitrine fonctionnelle des **11 automatisations métier** (A1–A11) du PRD v2.0,
 ```bash
 npm install
 cp .env.example .env.local   # puis renseigner DATABASE_URL (Supabase)
-npm run seed                 # crée les tables + charge les données (3 agences)
+npm run seed                 # crée les tables + charge les données (4 agences)
 npm run dev                  # http://localhost:3000
 ```
 
@@ -86,7 +86,7 @@ acceptées dans la page **Aide → Fichier Excel source** (`/aide#excel`).
 - **Boîte d'envoi** : aperçu **fidèle** de chaque SMS/email/PDF tel que le recevrait le client.
 
 ### 6. Multi-agences & reset
-- **Sélecteur d'agence** (en-tête) : basculer vers Azur Méditerranée / Capitale Paris → les données sont **isolées**.
+- **Sélecteur d'agence** (en-tête) : basculer vers EDEN (Charleville-Mézières), Azur Méditerranée ou Capitale Paris → les données sont **isolées**. EDEN est un **second scénario complet**, sur un marché de province où une maison familiale vaut le prix d'un studio lyonnais : utile pour montrer que les automatisations ne dépendent d'aucun ordre de grandeur.
 - **Réinitialiser** : recharge l'état initial propre (ou `npm run seed`).
 
 ## Les 11 automatisations
@@ -135,7 +135,7 @@ Chaque action est protégée par la table `automation_runs` (`run_key` unique, e
 1. Créer un projet **Supabase** en région EU et récupérer la connection string du
    **pooler en mode session (port 5432)**.
 2. Seeder la base : `DATABASE_URL="postgresql://...:5432/postgres" npm run seed`
-   (crée les tables et charge les 3 agences).
+   (crée les tables et charge les 4 agences).
 3. Sur **Vercel** : `vercel link` puis ajouter la variable `DATABASE_URL`
    (`vercel env add DATABASE_URL production`) et déployer `vercel --prod`.
 
