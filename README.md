@@ -86,7 +86,7 @@ acceptées dans la page **Aide → Fichier Excel source** (`/aide#excel`).
 - **Boîte d'envoi** : aperçu **fidèle** de chaque SMS/email/PDF tel que le recevrait le client.
 
 ### 6. Multi-agences & reset
-- **Sélecteur d'agence** (en-tête) : basculer vers EDEN (Charleville-Mézières), Azur Méditerranée ou Capitale Paris → les données sont **isolées**. EDEN est un **second scénario complet**, sur un marché de province où une maison familiale vaut le prix d'un studio lyonnais : utile pour montrer que les automatisations ne dépendent d'aucun ordre de grandeur.
+- **Sélecteur d'agence** (en-tête) : basculer vers Artik M. (Charleville-Mézières), Azur Méditerranée ou Capitale Paris → les données sont **isolées**. Artik M. est un **second scénario complet**, sur un marché de province où une maison familiale vaut le prix d'un studio lyonnais : utile pour montrer que les automatisations ne dépendent d'aucun ordre de grandeur.
 - **Réinitialiser** : recharge l'état initial propre (ou `npm run seed`).
 
 ## Les 11 automatisations

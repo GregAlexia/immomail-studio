@@ -2,9 +2,9 @@
  * Seed scénarisé (§10 du PRD) — données 100 % fictives.
  *
  * Agence "Horizon Immobilier" (Lyon) = scénario complet, fidèle au classeur de
- * données de test (REF-001…007, emails EM-1001…1008). Agence "EDEN"
+ * données de test (REF-001…007, emails EM-1001…1008). Agence "Artik M."
  * (Charleville-Mézières) = second scénario complet sur un marché de province
- * (ED-001…302, emails ED-EM-1…8). Azur et Capitale, plus légères, démontrent
+ * (AM-001…302, emails AM-EM-1…8). Azur et Capitale, plus légères, démontrent
  * l'isolation multi-agences.
  *
  * Date de démo initiale : 23 juin 2026, 14 h. En avançant l'horloge de quelques
@@ -226,68 +226,68 @@ export async function seedDatabase(): Promise<SeedCounts> {
   AP.push({ id: uid(), agencyId: A3, propertyId: a3p1, contactId: null, contactName: "Camille Noel", contactEmail: "camille.noel@gmail.com", contactPhone: "06 33 34 35 36", type: "visite", scheduledAt: at(1, 16, 0), status: "confirmed", confirmationSentAt: null, reminderJ1SentAt: null, reminderH2SentAt: null, createdAt });
   IE.push({ id: uid(), agencyId: A3, externalId: "CP-EM-1", source: "bienici", senderName: "Antoine Girard", senderEmail: "antoine.girard@gmail.com", rawSubject: "Visite T2 Paris 11e", rawBody: "Bonjour, le T2 Paris 11e est-il disponible à la visite cette semaine ? Cordialement", receivedAt: at(0, 11, 0), isSpam: false, parsedPropertyRef: "CP-001", requestType: null, leadId: null, status: "non_traite", createdAt });
 
-  // ================= AGENCE 4 — EDEN (Charleville-Mézières) =================
+  // ================= AGENCE 4 — ARTIK M. (Charleville-Mézières) =================
   // Second scénario complet, sur un marché volontairement différent : dans les
   // Ardennes, une maison familiale vaut le prix d'un studio lyonnais. Utile
   // pour vérifier que rien — seuils de budget acheteur, montants de quittance,
   // libellés — n'est calé sur des ordres de grandeur de métropole.
   const A4 = uid(); // identifiant d'agence, sans rapport avec l'automatisation A4
-  const eden = { id: A4, name: "Agence EDEN", city: "Charleville-Mézières", logoUrl: null, createdAt };
+  const artik = { id: A4, name: "Agence Artik M.", city: "Charleville-Mézières", logoUrl: null, createdAt };
 
-  const e001 = property(A4, { ref: "ED-001", title: "Maison de ville près de la Place Ducale", type: "house", transaction: "sale", price: 168000, surface: 95, rooms: 4, city: "Charleville-Mézières", zone: "Centre-ville", negotiator: "Céline Warnier", status: "available" });
-  const e002 = property(A4, { ref: "ED-002", title: "Maison familiale avec jardin à Warcq", type: "house", transaction: "sale", price: 239000, surface: 135, rooms: 6, city: "Warcq", zone: "Warcq", negotiator: "Damien Poncelet", status: "available" });
-  const e003 = property(A4, { ref: "ED-003", title: "T3 rénové quartier Manchester", type: "apartment", transaction: "sale", price: 118000, surface: 68, rooms: 3, city: "Charleville-Mézières", zone: "Manchester", negotiator: "Nathalie Thiry", status: "under_offer" });
-  property(A4, { ref: "ED-004", title: "T2 bords de Meuse", type: "apartment", transaction: "sale", price: 84000, surface: 48, rooms: 2, city: "Charleville-Mézières", zone: "Centre-ville", negotiator: "Nathalie Thiry", status: "available" });
-  const e005 = property(A4, { ref: "ED-005", title: "Maison de maître à Mohon", type: "house", transaction: "sale", price: 275000, surface: 180, rooms: 8, city: "Charleville-Mézières", zone: "Mohon", negotiator: "Damien Poncelet", status: "available" });
-  property(A4, { ref: "ED-006", title: "T3 centre-ville (location)", type: "apartment", transaction: "rental", price: 620, surface: 70, rooms: 3, city: "Charleville-Mézières", zone: "Centre-ville", negotiator: "Nathalie Thiry", status: "available" });
-  const e007 = property(A4, { ref: "ED-007", title: "Local commercial Place Ducale", type: "commercial", transaction: "sale", price: 189000, surface: 75, rooms: 0, city: "Charleville-Mézières", zone: "Centre-ville", negotiator: "Céline Warnier", status: "available" });
-  const e101 = property(A4, { ref: "ED-101", title: "T2 loué Ronde Couture", type: "apartment", transaction: "rental", price: 480, surface: 52, rooms: 2, city: "Charleville-Mézières", zone: "Ronde Couture", negotiator: "Nathalie Thiry", status: "rented" });
-  const e102 = property(A4, { ref: "ED-102", title: "Studio loué centre-ville", type: "studio", transaction: "rental", price: 355, surface: 26, rooms: 1, city: "Charleville-Mézières", zone: "Centre-ville", negotiator: "Céline Warnier", status: "rented" });
-  const e103 = property(A4, { ref: "ED-103", title: "Maison louée à Villers-Semeuse", type: "house", transaction: "rental", price: 780, surface: 105, rooms: 5, city: "Villers-Semeuse", zone: "Villers-Semeuse", negotiator: "Damien Poncelet", status: "rented" });
-  const e202 = property(A4, { ref: "ED-202", title: "T3 vendu Manchester", type: "apartment", transaction: "sale", price: 112000, surface: 65, rooms: 3, city: "Charleville-Mézières", zone: "Manchester", negotiator: "Nathalie Thiry", status: "sold" });
-  const e203 = property(A4, { ref: "ED-203", title: "Maison vendue à Nouzonville", type: "house", transaction: "sale", price: 156000, surface: 110, rooms: 5, city: "Nouzonville", zone: "Nouzonville", negotiator: "Damien Poncelet", status: "sold" });
-  property(A4, { ref: "ED-301", title: "T4 centre-ville", type: "apartment", transaction: "sale", price: 145000, surface: 88, rooms: 4, city: "Charleville-Mézières", zone: "Centre-ville", negotiator: "Céline Warnier", status: "available" });
-  property(A4, { ref: "ED-302", title: "T2 Mohon (location)", type: "apartment", transaction: "rental", price: 495, surface: 44, rooms: 2, city: "Charleville-Mézières", zone: "Mohon", negotiator: "Nathalie Thiry", status: "available" });
+  const am001 = property(A4, { ref: "AM-001", title: "Maison de ville près de la Place Ducale", type: "house", transaction: "sale", price: 168000, surface: 95, rooms: 4, city: "Charleville-Mézières", zone: "Centre-ville", negotiator: "Céline Warnier", status: "available" });
+  const am002 = property(A4, { ref: "AM-002", title: "Maison familiale avec jardin à Warcq", type: "house", transaction: "sale", price: 239000, surface: 135, rooms: 6, city: "Warcq", zone: "Warcq", negotiator: "Damien Poncelet", status: "available" });
+  const am003 = property(A4, { ref: "AM-003", title: "T3 rénové quartier Manchester", type: "apartment", transaction: "sale", price: 118000, surface: 68, rooms: 3, city: "Charleville-Mézières", zone: "Manchester", negotiator: "Nathalie Thiry", status: "under_offer" });
+  property(A4, { ref: "AM-004", title: "T2 bords de Meuse", type: "apartment", transaction: "sale", price: 84000, surface: 48, rooms: 2, city: "Charleville-Mézières", zone: "Centre-ville", negotiator: "Nathalie Thiry", status: "available" });
+  const am005 = property(A4, { ref: "AM-005", title: "Maison de maître à Mohon", type: "house", transaction: "sale", price: 275000, surface: 180, rooms: 8, city: "Charleville-Mézières", zone: "Mohon", negotiator: "Damien Poncelet", status: "available" });
+  property(A4, { ref: "AM-006", title: "T3 centre-ville (location)", type: "apartment", transaction: "rental", price: 620, surface: 70, rooms: 3, city: "Charleville-Mézières", zone: "Centre-ville", negotiator: "Nathalie Thiry", status: "available" });
+  const am007 = property(A4, { ref: "AM-007", title: "Local commercial Place Ducale", type: "commercial", transaction: "sale", price: 189000, surface: 75, rooms: 0, city: "Charleville-Mézières", zone: "Centre-ville", negotiator: "Céline Warnier", status: "available" });
+  const am101 = property(A4, { ref: "AM-101", title: "T2 loué Ronde Couture", type: "apartment", transaction: "rental", price: 480, surface: 52, rooms: 2, city: "Charleville-Mézières", zone: "Ronde Couture", negotiator: "Nathalie Thiry", status: "rented" });
+  const am102 = property(A4, { ref: "AM-102", title: "Studio loué centre-ville", type: "studio", transaction: "rental", price: 355, surface: 26, rooms: 1, city: "Charleville-Mézières", zone: "Centre-ville", negotiator: "Céline Warnier", status: "rented" });
+  const am103 = property(A4, { ref: "AM-103", title: "Maison louée à Villers-Semeuse", type: "house", transaction: "rental", price: 780, surface: 105, rooms: 5, city: "Villers-Semeuse", zone: "Villers-Semeuse", negotiator: "Damien Poncelet", status: "rented" });
+  const am202 = property(A4, { ref: "AM-202", title: "T3 vendu Manchester", type: "apartment", transaction: "sale", price: 112000, surface: 65, rooms: 3, city: "Charleville-Mézières", zone: "Manchester", negotiator: "Nathalie Thiry", status: "sold" });
+  const am203 = property(A4, { ref: "AM-203", title: "Maison vendue à Nouzonville", type: "house", transaction: "sale", price: 156000, surface: 110, rooms: 5, city: "Nouzonville", zone: "Nouzonville", negotiator: "Damien Poncelet", status: "sold" });
+  property(A4, { ref: "AM-301", title: "T4 centre-ville", type: "apartment", transaction: "sale", price: 145000, surface: 88, rooms: 4, city: "Charleville-Mézières", zone: "Centre-ville", negotiator: "Céline Warnier", status: "available" });
+  property(A4, { ref: "AM-302", title: "T2 Mohon (location)", type: "apartment", transaction: "rental", price: 495, surface: 44, rooms: 2, city: "Charleville-Mézières", zone: "Mohon", negotiator: "Nathalie Thiry", status: "available" });
 
-  const eoDidier = contact(A4, "Didier", "Lallemand", "owner", { email: "d.lallemand@orange.fr", phone: "06 24 51 63 07" });
-  const eoMartine = contact(A4, "Martine", "Piérard", "owner", { email: "martine.pierard@gmail.com", phone: "06 35 72 18 09" });
-  const eoBernard = contact(A4, "Bernard", "Colin", "owner", { email: "bernard.colin@wanadoo.fr", phone: "06 46 83 29 10" });
-  const eoFatima = contact(A4, "Fatima", "Zerrouki", "owner", { email: "fatima.zerrouki@gmail.com", phone: "06 57 94 30 21" });
-  // Le mandat d'ED-002 expire à J+6 : A3 se déclenche dès les premiers jours.
+  const amoDidier = contact(A4, "Didier", "Lallemand", "owner", { email: "d.lallemand@orange.fr", phone: "06 24 51 63 07" });
+  const amoMartine = contact(A4, "Martine", "Piérard", "owner", { email: "martine.pierard@gmail.com", phone: "06 35 72 18 09" });
+  const amoBernard = contact(A4, "Bernard", "Colin", "owner", { email: "bernard.colin@wanadoo.fr", phone: "06 46 83 29 10" });
+  const amoFatima = contact(A4, "Fatima", "Zerrouki", "owner", { email: "fatima.zerrouki@gmail.com", phone: "06 57 94 30 21" });
+  // Le mandat d'AM-002 expire à J+6 : A3 se déclenche dès les premiers jours.
   M.push(
-    { id: uid(), agencyId: A4, propertyId: e001, ownerId: eoDidier, type: "exclusive", startDate: dDay(-320), endDate: dDay(18), status: "active", createdAt },
-    { id: uid(), agencyId: A4, propertyId: e002, ownerId: eoMartine, type: "exclusive", startDate: dDay(-280), endDate: dDay(6), status: "active", createdAt },
-    { id: uid(), agencyId: A4, propertyId: e005, ownerId: eoBernard, type: "simple", startDate: dDay(-180), endDate: dDay(52), status: "active", createdAt },
-    { id: uid(), agencyId: A4, propertyId: e007, ownerId: eoFatima, type: "exclusive", startDate: dDay(-90), endDate: dDay(70), status: "active", createdAt }
+    { id: uid(), agencyId: A4, propertyId: am001, ownerId: amoDidier, type: "exclusive", startDate: dDay(-320), endDate: dDay(18), status: "active", createdAt },
+    { id: uid(), agencyId: A4, propertyId: am002, ownerId: amoMartine, type: "exclusive", startDate: dDay(-280), endDate: dDay(6), status: "active", createdAt },
+    { id: uid(), agencyId: A4, propertyId: am005, ownerId: amoBernard, type: "simple", startDate: dDay(-180), endDate: dDay(52), status: "active", createdAt },
+    { id: uid(), agencyId: A4, propertyId: am007, ownerId: amoFatima, type: "exclusive", startDate: dDay(-90), endDate: dDay(70), status: "active", createdAt }
   );
 
-  const etSamir = contact(A4, "Samir", "Bouchard", "tenant", { email: "samir.bouchard@gmail.com", phone: "06 68 15 42 33" });
-  const etAurelie = contact(A4, "Aurélie", "Deville", "tenant", { email: "aurelie.deville@free.fr", phone: "06 79 26 53 44" });
-  const etKevin = contact(A4, "Kévin", "Gérard", "tenant", { email: "kevin.gerard@laposte.net", phone: "06 80 37 64 55" });
+  const amtSamir = contact(A4, "Samir", "Bouchard", "tenant", { email: "samir.bouchard@gmail.com", phone: "06 68 15 42 33" });
+  const amtAurelie = contact(A4, "Aurélie", "Deville", "tenant", { email: "aurelie.deville@free.fr", phone: "06 79 26 53 44" });
+  const amtKevin = contact(A4, "Kévin", "Gérard", "tenant", { email: "kevin.gerard@laposte.net", phone: "06 80 37 64 55" });
   // Trois jours d'échéance distincts (3, 8, 15) : A4 émet ses quittances à trois
   // dates différentes dans le mois, au lieu d'une seule salve.
   L.push(
-    { id: uid(), agencyId: A4, propertyId: e101, tenantId: etSamir, monthlyRent: 480, charges: 35, startDate: dDay(-380), endDate: dDay(350), rentDueDay: 3, createdAt },
-    { id: uid(), agencyId: A4, propertyId: e102, tenantId: etAurelie, monthlyRent: 355, charges: 25, startDate: dDay(-210), endDate: dDay(155), rentDueDay: 8, createdAt },
-    { id: uid(), agencyId: A4, propertyId: e103, tenantId: etKevin, monthlyRent: 780, charges: 90, startDate: dDay(-450), endDate: dDay(280), rentDueDay: 15, createdAt }
+    { id: uid(), agencyId: A4, propertyId: am101, tenantId: amtSamir, monthlyRent: 480, charges: 35, startDate: dDay(-380), endDate: dDay(350), rentDueDay: 3, createdAt },
+    { id: uid(), agencyId: A4, propertyId: am102, tenantId: amtAurelie, monthlyRent: 355, charges: 25, startDate: dDay(-210), endDate: dDay(155), rentDueDay: 8, createdAt },
+    { id: uid(), agencyId: A4, propertyId: am103, tenantId: amtKevin, monthlyRent: 780, charges: 90, startDate: dDay(-450), endDate: dDay(280), rentDueDay: 15, createdAt }
   );
 
   CI.push(
-    { id: uid(), agencyId: A4, propertyId: e005, type: "dpe", label: "DPE à renouveler", dueDate: dDay(9), reminderDaysBefore: 15, status: "pending", createdAt },
-    { id: uid(), agencyId: A4, propertyId: e001, type: "dpe", label: "DPE à renouveler", dueDate: dDay(16), reminderDaysBefore: 30, status: "pending", createdAt },
-    { id: uid(), agencyId: A4, propertyId: e103, type: "pno_insurance", label: "Assurance PNO à renouveler", dueDate: dDay(35), reminderDaysBefore: 30, status: "pending", createdAt },
-    { id: uid(), agencyId: A4, propertyId: e101, type: "lease_renewal", label: "Renouvellement de bail", dueDate: dDay(44), reminderDaysBefore: 15, status: "pending", createdAt }
+    { id: uid(), agencyId: A4, propertyId: am005, type: "dpe", label: "DPE à renouveler", dueDate: dDay(9), reminderDaysBefore: 15, status: "pending", createdAt },
+    { id: uid(), agencyId: A4, propertyId: am001, type: "dpe", label: "DPE à renouveler", dueDate: dDay(16), reminderDaysBefore: 30, status: "pending", createdAt },
+    { id: uid(), agencyId: A4, propertyId: am103, type: "pno_insurance", label: "Assurance PNO à renouveler", dueDate: dDay(35), reminderDaysBefore: 30, status: "pending", createdAt },
+    { id: uid(), agencyId: A4, propertyId: am101, type: "lease_renewal", label: "Renouvellement de bail", dueDate: dDay(44), reminderDaysBefore: 15, status: "pending", createdAt }
   );
 
   // Signatures échelonnées comme chez Horizon : J-2 (demande d'avis à venir),
   // J-6 (relance A7 due) et J-33 (parrainage A8 dû).
-  const ecLaurent = contact(A4, "Laurent", "Mangin", "buyer", { email: "laurent.mangin@gmail.com", phone: "06 91 48 75 66" });
-  const ecSophie = contact(A4, "Sophie", "Renard", "buyer", { email: "sophie.renard@orange.fr", phone: "06 02 59 86 77" });
-  const ecYoussef = contact(A4, "Youssef", "Amrani", "buyer", { email: "youssef.amrani@gmail.com", phone: "06 13 60 97 88" });
+  const amcLaurent = contact(A4, "Laurent", "Mangin", "buyer", { email: "laurent.mangin@gmail.com", phone: "06 91 48 75 66" });
+  const amcSophie = contact(A4, "Sophie", "Renard", "buyer", { email: "sophie.renard@orange.fr", phone: "06 02 59 86 77" });
+  const amcYoussef = contact(A4, "Youssef", "Amrani", "buyer", { email: "youssef.amrani@gmail.com", phone: "06 13 60 97 88" });
   TX.push(
-    { id: uid(), agencyId: A4, propertyId: e003, contactId: ecLaurent, type: "sale", signedDate: dDay(-2), reviewRequestedAt: null, reviewFollowupAt: null, reviewCompletedAt: null, referralRequestedAt: null, createdAt },
-    { id: uid(), agencyId: A4, propertyId: e202, contactId: ecSophie, type: "sale", signedDate: dDay(-6), reviewRequestedAt: null, reviewFollowupAt: null, reviewCompletedAt: null, referralRequestedAt: null, createdAt },
-    { id: uid(), agencyId: A4, propertyId: e203, contactId: ecYoussef, type: "sale", signedDate: dDay(-33), reviewRequestedAt: null, reviewFollowupAt: null, reviewCompletedAt: null, referralRequestedAt: null, createdAt }
+    { id: uid(), agencyId: A4, propertyId: am003, contactId: amcLaurent, type: "sale", signedDate: dDay(-2), reviewRequestedAt: null, reviewFollowupAt: null, reviewCompletedAt: null, referralRequestedAt: null, createdAt },
+    { id: uid(), agencyId: A4, propertyId: am202, contactId: amcSophie, type: "sale", signedDate: dDay(-6), reviewRequestedAt: null, reviewFollowupAt: null, reviewCompletedAt: null, referralRequestedAt: null, createdAt },
+    { id: uid(), agencyId: A4, propertyId: am203, contactId: amcYoussef, type: "sale", signedDate: dDay(-33), reviewRequestedAt: null, reviewFollowupAt: null, reviewCompletedAt: null, referralRequestedAt: null, createdAt }
   );
 
   // Budgets calés sur le marché local : le plus gros acheteur du fichier vise
@@ -304,26 +304,26 @@ export async function seedDatabase(): Promise<SeedCounts> {
   );
 
   AP.push(
-    { id: uid(), agencyId: A4, propertyId: e001, contactId: null, contactName: "Vincent Maréchal", contactEmail: "v.marechal@gmail.com", contactPhone: "06 44 90 12 34", type: "visite", scheduledAt: at(1, 17, 30), status: "confirmed", confirmationSentAt: null, reminderJ1SentAt: null, reminderH2SentAt: null, createdAt },
-    { id: uid(), agencyId: A4, propertyId: e002, contactId: null, contactName: "Sandrine Leroy", contactEmail: "sandrine.leroy@orange.fr", contactPhone: "06 55 01 23 45", type: "visite", scheduledAt: at(2, 10, 30), status: "confirmed", confirmationSentAt: null, reminderJ1SentAt: null, reminderH2SentAt: null, createdAt },
+    { id: uid(), agencyId: A4, propertyId: am001, contactId: null, contactName: "Vincent Maréchal", contactEmail: "v.marechal@gmail.com", contactPhone: "06 44 90 12 34", type: "visite", scheduledAt: at(1, 17, 30), status: "confirmed", confirmationSentAt: null, reminderJ1SentAt: null, reminderH2SentAt: null, createdAt },
+    { id: uid(), agencyId: A4, propertyId: am002, contactId: null, contactName: "Sandrine Leroy", contactEmail: "sandrine.leroy@orange.fr", contactPhone: "06 55 01 23 45", type: "visite", scheduledAt: at(2, 10, 30), status: "confirmed", confirmationSentAt: null, reminderJ1SentAt: null, reminderH2SentAt: null, createdAt },
     { id: uid(), agencyId: A4, propertyId: null, contactId: null, contactName: "Patrick Guillaume", contactEmail: "p.guillaume@wanadoo.fr", contactPhone: null, type: "estimation", scheduledAt: at(4, 15, 0), status: "requested", confirmationSentAt: null, reminderJ1SentAt: null, reminderH2SentAt: null, createdAt },
-    { id: uid(), agencyId: A4, propertyId: e005, contactId: null, contactName: "Amandine Roussel", contactEmail: "amandine.roussel@gmail.com", contactPhone: "06 66 12 34 56", type: "visite", scheduledAt: at(6, 9, 30), status: "confirmed", confirmationSentAt: null, reminderJ1SentAt: null, reminderH2SentAt: null, createdAt }
+    { id: uid(), agencyId: A4, propertyId: am005, contactId: null, contactName: "Amandine Roussel", contactEmail: "amandine.roussel@gmail.com", contactPhone: "06 66 12 34 56", type: "visite", scheduledAt: at(6, 9, 30), status: "confirmed", confirmationSentAt: null, reminderJ1SentAt: null, reminderH2SentAt: null, createdAt }
   );
 
-  email("ED-EM-1", "seloger", "Vincent Maréchal", "v.marechal@gmail.com", "Maison centre-ville Charleville", "Bonjour, votre maison de ville près de la Place Ducale à 168 000 € m'intéresse. Serait-il possible de la visiter en fin de semaine ? Cordialement", at(-1, 8, 41), "ED-001", A4);
-  email("ED-EM-2", "leboncoin", "Sandrine Leroy", "sandrine.leroy@orange.fr", "Maison Warcq avec jardin", "Bonjour, la maison de Warcq est-elle toujours en vente ? Nous sommes une famille de 5 et le jardin nous intéresse beaucoup. 06 55 01 23 45", at(-1, 10, 27), "ED-002", A4);
-  email("ED-EM-3", "site", "Patrick Guillaume", "p.guillaume@wanadoo.fr", "Estimation maison Aiglemont", "Bonjour, je souhaite faire estimer ma maison de 120 m² à Aiglemont avant une mise en vente au printemps. Quelles sont vos disponibilités ?", at(-1, 13, 15), null, A4);
-  email("ED-EM-4", "bienici", "Julie Wathelet", "julie.wathelet@gmail.com", "Location T3 centre-ville", "Bonjour, le T3 à 620 €/mois en centre-ville est-il encore libre ? Je suis infirmière au CH de Charleville, CDI. Merci d'avance", at(-1, 15, 52), "ED-006", A4);
-  email("ED-EM-5", "autre", "Amandine Roussel", "amandine.roussel@gmail.com", "Maison de maître Mohon", "Bonjour, nous aimerions visiter la maison de maître de Mohon. Nous sommes disponibles en semaine après 17 h. 06 66 12 34 56", at(0, 9, 8), "ED-005", A4);
-  email("ED-EM-6", "autre", "Karim Belaïd", "karim.belaid@gmail.com", "Pièces dossier location T3", "Bonjour, je vous joins mes trois derniers bulletins de salaire et mon avis d'imposition pour le dossier de location. Dites-moi s'il manque quelque chose.", at(0, 11, 33), "ED-006", A4);
-  email("ED-EM-7", "seloger", "Damien Charpentier", "d.charpentier@orange.fr", "Local commercial Place Ducale", "Bonjour, je cherche un local pour ouvrir un salon de thé. Les 75 m² de la Place Ducale conviendraient. Quelle est la surface de vitrine ?", at(0, 14, 6), "ED-007", A4);
-  email("ED-EM-8", "spam", "Immo Booster", "contact@immo-booster-pro.com", "Vendez 3x plus vite dans les Ardennes !", "Notre logiciel révolutionnaire garantit des ventes en moins de 30 jours. Offre de lancement -70%...", at(0, 16, 20), null, A4);
+  email("AM-EM-1", "seloger", "Vincent Maréchal", "v.marechal@gmail.com", "Maison centre-ville Charleville", "Bonjour, votre maison de ville près de la Place Ducale à 168 000 € m'intéresse. Serait-il possible de la visiter en fin de semaine ? Cordialement", at(-1, 8, 41), "AM-001", A4);
+  email("AM-EM-2", "leboncoin", "Sandrine Leroy", "sandrine.leroy@orange.fr", "Maison Warcq avec jardin", "Bonjour, la maison de Warcq est-elle toujours en vente ? Nous sommes une famille de 5 et le jardin nous intéresse beaucoup. 06 55 01 23 45", at(-1, 10, 27), "AM-002", A4);
+  email("AM-EM-3", "site", "Patrick Guillaume", "p.guillaume@wanadoo.fr", "Estimation maison Aiglemont", "Bonjour, je souhaite faire estimer ma maison de 120 m² à Aiglemont avant une mise en vente au printemps. Quelles sont vos disponibilités ?", at(-1, 13, 15), null, A4);
+  email("AM-EM-4", "bienici", "Julie Wathelet", "julie.wathelet@gmail.com", "Location T3 centre-ville", "Bonjour, le T3 à 620 €/mois en centre-ville est-il encore libre ? Je suis infirmière au CH de Charleville, CDI. Merci d'avance", at(-1, 15, 52), "AM-006", A4);
+  email("AM-EM-5", "autre", "Amandine Roussel", "amandine.roussel@gmail.com", "Maison de maître Mohon", "Bonjour, nous aimerions visiter la maison de maître de Mohon. Nous sommes disponibles en semaine après 17 h. 06 66 12 34 56", at(0, 9, 8), "AM-005", A4);
+  email("AM-EM-6", "autre", "Karim Belaïd", "karim.belaid@gmail.com", "Pièces dossier location T3", "Bonjour, je vous joins mes trois derniers bulletins de salaire et mon avis d'imposition pour le dossier de location. Dites-moi s'il manque quelque chose.", at(0, 11, 33), "AM-006", A4);
+  email("AM-EM-7", "seloger", "Damien Charpentier", "d.charpentier@orange.fr", "Local commercial Place Ducale", "Bonjour, je cherche un local pour ouvrir un salon de thé. Les 75 m² de la Place Ducale conviendraient. Quelle est la surface de vitrine ?", at(0, 14, 6), "AM-007", A4);
+  email("AM-EM-8", "spam", "Immo Booster", "contact@immo-booster-pro.com", "Vendez 3x plus vite dans les Ardennes !", "Notre logiciel révolutionnaire garantit des ventes en moins de 30 jours. Offre de lancement -70%...", at(0, 16, 20), null, A4);
 
   // ============================ INSERTION ============================
   await ensureSchema();
   for (const t of TABLE_NAMES) await client.unsafe(`DELETE FROM ${t}`);
 
-  await db.insert(agencies).values([horizon, azur, capitale, eden] as never);
+  await db.insert(agencies).values([horizon, azur, capitale, artik] as never);
   await db.insert(contacts).values(C as never);
   await db.insert(properties).values(P as never);
   await db.insert(mandates).values(M as never);
