@@ -45,9 +45,13 @@ export default function RootLayout({
       <body className="min-h-full">
         {children}
         {/* Composants clients isolés : la frontière client reste confinée ici,
-            le reste de l'arbre demeure rendu côté serveur. */}
-        <ProspectTracker />
+            le reste de l'arbre demeure rendu côté serveur.
+            `<Analytics />` d'abord : son effet installe `window.va`, dont
+            dépend l'événement émis par `<ProspectTracker />`. Ce dernier sait
+            s'en passer (il crée la file au besoin), mais l'ordre naturel évite
+            de faire reposer le suivi sur ce filet de sécurité. */}
         <Analytics />
+        <ProspectTracker />
       </body>
     </html>
   );
