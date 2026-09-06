@@ -52,6 +52,19 @@ export function ProspectTracker() {
       // compter une ouverture de trop, plutôt que de perdre l'information.
     }
 
+    // `track()` se résume à `window.va?.("event", …)` : tant que le script
+    // d'analytics n'est pas chargé, `window.va` est absent et l'événement part
+    // dans le vide, **sans la moindre erreur**. Or l'effet de ce composant
+    // s'exécute avant celui de `<Analytics />`. On installe donc au préalable
+    // la file d'attente documentée par Vercel : le script la vide à son
+    // chargement, et l'ordre de montage cesse d'avoir de l'importance.
+    const w = window as Window & { vaq?: unknown[][] };
+    if (typeof w.va !== "function") {
+      w.va = (...args: unknown[]) => {
+        (w.vaq = w.vaq ?? []).push(args);
+      };
+    }
+
     void track("demo_ouverte", { prospect: etiquette });
   }, []);
 
