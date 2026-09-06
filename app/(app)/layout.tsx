@@ -1,4 +1,4 @@
-import { getAgencies, getSelectedAgency } from "@/lib/agency";
+import { getAgenciesAffichees, getSelectedAgency } from "@/lib/agency";
 import { getClock } from "@/lib/demo-clock";
 import { getMenuKeys } from "@/lib/menu-settings";
 import { fmtDayLong } from "@/lib/date";
@@ -10,7 +10,7 @@ import { DemoClockBar } from "@/components/app-shell/DemoClockBar";
 export const dynamic = "force-dynamic";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const agencies = await getAgencies();
+  const agencies = await getAgenciesAffichees();
   const selected = await getSelectedAgency();
 
   if (!selected) {

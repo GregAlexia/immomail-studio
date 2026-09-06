@@ -13,6 +13,9 @@
 
 export const PROFIL_COOKIE = "demo_profil";
 
+// Nom d'affichage porté par `?n=` : purement cosmétique, jamais écrit en base.
+export const NOM_COOKIE = "demo_nom";
+
 // Même expression que pour les étiquettes de traçage : la valeur vient de
 // l'URL, donc du visiteur.
 export const ETIQUETTE_VALIDE = /^[a-z0-9-]{1,60}$/;
@@ -54,4 +57,26 @@ export function correspond(
 ): boolean {
   if (agence.city && normaliser(agence.city) === etiquette) return true;
   return segments(agence.name).includes(etiquette) || segments(agence.city).includes(etiquette);
+}
+
+// Mots que le français laisse en minuscules à l'intérieur d'un nom propre.
+const PARTICULES = new Set(["de", "du", "des", "la", "le", "les", "et", "en", "sur", "au", "aux"]);
+
+/**
+ * Étiquette d'URL → nom affichable : « cabinet-durand » donne « Cabinet Durand »,
+ * « agence-du-centre » donne « Agence du Centre ».
+ *
+ * L'étiquette reste contrainte à `^[a-z0-9-]{1,60}$` : ni accent, ni apostrophe.
+ * C'est délibéré — la valeur vient de l'URL et finit à l'écran, y compris dans
+ * les emails générés par la démonstration. Un jeu de caractères restreint évite
+ * qu'un lien forgé n'affiche n'importe quoi.
+ */
+export function nomAffichable(etiquette: string): string {
+  return etiquette
+    .split("-")
+    .filter((mot) => mot.length > 0)
+    .map((mot, i) =>
+      i > 0 && PARTICULES.has(mot) ? mot : mot.charAt(0).toUpperCase() + mot.slice(1)
+    )
+    .join(" ");
 }
