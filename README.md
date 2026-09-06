@@ -86,7 +86,7 @@ acceptées dans la page **Aide → Fichier Excel source** (`/aide#excel`).
 - **Boîte d'envoi** : aperçu **fidèle** de chaque SMS/email/PDF tel que le recevrait le client.
 
 ### 6. Multi-agences & reset
-- **Sélecteur d'agence** (en-tête) : basculer vers Artik M. (Charleville-Mézières), Azur Méditerranée ou Capitale Paris → les données sont **isolées**. Artik M. est un **second scénario complet**, sur un marché de province où une maison familiale vaut le prix d'un studio lyonnais : utile pour montrer que les automatisations ne dépendent d'aucun ordre de grandeur.
+- **Sélecteur d'agence** (en-tête) : basculer vers Artik (Charleville-Mézières), Azur Méditerranée ou Capitale Paris → les données sont **isolées**. Artik est un **second scénario complet**, sur un marché de province où une maison familiale vaut le prix d'un studio lyonnais : utile pour montrer que les automatisations ne dépendent d'aucun ordre de grandeur.
 - **Réinitialiser** : recharge l'état initial propre (ou `npm run seed`).
 
 ## Les 11 automatisations
@@ -177,28 +177,47 @@ le référent — sans cookie et sans conserver d'adresse IP. À activer une foi
 dans Vercel → onglet **Analytics** ; tant que ce n'est pas fait, le composant
 est inerte et n'envoie rien.
 
-**Liens de prospection.** Ajouter `?p=<étiquette>` à l'URL envoyée à un
-prospect :
+**Liens de prospection.** Deux étiquettes indépendantes, toutes deux
+facultatives :
+
+| Paramètre | Désigne | Répond à |
+|---|---|---|
+| `?p=` | l'agence démarchée | « ce prospect a-t-il ouvert la démo ? » |
+| `?c=` | le commercial qui a envoyé le lien | « qui l'a placé ? » |
 
 ```
-https://immomail-studio.vercel.app/?p=artik-m
+https://immomail-studio.vercel.app/?p=artik&c=greg
 ```
 
 À l'ouverture, `components/ProspectTracker.tsx` émet l'événement
-`demo_ouverte` avec la propriété `prospect`. Le tableau de bord Analytics
-répond alors à « qui a ouvert la démo, quand, combien de fois » — et le suivi
-de navigation habituel montre les pages parcourues ensuite.
+`demo_ouverte` avec les propriétés `prospect` et `commercial`. Le tableau de
+bord Analytics croise alors les deux : ouvertures par prospect, par commercial,
+ou par couple — et le suivi de navigation habituel montre les pages parcourues
+ensuite.
 
-L'étiquette est choisie par nous, pas déduite du visiteur : le suivi est
-nominatif **par construction**, sans traiter la moindre donnée personnelle.
+**Une étiquette `?p=` par agence démarchée, pas par commercial.** Si deux
+commerciaux démarchent la même agence, ils emploient le même `?p=` et se
+distinguent par leur `?c=`. C'est ce qui permet de compter les ouvertures d'un
+prospect sans les fragmenter.
+
+Les étiquettes sont choisies par nous, jamais déduites du visiteur : le suivi
+est nominatif **par construction**, sans traiter la moindre donnée personnelle.
 Journaliser l'IP donnerait une information à la fois moins fiable (les agences
 sortent souvent derrière une IP partagée) et soumise au RGPD — information des
 visiteurs, base légale, durée de conservation.
 
-Deux garde-fous dans le composant : l'étiquette doit correspondre à
+Deux garde-fous dans le composant : chaque étiquette doit correspondre à
 `^[a-z0-9-]{1,60}$` (sans quoi n'importe quel visiteur pourrait créer une
 infinité d'étiquettes et épuiser le quota d'événements), et un même onglet
-n'émet l'événement qu'une fois (un rechargement ne gonfle pas le compteur).
+n'émet l'événement qu'une fois par couple `p|c` (un rechargement ne gonfle pas
+le compteur, mais le lien d'un autre commercial compte bien à nouveau).
+
+> ⚠️ **Plusieurs commerciaux en même temps.** L'état de démonstration est
+> unique et partagé : une seule horloge (`demo_clock` id `global`),
+> « Réinitialiser » recharge **toutes** les agences, « Évaluer » traite
+> **toutes** les agences. Deux démonstrations simultanées se perturbent donc
+> mutuellement, quel que soit le lien utilisé. Le traçage identifie qui ouvre
+> la démo ; il ne cloisonne rien.
 
 ## Hors périmètre V1 (rappel)
 Authentification, envois réels, app mobile, connexion boîte mail réelle, CRM tiers réel, paiement en ligne. Architecture prête pour la V2 (voir Mock Service Layer).

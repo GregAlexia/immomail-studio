@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Geist } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { ProspectTracker } from "@/components/ProspectTracker";
@@ -49,9 +50,14 @@ export default function RootLayout({
             `<Analytics />` d'abord : son effet installe `window.va`, dont
             dépend l'événement émis par `<ProspectTracker />`. Ce dernier sait
             s'en passer (il crée la file au besoin), mais l'ordre naturel évite
-            de faire reposer le suivi sur ce filet de sécurité. */}
+            de faire reposer le suivi sur ce filet de sécurité.
+            Le `<Suspense>` est imposé par `useSearchParams()` : sans lui, tout
+            l'arbre client jusqu'à la racine bascule en rendu client, et le
+            prérendu de `/404` échoue au build. */}
         <Analytics />
-        <ProspectTracker />
+        <Suspense fallback={null}>
+          <ProspectTracker />
+        </Suspense>
       </body>
     </html>
   );
