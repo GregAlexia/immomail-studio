@@ -14,8 +14,8 @@ import { track } from "@vercel/analytics";
  *   ?p=  l'agence démarchée — répond à « ce prospect a-t-il ouvert la démo ? »
  *   ?c=  le commercial qui a envoyé le lien — répond à « qui l'a placé ? »
  *
- *   https://…/?p=artik&c=greg
- *     → événement `demo_ouverte` { prospect: "artik", commercial: "greg" }
+ *   https://…/?p=keo&c=ced
+ *     → événement `demo_ouverte` { prospect: "keo", commercial: "ced" }
  *
  * Un lien peut ne porter que l'une des deux ; sans aucune, rien n'est émis.
  * Les étiquettes sont choisies par nous, jamais déduites du visiteur : le suivi

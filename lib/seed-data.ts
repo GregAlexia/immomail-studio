@@ -2,7 +2,7 @@
  * Seed scénarisé (§10 du PRD) — données 100 % fictives.
  *
  * Agence "Horizon Immobilier" (Lyon) = scénario complet, fidèle au classeur de
- * données de test (REF-001…007, emails EM-1001…1008). Agence "Artik"
+ * données de test (REF-001…007, emails EM-1001…1008). Agence "Keo"
  * (Charleville-Mézières) = second scénario complet sur un marché de province
  * (AM-001…302, emails AM-EM-1…8). Azur et Capitale, plus légères, démontrent
  * l'isolation multi-agences.
@@ -226,13 +226,13 @@ export async function seedDatabase(): Promise<SeedCounts> {
   AP.push({ id: uid(), agencyId: A3, propertyId: a3p1, contactId: null, contactName: "Camille Noel", contactEmail: "camille.noel@gmail.com", contactPhone: "06 33 34 35 36", type: "visite", scheduledAt: at(1, 16, 0), status: "confirmed", confirmationSentAt: null, reminderJ1SentAt: null, reminderH2SentAt: null, createdAt });
   IE.push({ id: uid(), agencyId: A3, externalId: "CP-EM-1", source: "bienici", senderName: "Antoine Girard", senderEmail: "antoine.girard@gmail.com", rawSubject: "Visite T2 Paris 11e", rawBody: "Bonjour, le T2 Paris 11e est-il disponible à la visite cette semaine ? Cordialement", receivedAt: at(0, 11, 0), isSpam: false, parsedPropertyRef: "CP-001", requestType: null, leadId: null, status: "non_traite", createdAt });
 
-  // ================= AGENCE 4 — ARTIK M. (Charleville-Mézières) =================
+  // =================== AGENCE 4 — KEO (Charleville-Mézières) ===================
   // Second scénario complet, sur un marché volontairement différent : dans les
   // Ardennes, une maison familiale vaut le prix d'un studio lyonnais. Utile
   // pour vérifier que rien — seuils de budget acheteur, montants de quittance,
   // libellés — n'est calé sur des ordres de grandeur de métropole.
   const A4 = uid(); // identifiant d'agence, sans rapport avec l'automatisation A4
-  const artik = { id: A4, name: "Agence Artik", city: "Charleville-Mézières", logoUrl: null, createdAt };
+  const keo = { id: A4, name: "Agence Keo", city: "Charleville-Mézières", logoUrl: null, createdAt };
 
   const am001 = property(A4, { ref: "AM-001", title: "Maison de ville près de la Place Ducale", type: "house", transaction: "sale", price: 168000, surface: 95, rooms: 4, city: "Charleville-Mézières", zone: "Centre-ville", negotiator: "Céline Warnier", status: "available" });
   const am002 = property(A4, { ref: "AM-002", title: "Maison familiale avec jardin à Warcq", type: "house", transaction: "sale", price: 239000, surface: 135, rooms: 6, city: "Warcq", zone: "Warcq", negotiator: "Damien Poncelet", status: "available" });
@@ -323,7 +323,7 @@ export async function seedDatabase(): Promise<SeedCounts> {
   await ensureSchema();
   for (const t of TABLE_NAMES) await client.unsafe(`DELETE FROM ${t}`);
 
-  await db.insert(agencies).values([horizon, azur, capitale, artik] as never);
+  await db.insert(agencies).values([horizon, azur, capitale, keo] as never);
   await db.insert(contacts).values(C as never);
   await db.insert(properties).values(P as never);
   await db.insert(mandates).values(M as never);

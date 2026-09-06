@@ -86,7 +86,7 @@ acceptées dans la page **Aide → Fichier Excel source** (`/aide#excel`).
 - **Boîte d'envoi** : aperçu **fidèle** de chaque SMS/email/PDF tel que le recevrait le client.
 
 ### 6. Multi-agences & reset
-- **Sélecteur d'agence** (en-tête) : basculer vers Artik (Charleville-Mézières), Azur Méditerranée ou Capitale Paris → les données sont **isolées**. Artik est un **second scénario complet**, sur un marché de province où une maison familiale vaut le prix d'un studio lyonnais : utile pour montrer que les automatisations ne dépendent d'aucun ordre de grandeur.
+- **Sélecteur d'agence** (en-tête) : basculer vers Keo (Charleville-Mézières), Azur Méditerranée ou Capitale Paris → les données sont **isolées**. Keo est un **second scénario complet**, sur un marché de province où une maison familiale vaut le prix d'un studio lyonnais : utile pour montrer que les automatisations ne dépendent d'aucun ordre de grandeur.
 - **Réinitialiser** : recharge l'état initial propre (ou `npm run seed`).
 
 ## Les 11 automatisations
@@ -187,11 +187,11 @@ facultatives :
 
 ```
 https://immomail-studio.vercel.app/?p=lyon&c=ales
-https://immomail-studio.vercel.app/?p=artik&c=charleville
+https://immomail-studio.vercel.app/?p=keo&c=ced
 ```
 
 **`?p=` sélectionne le jeu de données.** L'étiquette est rapprochée du nom et
-de la ville de chaque agence (`lyon`, `horizon`, `artik`, `charleville`,
+de la ville de chaque agence (`lyon`, `horizon`, `keo`, `charleville`,
 `charleville-mezieres`, `marseille`, `paris`…) : le commercial tombe d'emblée
 sur la bonne démonstration, sans toucher au sélecteur. Le rapprochement vit
 dans `lib/demo-profil.ts` et se vérifie par

@@ -11,7 +11,7 @@
 import { correspond } from "../lib/demo-profil";
 
 const agences = [
-  { name: "Agence Artik", city: "Charleville-Mézières" },
+  { name: "Agence Keo", city: "Charleville-Mézières" },
   { name: "Agence Azur Méditerranée", city: "Marseille" },
   { name: "Agence Capitale Paris", city: "Paris" },
   { name: "Agence Horizon Immobilier", city: "Lyon" },
@@ -20,9 +20,12 @@ const agences = [
 const attendu: Record<string, string[]> = {
   lyon: ["Agence Horizon Immobilier"],
   horizon: ["Agence Horizon Immobilier"],
-  artik: ["Agence Artik"],
-  charleville: ["Agence Artik"],
-  "charleville-mezieres": ["Agence Artik"],
+  keo: ["Agence Keo"],
+  charleville: ["Agence Keo"],
+  "charleville-mezieres": ["Agence Keo"],
+  // L'ancien nom ne doit plus rien désigner : un lien `?p=artik` encore en
+  // circulation retombe sur l'agence par défaut, sans erreur.
+  artik: [],
   marseille: ["Agence Azur Méditerranée"],
   azur: ["Agence Azur Méditerranée"],
   paris: ["Agence Capitale Paris"],
