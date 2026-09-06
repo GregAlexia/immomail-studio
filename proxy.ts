@@ -48,7 +48,12 @@ export function proxy(request: NextRequest) {
     const reponse = NextResponse.rewrite(new URL("/", request.url));
     poser(reponse, COMMERCIAL_COOKIE, parChemin[1]);
     poser(reponse, PROFIL_COOKIE, profil ?? PROFIL_PAR_DEFAUT);
+    // Sans `&n=`, on efface le nom du prospect précédent. Un lien de commercial
+    // ouvre une démonstration neuve : sans cet effacement, le nom posé pour un
+    // rendez-vous resterait affiché au suivant, et le commercial montrerait à
+    // un prospect le nom d'un autre.
     if (nom) poser(reponse, NOM_COOKIE, nom);
+    else reponse.cookies.delete(NOM_COOKIE);
     return reponse;
   }
 
