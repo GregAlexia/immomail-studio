@@ -6,6 +6,7 @@ import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { contacts, newsletterSegments, properties, transactions } from "@/lib/db/schema";
 import { AGENCY_COOKIE, getSelectedAgency } from "@/lib/agency";
+import { PROFIL_COOKIE } from "@/lib/demo-profil";
 import { MENU_COOKIE } from "@/lib/menu-settings";
 import { LOCKED_KEYS, NAV } from "@/components/app-shell/nav-items";
 import {
@@ -32,6 +33,10 @@ function revalidateAll() {
 export async function setAgency(agencyId: string) {
   const store = await cookies();
   store.set(AGENCY_COOKIE, agencyId, { path: "/", maxAge: 60 * 60 * 24 * 365 });
+  // Un choix manuel prime sur le profil porté par le lien : sans cet
+  // effacement, le sélecteur reviendrait à l'agence du lien au rendu suivant,
+  // et le commercial se croirait face à un bug.
+  store.delete(PROFIL_COOKIE);
   revalidateAll();
 }
 
