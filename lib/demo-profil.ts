@@ -16,6 +16,27 @@ export const PROFIL_COOKIE = "demo_profil";
 // Nom d'affichage porté par `?n=` : purement cosmétique, jamais écrit en base.
 export const NOM_COOKIE = "demo_nom";
 
+// Commercial à l'origine de l'ouverture.
+export const COMMERCIAL_COOKIE = "demo_commercial";
+
+/**
+ * Lien nominatif par chemin : `/c/phil`, `/c/ced`…
+ *
+ * Le plan Hobby ne donne accès qu'aux **pages vues**, pas aux propriétés des
+ * événements personnalisés (`vercel.analytics_event.count` n'existe pas sur ce
+ * compte). Un paramètre `?c=phil` est donc invisible dans les statistiques,
+ * alors qu'un chemin distinct est compté séparément dans le panneau « Pages ».
+ * D'où ce détour : le chemin porte l'information, le proxy réécrit vers
+ * l'accueil sans changer l'URL affichée.
+ */
+export const CHEMIN_COMMERCIAL = /^\/c\/([a-z0-9-]{1,60})\/?$/;
+
+/**
+ * Profil servi par défaut aux liens `/c/…`. Les trois commerciaux démontrent
+ * le même jeu ; `/c/phil?p=lyon` permet d'en changer ponctuellement.
+ */
+export const PROFIL_PAR_DEFAUT = "keo";
+
 // Même expression que pour les étiquettes de traçage : la valeur vient de
 // l'URL, donc du visiteur.
 export const ETIQUETTE_VALIDE = /^[a-z0-9-]{1,60}$/;

@@ -180,10 +180,39 @@ est inerte et n'envoie rien.
 **Liens de prospection.** Deux étiquettes indépendantes, toutes deux
 facultatives :
 
+### Un lien par commercial : `/c/<nom>`
+
+```
+https://immomail-studio.vercel.app/c/phil
+https://immomail-studio.vercel.app/c/ced
+https://immomail-studio.vercel.app/c/danitzia
+```
+
+C'est la forme à privilégier. **Le plan Hobby ne donne accès qu'aux pages
+vues**, pas aux propriétés des événements personnalisés : sur ce compte,
+`vercel.analytics_event.count` n'existe tout simplement pas dans la liste des
+métriques. Un paramètre `?c=phil` est donc invisible dans les statistiques,
+alors qu'un **chemin** distinct est compté séparément.
+
+`proxy.ts` intercepte `/c/<nom>`, mémorise le commercial et le profil, puis
+réécrit vers l'accueil **sans changer l'URL affichée** — la page vue reste
+`/c/phil`. Le profil servi par défaut est `keo` ; `/c/phil?p=lyon` en change
+ponctuellement, et `&n=` fonctionne aussi.
+
+Pour lire les chiffres :
+
+```bash
+vercel metrics vercel.analytics_pageview.count --group-by request_path --since 7d --project immomail-studio --prod
+```
+
+ou le panneau **Pages** du tableau de bord Analytics.
+
+### Paramètres d'URL
+
 | Paramètre | Désigne | Effet |
 |---|---|---|
 | `?p=` | le profil de démonstration | **ouvre la démo sur cette agence** + étiquette l'ouverture |
-| `?c=` | le commercial qui a envoyé le lien | étiquette l'ouverture |
+| `?c=` | le commercial qui a envoyé le lien | étiquette l'ouverture — **non exploitable sur le plan Hobby**, préférer `/c/<nom>` |
 | `?n=` | le nom à afficher | **renomme l'agence à l'écran**, sans toucher aux données |
 
 ```

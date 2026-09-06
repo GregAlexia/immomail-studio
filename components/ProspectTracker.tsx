@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 // `track` vit dans l'entrée racine du paquet : l'entrée `/next` n'exporte que
 // le composant `<Analytics />`.
 import { track } from "@vercel/analytics";
+import { CHEMIN_COMMERCIAL } from "@/lib/demo-profil";
 
 /**
  * Traçage des liens de prospection.
@@ -35,10 +36,15 @@ function valider(brut: string | null): string | null {
 
 export function ProspectTracker() {
   const params = useSearchParams();
+  const chemin = usePathname();
 
   useEffect(() => {
     const prospect = valider(params.get("p"));
-    const commercial = valider(params.get("c"));
+    // Le commercial vient soit du paramètre, soit du chemin `/c/phil`. La
+    // réécriture du proxy est transparente pour le client : `usePathname()`
+    // rend bien l'URL affichée, pas la cible de la réécriture.
+    const commercial =
+      valider(params.get("c")) ?? CHEMIN_COMMERCIAL.exec(chemin ?? "")?.[1] ?? null;
     if (!prospect && !commercial) return;
 
     // Un seul événement par couple et par onglet : sans cette garde, un
@@ -71,7 +77,7 @@ export function ProspectTracker() {
     if (commercial) donnees.commercial = commercial;
 
     void track("demo_ouverte", donnees);
-  }, [params]);
+  }, [params, chemin]);
 
   return null;
 }
