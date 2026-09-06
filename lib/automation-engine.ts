@@ -85,7 +85,21 @@ async function claim(
   return inserted.length > 0;
 }
 
-export async function runEngine(upto: Date, agencyId?: string): Promise<EngineResult> {
+/**
+ * Périmètre d'un passage du moteur.
+ *
+ * Sans périmètre, **toutes** les agences de la base sont traitées — donc tous
+ * les espaces. C'est acceptable pour un script d'administration, jamais pour
+ * une action déclenchée depuis l'interface : `app/actions.ts` passe toujours
+ * l'espace courant.
+ */
+export interface PorteeMoteur {
+  agencyId?: string;
+  workspaceId?: string;
+}
+
+export async function runEngine(upto: Date, portee: PorteeMoteur = {}): Promise<EngineResult> {
+  const { agencyId, workspaceId } = portee;
   const result: EngineResult = { events: [], counts: {} };
   const push = (type: AutomationType, description: string) => {
     result.events.push({ type, description });
@@ -95,7 +109,9 @@ export async function runEngine(upto: Date, agencyId?: string): Promise<EngineRe
 
   const agencyRows = agencyId
     ? await db.select().from(agencies).where(eq(agencies.id, agencyId))
-    : await db.select().from(agencies);
+    : workspaceId
+      ? await db.select().from(agencies).where(eq(agencies.workspaceId, workspaceId))
+      : await db.select().from(agencies);
 
   // Les agences sont indépendantes → traitées en parallèle (latence réseau
   // masquée au lieu d'être additionnée).

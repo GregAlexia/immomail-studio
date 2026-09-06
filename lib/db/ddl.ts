@@ -3,13 +3,22 @@
 // Doit rester synchronisé avec lib/db/schema.ts.
 
 export const DDL_STATEMENTS: string[] = [
+  `CREATE TABLE IF NOT EXISTS workspaces (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  )`,
   `CREATE TABLE IF NOT EXISTS agencies (
     id TEXT PRIMARY KEY,
+    workspace_id TEXT,
     name TEXT NOT NULL,
     city TEXT,
     logo_url TEXT,
     created_at TEXT NOT NULL
   )`,
+  // Colonne ajoutée après coup : une base créée avant les espaces ne l'a pas,
+  // et `CREATE TABLE IF NOT EXISTS` ne la lui donnerait jamais.
+  `ALTER TABLE agencies ADD COLUMN IF NOT EXISTS workspace_id TEXT`,
   `CREATE TABLE IF NOT EXISTS contacts (
     id TEXT PRIMARY KEY,
     agency_id TEXT NOT NULL,
@@ -199,6 +208,8 @@ export const DDL_STATEMENTS: string[] = [
   `CREATE INDEX IF NOT EXISTS idx_messages_agency_type ON messages(agency_id, automation_type)`,
   `CREATE INDEX IF NOT EXISTS idx_activity_log_agency_type ON activity_log(agency_id, automation_type)`,
   `CREATE INDEX IF NOT EXISTS idx_automation_runs_agency ON automation_runs(agency_id)`,
+  // L'isolation passe par cette colonne : chaque rendu de page y filtre.
+  `CREATE INDEX IF NOT EXISTS idx_agencies_workspace ON agencies(workspace_id)`,
   // Sécurité : RLS activé sans policy → l'API Data Supabase (PostgREST,
   // clé anon publique) ne peut ni lire ni écrire ces tables. L'app n'est
   // pas affectée (connexion avec le rôle postgres, propriétaire des tables).
@@ -217,6 +228,26 @@ export const DDL_STATEMENTS: string[] = [
   `ALTER TABLE activity_log ENABLE ROW LEVEL SECURITY`,
   `ALTER TABLE automation_runs ENABLE ROW LEVEL SECURITY`,
   `ALTER TABLE demo_clock ENABLE ROW LEVEL SECURITY`,
+  `ALTER TABLE workspaces ENABLE ROW LEVEL SECURITY`,
+
+  // --- Rattrapage des bases antérieures aux espaces ---------------------------
+  // Ces instructions manipulent des DONNÉES : elles doivent rester **après**
+  // tous les CREATE TABLE. Placées plus haut, elles échouaient sur une base
+  // vierge — « relation demo_clock does not exist » — ce que seule une
+  // installation depuis zéro révèle.
+  `INSERT INTO workspaces (id, name, created_at)
+     VALUES ('demo', 'Demo', now()::text) ON CONFLICT (id) DO NOTHING`,
+  // Les agences d'avant les espaces rejoignent l'espace partagé, au lieu de
+  // rester orphelines et invisibles. Le `WHERE` est indispensable : sans lui,
+  // chaque application du DDL écraserait les espaces des commerciaux.
+  `UPDATE agencies SET workspace_id = 'demo' WHERE workspace_id IS NULL`,
+  // L'horloge unique d'avant les espaces s'appelait « global ». La renommer
+  // préserve la date de démonstration en cours ; sans cela `getClock()` ne
+  // trouverait rien pour l'espace partagé et repartirait d'aujourd'hui, au lieu
+  // du 23 juin 2026 sur lequel tout le scénario est calé.
+  `UPDATE demo_clock SET id = 'demo'
+     WHERE id = 'global' AND NOT EXISTS (SELECT 1 FROM demo_clock d WHERE d.id = 'demo')`,
+  `DELETE FROM demo_clock WHERE id = 'global'`,
 ];
 
 export const TABLE_NAMES: string[] = [
@@ -236,3 +267,15 @@ export const TABLE_NAMES: string[] = [
   "agencies",
   "demo_clock",
 ];
+
+/**
+ * Tables dont chaque ligne pend d'une agence, dans l'ordre de suppression.
+ *
+ * C'est la liste qu'utilise `supprimerDonneesEspace` pour ne vider qu'un seul
+ * espace. **Toute nouvelle table portant un `agency_id` doit y être ajoutée** :
+ * sans quoi ses lignes survivraient à une réinitialisation, orphelines et
+ * invisibles.
+ */
+export const TABLES_PAR_AGENCE: string[] = TABLE_NAMES.filter(
+  (t) => t !== "agencies" && t !== "demo_clock"
+);
