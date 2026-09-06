@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
+import { ProspectTracker } from "@/components/ProspectTracker";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -40,7 +42,13 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="fr" className={`${geistSans.variable} h-full`}>
-      <body className="min-h-full">{children}</body>
+      <body className="min-h-full">
+        {children}
+        {/* Composants clients isolés : la frontière client reste confinée ici,
+            le reste de l'arbre demeure rendu côté serveur. */}
+        <ProspectTracker />
+        <Analytics />
+      </body>
     </html>
   );
 }
