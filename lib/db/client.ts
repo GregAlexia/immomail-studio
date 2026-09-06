@@ -46,11 +46,25 @@ export async function ensureSchema() {
       "DATABASE_URL manquant. Renseignez la connection string Postgres (Supabase) dans .env.local / Vercel."
     );
   }
-  // En production, les tables sont déjà créées par `npm run seed` : on évite
-  // d'exécuter le DDL à chaque démarrage à froid (latence + bruit de logs).
+  // En production on évite de rejouer le DDL à chaque démarrage à froid
+  // (latence + bruit de logs). Mais le sauter aveuglément casse la mise à jour
+  // d'un schéma : à l'arrivée des espaces, la première requête cherchait une
+  // colonne `workspace_id` qui n'existait pas encore, et l'application tombait.
+  //
+  // Une sonde d'une ligne suffit à trancher : si la colonne est là, la base est
+  // à jour et on sort ; sinon on applique le DDL, idempotent, une seule fois
+  // par instance.
   if (process.env.NODE_ENV === "production") {
-    migrated = true;
-    return;
+    const [{ a_jour }] = await client.unsafe<{ a_jour: boolean }[]>(
+      `SELECT EXISTS (
+         SELECT 1 FROM information_schema.columns
+         WHERE table_name = 'agencies' AND column_name = 'workspace_id'
+       ) AS a_jour`
+    );
+    if (a_jour) {
+      migrated = true;
+      return;
+    }
   }
   for (const stmt of DDL_STATEMENTS) {
     await client.unsafe(stmt);

@@ -22,7 +22,8 @@ import { createEvent, isSlotTaken } from "@/lib/services/calendar.service";
 import { sendEmail } from "@/lib/services/email.service";
 import { recordActivity } from "@/lib/services/_shared";
 import { addDays, addMonths, eur, toISO } from "@/lib/date";
-import { seedDatabase } from "@/lib/seed-data";
+import { semerEspace } from "@/lib/seed-data";
+import { getEspaceCourantId } from "@/lib/espaces";
 import type { SegmentCriteria } from "@/lib/types";
 
 function revalidateAll() {
@@ -86,7 +87,9 @@ export async function advanceClock(kind: "day" | "week" | "month"): Promise<Cloc
   const next =
     kind === "day" ? addDays(current, 1) : kind === "week" ? addDays(current, 7) : addMonths(current, 1);
   await setClock(next);
-  const result = await runEngine(next);
+  // Toujours borné à l'espace courant : sans ce périmètre, avancer l'horloge
+  // déclencherait les automatisations de tous les commerciaux à la fois.
+  const result = await runEngine(next, { workspaceId: await getEspaceCourantId() });
   revalidateAll();
   return result;
 }
@@ -98,21 +101,28 @@ export async function setClockDate(dateStr: string): Promise<ClockResult> {
   const target = new Date(`${dateStr}T12:00:00`);
   const next = target < current ? current : target;
   await setClock(next);
-  const result = await runEngine(next);
+  const result = await runEngine(next, { workspaceId: await getEspaceCourantId() });
   revalidateAll();
   return result;
 }
 
 export async function evaluateNow(): Promise<EngineResult> {
   const current = await getCurrentDate();
-  const result = await runEngine(current);
+  const result = await runEngine(current, { workspaceId: await getEspaceCourantId() });
   revalidateAll();
   return result;
 }
 
+/**
+ * Recharge le jeu de démonstration **dans le seul espace courant**.
+ *
+ * Auparavant cette action vidait la base entière : un commercial qui cliquait
+ * « Réinitialiser » remettait à zéro la démonstration de ses collègues, en
+ * pleine présentation.
+ */
 export async function resetDemo(): Promise<{ denied?: boolean }> {
   if (!(await isPresenter())) return { denied: true };
-  await seedDatabase();
+  await semerEspace(await getEspaceCourantId());
   revalidateAll();
   return {};
 }
@@ -149,7 +159,7 @@ export async function bookAppointment(input: {
     occurredAt: toISO(current),
   });
   // Déclenche A2 (confirmation immédiate) via le moteur.
-  await runEngine(current, input.agencyId);
+  await runEngine(current, { agencyId: input.agencyId });
   revalidateAll();
   return { ok: true, message: "Votre visite est réservée — confirmation envoyée par SMS et email." };
 }

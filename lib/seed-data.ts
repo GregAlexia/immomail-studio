@@ -11,10 +11,15 @@
  * jours/semaines, chaque automatisation se déclenche au moins une fois.
  */
 import { addDays } from "date-fns";
-import { client, db, ensureSchema } from "./db/client";
-import { TABLE_NAMES } from "./db/ddl";
+import { client, db } from "./db/client";
+import { DDL_STATEMENTS } from "./db/ddl";
+// Depuis `lib/db/espaces` et non `lib/espaces` : ce fichier est importé par
+// `npm run seed`, un script tsx autonome où `server-only` n'est pas résoluble.
+import { ESPACE_PARTAGE, supprimerDonneesEspace } from "./db/espaces";
+import { nomAffichable } from "./demo-profil";
 import {
   agencies,
+  workspaces,
   appointments,
   complianceItems,
   contacts,
@@ -53,7 +58,14 @@ export interface SeedCounts {
   initialDate: string;
 }
 
-export async function seedDatabase(): Promise<SeedCounts> {
+/**
+ * Charge le jeu de démonstration dans **un** espace.
+ *
+ * Auparavant cette fonction vidait toutes les tables : une réinitialisation
+ * lancée pendant la démonstration d'un collègue effaçait la sienne, en direct.
+ * Elle ne touche désormais qu'à l'espace passé en paramètre.
+ */
+export async function semerEspace(workspaceId: string): Promise<SeedCounts> {
   const INITIAL = INITIAL_DEMO_DATE;
   const at = (days: number, h = 9, m = 0) => {
     const x = addDays(INITIAL, days);
@@ -320,10 +332,22 @@ export async function seedDatabase(): Promise<SeedCounts> {
   email("KE-EM-8", "spam", "Immo Booster", "contact@immo-booster-pro.com", "Vendez 3x plus vite dans les Ardennes !", "Notre logiciel révolutionnaire garantit des ventes en moins de 30 jours. Offre de lancement -70%...", at(0, 16, 20), null, A4);
 
   // ============================ INSERTION ============================
-  await ensureSchema();
-  for (const t of TABLE_NAMES) await client.unsafe(`DELETE FROM ${t}`);
+  // Le DDL est appliqué explicitement plutôt que par `ensureSchema()`, qui ne
+  // fait rien en production : sans cela, un espace créé là-bas trouverait des
+  // tables sans la colonne `workspace_id`. Les instructions sont idempotentes.
+  for (const stmt of DDL_STATEMENTS) await client.unsafe(stmt);
 
-  await db.insert(agencies).values([horizon, azur, capitale, keo] as never);
+  await db
+    .insert(workspaces)
+    .values({ id: workspaceId, name: nomAffichable(workspaceId), createdAt })
+    .onConflictDoNothing();
+
+  // Ne vide que cet espace — c'est tout l'intérêt du dispositif.
+  await supprimerDonneesEspace(workspaceId);
+
+  await db
+    .insert(agencies)
+    .values([horizon, azur, capitale, keo].map((a) => ({ ...a, workspaceId })) as never);
   await db.insert(contacts).values(C as never);
   await db.insert(properties).values(P as never);
   await db.insert(mandates).values(M as never);
@@ -333,11 +357,23 @@ export async function seedDatabase(): Promise<SeedCounts> {
   await db.insert(newsletterSegments).values(NS as never);
   await db.insert(appointments).values(AP as never);
   await db.insert(inboxEmails).values(IE as never);
-  await db.insert(demoClock).values({ id: "global", currentDate: createdAt, initialDate: createdAt, createdAt });
+  // Une horloge par espace : sans cela, avancer la date pour une démonstration
+  // la ferait bouger pour toutes les autres, en direct.
+  await db
+    .insert(demoClock)
+    .values({ id: workspaceId, currentDate: createdAt, initialDate: createdAt, createdAt });
 
   return {
     agencies: 4, properties: P.length, contacts: C.length, mandates: M.length,
     leases: L.length, transactions: TX.length, appointments: AP.length,
     inbox: IE.length, compliance: CI.length, initialDate: createdAt,
   };
+}
+
+/**
+ * Charge le jeu de démonstration dans l'espace partagé — celui des visiteurs
+ * sans lien nominatif. C'est ce que fait `npm run seed`.
+ */
+export async function seedDatabase(): Promise<SeedCounts> {
+  return semerEspace(ESPACE_PARTAGE);
 }

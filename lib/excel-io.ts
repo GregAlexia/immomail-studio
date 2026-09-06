@@ -1,9 +1,10 @@
 import "server-only";
 import ExcelJS from "exceljs";
-import { sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { format, parse as parseDateFns, isValid } from "date-fns";
 import { db, ensureSchema } from "./db/client";
-import { TABLE_NAMES } from "./db/ddl";
+import { TABLES_PAR_AGENCE } from "./db/ddl";
+import { getEspaceCourantId } from "./espaces";
 import * as S from "./db/schema";
 
 // ============================================================================
@@ -156,6 +157,7 @@ export interface ImportResult {
 
 export async function importWorkbook(buffer: ArrayBuffer): Promise<ImportResult> {
   await ensureSchema();
+  const espace = await getEspaceCourantId();
   const wb = new ExcelJS.Workbook();
   await wb.xlsx.load(buffer);
   const warnings: string[] = [];
@@ -179,7 +181,9 @@ export async function importWorkbook(buffer: ArrayBuffer): Promise<ImportResult>
     const found = agencyByName.get(key);
     if (found) return found;
     const id = uid();
-    agencyRows.push({ id, name: name.trim() || "Agence", city: city || null, logoUrl: null, createdAt });
+    // `workspaceId` est posé ici comme à l'insertion : la colonne est NOT NULL
+    // côté schéma, et une agence sans espace ne serait visible nulle part.
+    agencyRows.push({ id, workspaceId: espace, name: name.trim() || "Agence", city: city || null, logoUrl: null, createdAt });
     agencyByName.set(key, id);
     return id;
   };
@@ -445,8 +449,21 @@ export async function importWorkbook(buffer: ArrayBuffer): Promise<ImportResult>
   // coupure réseau…), tout est annulé et la base reste dans son état
   // d'avant l'import — jamais de base à moitié vidée.
   await db.transaction(async (tx) => {
-    for (const t of TABLE_NAMES) await tx.execute(sql.raw(`DELETE FROM ${t}`));
-    await tx.insert(S.agencies).values(agencyRows);
+    // Ne vide que l'espace courant. Auparavant l'import supprimait le contenu
+    // de TOUTES les tables : un commercial important son classeur effaçait la
+    // démonstration de ses collègues, en pleine présentation.
+    // Le nom de table vient d'une constante ; l'identifiant d'espace, lui, est
+    // passé en paramètre plutôt qu'interpolé — il vient d'un cookie, et sa
+    // validation en amont ne doit pas être la seule défense.
+    for (const t of TABLES_PAR_AGENCE) {
+      await tx.execute(
+        sql`DELETE FROM ${sql.raw(t)} WHERE agency_id IN (SELECT id FROM agencies WHERE workspace_id = ${espace})`
+      );
+    }
+    await tx.execute(sql`DELETE FROM agencies WHERE workspace_id = ${espace}`);
+    await tx.execute(sql`DELETE FROM demo_clock WHERE id = ${espace}`);
+
+    await tx.insert(S.agencies).values(agencyRows.map((a) => ({ ...a, workspaceId: espace })));
     if (contactRows.length) await tx.insert(S.contacts).values(contactRows);
     if (propertyRows.length) await tx.insert(S.properties).values(propertyRows);
     if (mandateRows.length) await tx.insert(S.mandates).values(mandateRows);
@@ -457,7 +474,7 @@ export async function importWorkbook(buffer: ArrayBuffer): Promise<ImportResult>
     if (apptRows.length) await tx.insert(S.appointments).values(apptRows);
     if (leadRows.length) await tx.insert(S.leads).values(leadRows);
     if (inboxInsert.length) await tx.insert(S.inboxEmails).values(inboxInsert);
-    await tx.insert(S.demoClock).values({ id: "global", currentDate: initialStamp, initialDate: initialStamp, createdAt });
+    await tx.insert(S.demoClock).values({ id: espace, currentDate: initialStamp, initialDate: initialStamp, createdAt });
   });
 
   return {
@@ -482,18 +499,26 @@ export async function buildWorkbook(): Promise<ArrayBuffer> {
   const wb = new ExcelJS.Workbook();
   wb.creator = "Keo";
 
-  const agencies = await db.select().from(S.agencies);
-  const clock = (await db.select().from(S.demoClock))[0];
-  const props = await db.select().from(S.properties);
-  const contacts = await db.select().from(S.contacts);
-  const inbox = await db.select().from(S.inboxEmails);
-  const leads = await db.select().from(S.leads);
-  const appts = await db.select().from(S.appointments);
-  const mandates = await db.select().from(S.mandates);
-  const leases = await db.select().from(S.leases);
-  const compliance = await db.select().from(S.complianceItems);
-  const txs = await db.select().from(S.transactions);
-  const segments = await db.select().from(S.newsletterSegments);
+  // Borné à l'espace courant : sans ce filtre, le classeur exporté contiendrait
+  // les agences de tous les commerciaux — quatre fois les mêmes, avec des
+  // identifiants différents, et un ré-import les recréerait toutes.
+  const espace = await getEspaceCourantId();
+  const agencies = await db.select().from(S.agencies).where(eq(S.agencies.workspaceId, espace));
+  const idsAgences = new Set(agencies.map((a) => a.id));
+  const aNous = <T extends { agencyId: string }>(lignes: T[]): T[] =>
+    lignes.filter((l) => idsAgences.has(l.agencyId));
+
+  const clock = (await db.select().from(S.demoClock).where(eq(S.demoClock.id, espace)))[0];
+  const props = aNous(await db.select().from(S.properties));
+  const contacts = aNous(await db.select().from(S.contacts));
+  const inbox = aNous(await db.select().from(S.inboxEmails));
+  const leads = aNous(await db.select().from(S.leads));
+  const appts = aNous(await db.select().from(S.appointments));
+  const mandates = aNous(await db.select().from(S.mandates));
+  const leases = aNous(await db.select().from(S.leases));
+  const compliance = aNous(await db.select().from(S.complianceItems));
+  const txs = aNous(await db.select().from(S.transactions));
+  const segments = aNous(await db.select().from(S.newsletterSegments));
 
   const agencyName = new Map(agencies.map((a) => [a.id, a.name]));
   const propById = new Map(props.map((p) => [p.id, p]));

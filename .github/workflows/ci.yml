@@ -65,6 +65,15 @@ jobs:
       - name: Engine integration test (idempotence)
         run: npx tsx scripts/ci-engine-test.ts
 
+      # Le défaut que les espaces corrigent était silencieux et destructeur :
+      # une réinitialisation effaçait la démonstration des autres commerciaux.
+      # Ce test le rejoue sur un vrai Postgres.
+      - name: Isolation des espaces
+        run: npx tsx scripts/verifier-espaces.ts
+
+      - name: Correspondance des profils et des liens
+        run: npx tsx scripts/verifier-profil.ts
+
       - name: Reseed for n8n SQL tests
         run: npm run seed
 

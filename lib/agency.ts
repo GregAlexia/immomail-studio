@@ -1,19 +1,46 @@
 import "server-only";
 import { cache } from "react";
 import { cookies } from "next/headers";
+import { eq } from "drizzle-orm";
 import { db, ensureSchema } from "./db/client";
 import { agencies } from "./db/schema";
 import { ETIQUETTE_VALIDE, NOM_COOKIE, PROFIL_COOKIE, correspond, nomAffichable } from "./demo-profil";
+import { getEspaceCourantId } from "./espaces";
+import { reserverEspace } from "./db/espaces";
+import { semerEspace } from "./seed-data";
 
 const COOKIE = "agency_id";
 
 export type Agency = typeof agencies.$inferSelect;
 
-// Mémoïsé par requête : layout, page et actions appellent tous getAgencies()/
-// getSelectedAgency() sur le même rendu — évite les allers-retours DB dupliqués.
+/**
+ * Les agences de l'espace courant — et d'aucun autre.
+ *
+ * **C'est ici que se joue l'isolation.** Toute donnée métier pend d'une agence,
+ * et `lib/queries.ts` part toujours d'un `agencyId` issu de cette liste : la
+ * restreindre à l'espace du commercial isole l'application entière, sans
+ * toucher à une seule requête métier.
+ *
+ * Mémoïsé par requête : layout, pages et Server Actions l'appellent tous sur le
+ * même rendu.
+ */
 export const getAgencies = cache(async (): Promise<Agency[]> => {
   await ensureSchema();
-  return db.select().from(agencies).orderBy(agencies.name);
+  const espace = await getEspaceCourantId();
+  const lire = () =>
+    db.select().from(agencies).where(eq(agencies.workspaceId, espace)).orderBy(agencies.name);
+
+  const rows = await lire();
+  if (rows.length > 0) return rows;
+
+  // Premier passage d'un commercial : son espace n'existe pas encore, on le
+  // sème à la volée. `reserverEspace` n'accorde la création qu'à un seul
+  // appelant ; les autres relisent simplement, et retombent au pire sur l'écran
+  // « espace vide » le temps que le gagnant termine.
+  if (await reserverEspace(espace, nomAffichable(espace))) {
+    await semerEspace(espace);
+  }
+  return lire();
 });
 
 /** Ce que les cookies posés par le lien (`?p=`, `?n=`) demandent d'afficher. */

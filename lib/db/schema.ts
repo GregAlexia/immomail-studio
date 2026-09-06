@@ -3,8 +3,21 @@ import { pgTable, text, integer, boolean, doublePrecision } from "drizzle-orm/pg
 // PostgreSQL (Supabase). Dates/horodatages stockés en TEXT ISO 8601 (local-naïf)
 // pour un affichage sans décalage de fuseau. Enums = TEXT (typés via lib/types.ts).
 
+// Espaces de démonstration. Un espace = un jeu de données complet, isolé des
+// autres. L'identifiant EST l'étiquette du commercial (`phil`, `ced`…), celle
+// que porte le lien `/c/phil` : pas de table de correspondance, le cookie posé
+// par le proxy suffit à retrouver l'espace.
+export const workspaces = pgTable("workspaces", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  createdAt: text("created_at").notNull(),
+});
+
 export const agencies = pgTable("agencies", {
   id: text("id").primaryKey(),
+  // Toute donnée métier pend d'une agence, et toute agence d'un espace :
+  // filtrer les agences isole donc l'application entière.
+  workspaceId: text("workspace_id").notNull(),
   name: text("name").notNull(),
   city: text("city"),
   logoUrl: text("logo_url"),
@@ -189,7 +202,9 @@ export const automationRuns = pgTable("automation_runs", {
 });
 
 export const demoClock = pgTable("demo_clock", {
-  id: text("id").primaryKey(), // "global"
+  // Une ligne par espace : l'identifiant est celui de l'espace. Sans cela,
+  // avancer l'horloge pour une démonstration la ferait bouger pour toutes.
+  id: text("id").primaryKey(),
   currentDate: text("current_ts").notNull(),
   initialDate: text("initial_ts").notNull(),
   createdAt: text("created_at").notNull(),

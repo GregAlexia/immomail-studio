@@ -180,6 +180,32 @@ est inerte et n'envoie rien.
 **Liens de prospection.** Deux étiquettes indépendantes, toutes deux
 facultatives :
 
+### Espaces isolés
+
+**Chaque commercial a son propre jeu de données.** Un espace = un jeu complet ;
+toute donnée métier pend d'une agence et toute agence d'un espace, si bien que
+restreindre `getAgencies()` (`lib/agency.ts`) à l'espace courant isole
+l'application entière sans toucher à une seule requête métier.
+
+L'identifiant de l'espace **est** l'étiquette du commercial : `/c/phil` sert
+l'espace `phil`. La démonstration n'ayant aucune authentification, c'est le lien
+qui tient lieu d'identité. Un visiteur sans lien nominatif atterrit sur l'espace
+partagé `demo`.
+
+Trois conséquences, chacune couverte par `scripts/verifier-espaces.ts` :
+
+- **une horloge par espace** — avancer la date ne la fait plus bouger chez les
+  autres ;
+- **« Réinitialiser » ne recharge que son espace** — auparavant l'action vidait
+  toutes les tables, effaçant la démonstration d'un collègue en pleine
+  présentation ;
+- **l'import et l'export Excel sont bornés** au même espace.
+
+L'espace est semé à la première ouverture du lien. La migration d'une base
+antérieure est automatique : `ensureSchema()` sonde la colonne `workspace_id`,
+applique le DDL si elle manque, rattache les agences existantes à `demo` et
+renomme l'horloge `global` en `demo` — en conservant sa date.
+
 ### Un lien par commercial : `/c/<nom>`
 
 ```
