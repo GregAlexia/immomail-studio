@@ -8,7 +8,7 @@
  *
  *   npx tsx scripts/verifier-profil.ts
  */
-import { correspond } from "../lib/demo-profil";
+import { correspond, nomAffichable } from "../lib/demo-profil";
 
 const agences = [
   { name: "Agence Keo", city: "Charleville-Mézières" },
@@ -42,6 +42,24 @@ for (const [etiquette, noms] of Object.entries(attendu)) {
   if (!ok) echecs += 1;
   const rendu = obtenu.length > 0 ? obtenu.join(" | ") : "(aucune)";
   console.log(`${ok ? "OK   " : "ECHEC"} ${etiquette.padEnd(22)} -> ${rendu}`);
+}
+
+// --- Noms d'affichage portes par `?n=` ---------------------------------------
+console.log("");
+const noms: Record<string, string> = {
+  "cabinet-durand": "Cabinet Durand",
+  "agence-du-centre": "Agence du Centre",
+  "immo-de-la-meuse": "Immo de la Meuse",
+  artik: "Artik",
+  // Une particule en tête de nom garde sa majuscule : « Les Cles », pas « les Cles ».
+  "les-cles-ardennaises": "Les Cles Ardennaises",
+};
+
+for (const [etiquette, attendu2] of Object.entries(noms)) {
+  const obtenu = nomAffichable(etiquette);
+  const ok = obtenu === attendu2;
+  if (!ok) echecs += 1;
+  console.log(`${ok ? "OK   " : "ECHEC"} ${etiquette.padEnd(22)} -> ${obtenu}`);
 }
 
 console.log(echecs === 0 ? "\nTous les cas passent." : `\n${echecs} cas en echec.`);

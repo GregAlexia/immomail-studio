@@ -1,5 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { ETIQUETTE_VALIDE, PROFIL_COOKIE } from "@/lib/demo-profil";
+import { ETIQUETTE_VALIDE, NOM_COOKIE, PROFIL_COOKIE } from "@/lib/demo-profil";
+
+const UN_AN = 60 * 60 * 24 * 365;
 
 /**
  * Mémorise le profil de démonstration porté par l'URL (`?p=lyon`, `?p=keo`).
@@ -28,11 +30,14 @@ export function proxy(request: NextRequest) {
 
   const profil = request.nextUrl.searchParams.get("p");
   if (profil && ETIQUETTE_VALIDE.test(profil)) {
-    reponse.cookies.set(PROFIL_COOKIE, profil, {
-      path: "/",
-      maxAge: 60 * 60 * 24 * 365,
-      sameSite: "lax",
-    });
+    reponse.cookies.set(PROFIL_COOKIE, profil, { path: "/", maxAge: UN_AN, sameSite: "lax" });
+  }
+
+  // `?n=cabinet-durand` renomme l'agence à l'écran, sans toucher aux données :
+  // le prospect voit son propre nom sur un jeu de démonstration partagé.
+  const nom = request.nextUrl.searchParams.get("n");
+  if (nom && ETIQUETTE_VALIDE.test(nom)) {
+    reponse.cookies.set(NOM_COOKIE, nom, { path: "/", maxAge: UN_AN, sameSite: "lax" });
   }
 
   return reponse;

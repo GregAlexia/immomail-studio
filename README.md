@@ -184,11 +184,24 @@ facultatives :
 |---|---|---|
 | `?p=` | le profil de démonstration | **ouvre la démo sur cette agence** + étiquette l'ouverture |
 | `?c=` | le commercial qui a envoyé le lien | étiquette l'ouverture |
+| `?n=` | le nom à afficher | **renomme l'agence à l'écran**, sans toucher aux données |
 
 ```
-https://immomail-studio.vercel.app/?p=lyon&c=ales
-https://immomail-studio.vercel.app/?p=keo&c=ced
+https://immomail-studio.vercel.app/?p=lyon&c=phil
+https://immomail-studio.vercel.app/?p=keo&c=ced&n=cabinet-durand
 ```
+
+**`?n=` fait voir au prospect son propre nom** sur un jeu de démonstration
+partagé : `?n=cabinet-durand` affiche « Cabinet Durand » dans le sélecteur, les
+titres de pages et jusque dans les emails générés — les biens, contacts et
+rendez-vous restent ceux du profil choisi. Rien n'est écrit en base, donc aucun
+rechargement du seed n'est nécessaire, et deux commerciaux peuvent afficher deux
+noms différents en même temps.
+
+La conversion suit l'usage français : `agence-du-centre` donne « Agence du
+Centre ». Le jeu de caractères reste volontairement restreint (`^[a-z0-9-]$`,
+ni accent ni apostrophe) : la valeur vient de l'URL et finit à l'écran, un lien
+forgé ne doit pas pouvoir afficher n'importe quoi.
 
 **`?p=` sélectionne le jeu de données.** L'étiquette est rapprochée du nom et
 de la ville de chaque agence (`lyon`, `horizon`, `keo`, `charleville`,
@@ -205,7 +218,8 @@ agence au hasard de l'ordre alphabétique.
 
 Le choix est mémorisé par cookie, pour survivre à la navigation une fois le
 `?p=` disparu de l'URL. **Un choix manuel dans le sélecteur reprend la main** :
-`setAgency` efface le cookie de profil.
+`setAgency` efface les cookies de profil et de nom — sans quoi une autre agence
+hériterait du nom du prospect.
 
 À l'ouverture, `components/ProspectTracker.tsx` émet l'événement
 `demo_ouverte` avec les propriétés `prospect` et `commercial`. Le tableau de
