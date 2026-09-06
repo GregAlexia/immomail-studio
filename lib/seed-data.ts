@@ -2,7 +2,7 @@
  * Seed scénarisé (§10 du PRD) — données 100 % fictives.
  *
  * Agence "Horizon Immobilier" (Lyon) = scénario complet, fidèle au classeur de
- * données de test (REF-001…007, emails EM-1001…1008). Agence "Artik M."
+ * données de test (REF-001…007, emails EM-1001…1008). Agence "Artik"
  * (Charleville-Mézières) = second scénario complet sur un marché de province
  * (AM-001…302, emails AM-EM-1…8). Azur et Capitale, plus légères, démontrent
  * l'isolation multi-agences.
@@ -232,7 +232,7 @@ export async function seedDatabase(): Promise<SeedCounts> {
   // pour vérifier que rien — seuils de budget acheteur, montants de quittance,
   // libellés — n'est calé sur des ordres de grandeur de métropole.
   const A4 = uid(); // identifiant d'agence, sans rapport avec l'automatisation A4
-  const artik = { id: A4, name: "Agence Artik M.", city: "Charleville-Mézières", logoUrl: null, createdAt };
+  const artik = { id: A4, name: "Agence Artik", city: "Charleville-Mézières", logoUrl: null, createdAt };
 
   const am001 = property(A4, { ref: "AM-001", title: "Maison de ville près de la Place Ducale", type: "house", transaction: "sale", price: 168000, surface: 95, rooms: 4, city: "Charleville-Mézières", zone: "Centre-ville", negotiator: "Céline Warnier", status: "available" });
   const am002 = property(A4, { ref: "AM-002", title: "Maison familiale avec jardin à Warcq", type: "house", transaction: "sale", price: 239000, surface: 135, rooms: 6, city: "Warcq", zone: "Warcq", negotiator: "Damien Poncelet", status: "available" });
