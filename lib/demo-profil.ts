@@ -1,7 +1,7 @@
 /**
  * Profil de démonstration porté par l'URL (`?p=`).
  *
- * `?p=lyon` ouvre la démo sur l'agence de Lyon, `?p=artik` sur Artik : chaque
+ * `?p=lyon` ouvre la démo sur l'agence de Lyon, `?p=keo` sur Keo : chaque
  * commercial reçoit un lien qui tombe d'emblée sur le bon jeu de données.
  *
  * Module volontairement **pur** — ni base, ni `server-only` — parce que ses
@@ -46,7 +46,7 @@ function segments(valeur: string | null | undefined): string[] {
 /**
  * L'étiquette désigne-t-elle cette agence ? On accepte la ville entière
  * (`charleville-mezieres`) aussi bien qu'un seul de ses mots (`charleville`),
- * et de même pour le nom (`artik` pour « Agence Artik »).
+ * et de même pour le nom (`keo` pour « Agence Keo »).
  */
 export function correspond(
   etiquette: string,

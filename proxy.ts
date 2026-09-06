@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { ETIQUETTE_VALIDE, PROFIL_COOKIE } from "@/lib/demo-profil";
 
 /**
- * Mémorise le profil de démonstration porté par l'URL (`?p=lyon`, `?p=artik`).
+ * Mémorise le profil de démonstration porté par l'URL (`?p=lyon`, `?p=keo`).
  *
  * Fichier `proxy.ts` et non `middleware.ts` : Next 16 a déprécié cette seconde
  * convention et la renomme ainsi (le build émet un avertissement explicite).
