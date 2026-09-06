@@ -169,5 +169,36 @@ Chaque action est protégée par la table `automation_runs` (`run_key` unique, e
   (déverrouillage dans **Paramétrage**, mémorisé 30 jours par navigateur)
   peut piloter la démo. Sans la variable, tout reste ouvert (mode historique).
 
+## Mesure d'audience & liens de prospection
+
+**Vercel Web Analytics** (`<Analytics />` dans `app/layout.tsx`) donne les pages
+vues, les visiteurs uniques, les pages les plus ouvertes, le pays, l'appareil et
+le référent — sans cookie et sans conserver d'adresse IP. À activer une fois
+dans Vercel → onglet **Analytics** ; tant que ce n'est pas fait, le composant
+est inerte et n'envoie rien.
+
+**Liens de prospection.** Ajouter `?p=<étiquette>` à l'URL envoyée à un
+prospect :
+
+```
+https://immomail-studio.vercel.app/?p=artik-m
+```
+
+À l'ouverture, `components/ProspectTracker.tsx` émet l'événement
+`demo_ouverte` avec la propriété `prospect`. Le tableau de bord Analytics
+répond alors à « qui a ouvert la démo, quand, combien de fois » — et le suivi
+de navigation habituel montre les pages parcourues ensuite.
+
+L'étiquette est choisie par nous, pas déduite du visiteur : le suivi est
+nominatif **par construction**, sans traiter la moindre donnée personnelle.
+Journaliser l'IP donnerait une information à la fois moins fiable (les agences
+sortent souvent derrière une IP partagée) et soumise au RGPD — information des
+visiteurs, base légale, durée de conservation.
+
+Deux garde-fous dans le composant : l'étiquette doit correspondre à
+`^[a-z0-9-]{1,60}$` (sans quoi n'importe quel visiteur pourrait créer une
+infinité d'étiquettes et épuiser le quota d'événements), et un même onglet
+n'émet l'événement qu'une fois (un rechargement ne gonfle pas le compteur).
+
 ## Hors périmètre V1 (rappel)
 Authentification, envois réels, app mobile, connexion boîte mail réelle, CRM tiers réel, paiement en ligne. Architecture prête pour la V2 (voir Mock Service Layer).
