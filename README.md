@@ -180,14 +180,32 @@ est inerte et n'envoie rien.
 **Liens de prospection.** Deux étiquettes indépendantes, toutes deux
 facultatives :
 
-| Paramètre | Désigne | Répond à |
+| Paramètre | Désigne | Effet |
 |---|---|---|
-| `?p=` | l'agence démarchée | « ce prospect a-t-il ouvert la démo ? » |
-| `?c=` | le commercial qui a envoyé le lien | « qui l'a placé ? » |
+| `?p=` | le profil de démonstration | **ouvre la démo sur cette agence** + étiquette l'ouverture |
+| `?c=` | le commercial qui a envoyé le lien | étiquette l'ouverture |
 
 ```
-https://immomail-studio.vercel.app/?p=artik&c=greg
+https://immomail-studio.vercel.app/?p=lyon&c=ales
+https://immomail-studio.vercel.app/?p=artik&c=charleville
 ```
+
+**`?p=` sélectionne le jeu de données.** L'étiquette est rapprochée du nom et
+de la ville de chaque agence (`lyon`, `horizon`, `artik`, `charleville`,
+`charleville-mezieres`, `marseille`, `paris`…) : le commercial tombe d'emblée
+sur la bonne démonstration, sans toucher au sélecteur. Le rapprochement vit
+dans `lib/demo-profil.ts` et se vérifie par
+`npx tsx scripts/verifier-profil.ts`.
+
+Une étiquette qui ne désigne aucune agence — `?p=un-prospect-quelconque` —
+n'est pas une erreur : elle reste une simple étiquette de traçage, et
+l'agence par défaut (Horizon) s'affiche. Les mots génériques `agence` et
+`immobilier` sont volontairement ignorés, faute de quoi ils ouvriraient une
+agence au hasard de l'ordre alphabétique.
+
+Le choix est mémorisé par cookie, pour survivre à la navigation une fois le
+`?p=` disparu de l'URL. **Un choix manuel dans le sélecteur reprend la main** :
+`setAgency` efface le cookie de profil.
 
 À l'ouverture, `components/ProspectTracker.tsx` émet l'événement
 `demo_ouverte` avec les propriétés `prospect` et `commercial`. Le tableau de
