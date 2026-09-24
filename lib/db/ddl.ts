@@ -208,6 +208,9 @@ export const DDL_STATEMENTS: string[] = [
     id TEXT PRIMARY KEY,
     nom TEXT NOT NULL,
     detail TEXT,
+    nom_en TEXT,
+    detail_en TEXT,
+    points_en TEXT,
     prix_centimes INTEGER NOT NULL,
     reduction_pct INTEGER NOT NULL DEFAULT 0,
     fin_offre TEXT,
@@ -217,6 +220,12 @@ export const DDL_STATEMENTS: string[] = [
     publiee BOOLEAN NOT NULL DEFAULT TRUE,
     maj_le TEXT NOT NULL
   )`,
+  // Colonnes ajoutées avec la version anglaise de la page de vente : une table
+  // `offres` créée avant ne les a pas, et `CREATE TABLE IF NOT EXISTS` ne les
+  // lui donnerait jamais.
+  `ALTER TABLE offres ADD COLUMN IF NOT EXISTS nom_en TEXT`,
+  `ALTER TABLE offres ADD COLUMN IF NOT EXISTS detail_en TEXT`,
+  `ALTER TABLE offres ADD COLUMN IF NOT EXISTS points_en TEXT`,
   `CREATE TABLE IF NOT EXISTS inscriptions (
     id TEXT PRIMARY KEY,
     nom TEXT NOT NULL,

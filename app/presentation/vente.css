@@ -93,6 +93,15 @@
 .ag-nav a { padding: 8px 14px; border-radius: 999px; font-family: var(--ag-titre); font-size: 0.95rem; font-weight: 500; transition: background 0.2s ease; }
 .ag-nav a:hover { background: var(--ag-surface); }
 .ag-entete__fin { display: flex; align-items: center; gap: 8px; margin-left: 4px; }
+/* Bascule de langue : visible sans concurrencer l'appel à l'action voisin,
+   d'où le contour plutôt que l'aplat noir. */
+.ag-langue {
+  padding: 11px 16px; border-radius: var(--ag-rayon-petit);
+  border: 1px solid var(--ag-filet-fort); background: transparent;
+  font-family: var(--ag-titre); font-weight: 600; font-size: 0.9rem; white-space: nowrap;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.ag-langue:hover { border-color: var(--ag-texte); background: var(--ag-surface); }
 
 /* --- Hero ---------------------------------------------------------------- */
 .ag-hero { padding: clamp(44px, 7vw, 82px) 0 52px; }

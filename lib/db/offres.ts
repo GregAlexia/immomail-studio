@@ -58,12 +58,16 @@ export function prixAffiche(offre: Offre): PrixAffiche {
 }
 
 /**
- * Montant à l'affichage. Pas de mention « HT » : AgenIA relève de la franchise
- * en base de TVA (article 293 B), le prix affiché est celui qui est payé.
+ * Montant à l'affichage, dans la langue de la page.
+ *
+ * Pas de mention « HT » : AgenIA relève de la franchise en base de TVA
+ * (article 293 B), le prix affiché est celui qui est payé. La devise reste
+ * l'euro en anglais — c'est celle qui est facturée ; seule la mise en forme
+ * change (« 199,20 € » / « €199.20 »).
  */
-export function formaterPrix(centimes: number): string {
+export function formaterPrix(centimes: number, locale = "fr-FR"): string {
   const euros = centimes / 100;
-  return new Intl.NumberFormat("fr-FR", {
+  return new Intl.NumberFormat(locale, {
     style: "currency",
     currency: "EUR",
     minimumFractionDigits: euros % 1 === 0 ? 0 : 2,
@@ -71,16 +75,33 @@ export function formaterPrix(centimes: number): string {
   }).format(euros);
 }
 
-export function formaterDate(iso: string): string {
+export function formaterDate(iso: string, locale = "fr-FR"): string {
   const [a, m, j] = iso.split("-");
-  return new Intl.DateTimeFormat("fr-FR", { dateStyle: "long" }).format(
+  return new Intl.DateTimeFormat(locale, { dateStyle: "long" }).format(
     new Date(Number(a), Number(m) - 1, Number(j))
   );
 }
 
+/**
+ * Textes d'une offre dans la langue demandée.
+ *
+ * Une traduction vide **retombe sur le français** plutôt que de laisser un
+ * blanc : un nom d'offre non traduit vaut mieux qu'une carte sans titre, et le
+ * propriétaire n'est jamais obligé de remplir les champs anglais.
+ */
+export function nomDeLOffre(offre: Offre, langue: "fr" | "en" = "fr"): string {
+  return (langue === "en" && offre.nomEn?.trim()) || offre.nom;
+}
+
+export function detailDeLOffre(offre: Offre, langue: "fr" | "en" = "fr"): string | null {
+  const choisi = langue === "en" ? offre.detailEn?.trim() || offre.detail : offre.detail;
+  return choisi?.trim() || null;
+}
+
 /** Les arguments d'une offre : une ligne saisie = une puce affichée. */
-export function pointsDeLOffre(offre: Offre): string[] {
-  return (offre.points ?? "")
+export function pointsDeLOffre(offre: Offre, langue: "fr" | "en" = "fr"): string[] {
+  const brut = langue === "en" ? offre.pointsEn?.trim() || offre.points : offre.points;
+  return (brut ?? "")
     .split("\n")
     .map((l) => l.trim())
     .filter((l) => l.length > 0);
@@ -99,6 +120,9 @@ export async function offresPubliees(): Promise<Offre[]> {
 export type SaisieOffre = {
   nom: string;
   detail: string | null;
+  nomEn: string | null;
+  detailEn: string | null;
+  pointsEn: string | null;
   prixCentimes: number;
   reductionPct: number;
   finOffre: string | null;
