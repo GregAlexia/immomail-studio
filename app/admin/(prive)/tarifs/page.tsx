@@ -242,6 +242,47 @@ function ChampsOffre({ offre }: { offre?: Offre }) {
         <span className={AIDE}>Une ligne par argument affiché.</span>
       </label>
 
+      <details className="sm:col-span-2 rounded-lg border border-[var(--color-border)] bg-white px-4 py-3">
+        <summary className="cursor-pointer text-sm font-medium text-[var(--color-ink)]">
+          Version anglaise <span className="font-normal text-[var(--color-muted)]">— facultative</span>
+        </summary>
+        <p className={`${AIDE} mb-4`}>
+          Ce qui reste vide reprend le français sur{" "}
+          <Link href="/en/presentation" className="underline underline-offset-4">
+            /en/presentation
+          </Link>
+          . Le prix, la réduction et la date de fin sont communs aux deux langues.
+        </p>
+        <div className="grid gap-5 sm:grid-cols-2">
+          <label>
+            <span className={ETIQUETTE}>Nom (EN)</span>
+            <input name="nomEn" defaultValue={offre?.nomEn ?? ""} maxLength={80} className={CHAMP} />
+          </label>
+          <label>
+            <span className={ETIQUETTE}>Sous-titre (EN)</span>
+            <input
+              name="detailEn"
+              defaultValue={offre?.detailEn ?? ""}
+              maxLength={160}
+              placeholder="One agency · per month"
+              className={CHAMP}
+            />
+          </label>
+          <label className="sm:col-span-2">
+            <span className={ETIQUETTE}>Ce que comprend l&apos;offre (EN)</span>
+            <textarea
+              name="pointsEn"
+              defaultValue={offre?.pointsEn ?? ""}
+              rows={4}
+              maxLength={1000}
+              placeholder={"All eleven automations\nUnlimited enquiries\nSupport included"}
+              className={CHAMP}
+            />
+            <span className={AIDE}>Une ligne par argument, comme en français.</span>
+          </label>
+        </div>
+      </details>
+
       <label>
         <span className={ETIQUETTE}>Rang d&apos;affichage</span>
         <input

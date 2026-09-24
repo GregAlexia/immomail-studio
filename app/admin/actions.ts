@@ -61,6 +61,10 @@ function lireOffre(donnees: FormData): Lecture {
     saisie: {
       nom,
       detail: optionnel(donnees.get("detail"), 160),
+      // Traductions facultatives : vides, la page anglaise reprend le français.
+      nomEn: optionnel(donnees.get("nomEn"), 80),
+      detailEn: optionnel(donnees.get("detailEn"), 160),
+      pointsEn: optionnel(donnees.get("pointsEn"), 1000),
       prixCentimes: prix,
       reductionPct: reduction,
       finOffre,

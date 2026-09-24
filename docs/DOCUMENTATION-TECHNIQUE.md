@@ -351,7 +351,8 @@ l'UI ouvre alors la boîte de dialogue « Action verrouillée ».
 
 ## 10. Page de vente
 
-`/presentation` — la page commerciale, dans la langue visuelle des autres produits AgenIA :
+`/presentation` (FR) et `/en/presentation` (EN) — la page commerciale, dans la langue visuelle
+des autres produits AgenIA :
 préfixe CSS `ag-`, Archivo (titres) + Source Serif 4 (texte et italiques d'emphase), papier
 crème `#f0efe8`. Le système vit dans `app/presentation/vente.css` ; il n'existe dans aucun
 dépôt partagé et a été repris du CSS compilé de `margeo.agenia.pro`.
@@ -369,7 +370,35 @@ dépôt partagé et a été repris du CSS compilé de `margeo.agenia.pro`.
 - **Formulaire de rappel** : écrit dans `inscriptions`, retient le commercial dont le lien a
   amené le visiteur, et porte un champ-piège hors écran (`position: absolute; left: -9999px`
   plutôt que `display: none` — un automate évite un champ masqué, mais remplit celui qu'il
-  croit simplement décalé).
+  croit simplement décalé). Un champ caché porte la langue de retour, **reconnue dans une
+  liste fermée** avant d'être réutilisée : une redirection bâtie sur une entrée libre est une
+  redirection ouverte.
+
+### Bilinguisme
+
+Convention de la maison, commune à `agenia.pro` et `margeo.agenia.pro` : **français à
+l'adresse de base, anglais sous `/en`**, `hreflang` fr/en/x-default avec `x-default` sur le
+français (langue du marché visé), bascule manuelle et **aucune redirection automatique**.
+
+Le texte est une **donnée typée** (`contenu.ts` porte le type, `contenu-fr.ts` et
+`contenu-en.ts` les deux versions) et le rendu est partagé (`Vente.tsx`). Deux copies de la
+page auraient divergé dès la première retouche ; ici le compilateur refuse une traduction
+manquante.
+
+L'anglais est **adapté, pas traduit mot pour mot**. Les réalités françaises du métier
+(`mandat`, `DPE`) sont glosées à leur première apparition plutôt que remplacées par un
+équivalent anglo-saxon approximatif, et les portails gardent leur nom — leur substituer
+Rightmove ou Zillow affirmerait une intégration qui n'existe pas. Prix et dates se formatent
+en `en-GB`, mais restent en euros : c'est la devise facturée.
+
+`lang` est porté par le conteneur de la page, pas par `<html>` : le layout racine sert toute
+l'application en français et une page ne peut pas le changer. L'attribut vaut pour tout son
+sous-arbre, ce que lisent les synthèses vocales et les moteurs. *(La page anglaise de Margéo
+déclare encore `lang="fr"` — défaut à ne pas reproduire.)*
+
+Les offres portent trois champs anglais **facultatifs** (`nom_en`, `detail_en`, `points_en`) ;
+vides, la page anglaise reprend le français plutôt que d'afficher un blanc. Le prix, la
+réduction et la date de fin sont communs aux deux langues.
 
 ## 11. Console d'administration
 

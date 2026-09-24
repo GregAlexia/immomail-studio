@@ -238,6 +238,12 @@ export const offres = pgTable("offres", {
   id: text("id").primaryKey(),
   nom: text("nom").notNull(),
   detail: text("detail"),
+  // Traductions facultatives, pour la version anglaise de la page de vente.
+  // Vides, l'anglais reprend le français : mieux vaut un nom d'offre non
+  // traduit qu'une section de tarifs absente.
+  nomEn: text("nom_en"),
+  detailEn: text("detail_en"),
+  pointsEn: text("points_en"),
   prixCentimes: integer("prix_centimes").notNull(),
   reductionPct: integer("reduction_pct").notNull().default(0),
   // Date de fin de la réduction (AAAA-MM-JJ). Passée, le prix plein reprend

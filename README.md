@@ -363,9 +363,22 @@ le compteur, mais le lien d'un autre commercial compte bien à nouveau).
 
 ## Page de vente
 
-`/presentation` — la page commerciale de Keo, dans la langue visuelle des autres
-produits AgenIA (préfixe CSS `ag-`, Archivo + Source Serif, papier crème).
-Elle vit hors du groupe `(app)` : ni sélecteur d'agence, ni horloge.
+`/presentation` (FR) et `/en/presentation` (EN) — la page commerciale de Keo,
+dans la langue visuelle des autres produits AgenIA (préfixe CSS `ag-`,
+Archivo + Source Serif, papier crème). Elle vit hors du groupe `(app)` : ni
+sélecteur d'agence, ni horloge.
+
+**Bilingue, selon la convention de la maison** : français à l'adresse de base,
+anglais sous `/en`, `hreflang` fr/en/x-default (x-default = le français, langue
+du marché visé), bascule manuelle dans l'en-tête et **aucune redirection
+automatique**. Le texte est une donnée typée (`contenu-fr.ts`, `contenu-en.ts`)
+et le rendu est partagé (`Vente.tsx`) : c'est le compilateur qui garantit
+qu'aucune traduction ne manque. L'anglais est **adapté, pas traduit mot pour
+mot** — les réalités françaises du métier (mandat, DPE) sont glosées à leur
+première apparition.
+
+Les offres portent trois champs anglais facultatifs ; vides, la page anglaise
+reprend le français plutôt que d'afficher un blanc.
 
 Elle est **en rendu dynamique** et lit les offres à chaque affichage, pour
 refléter le dernier enregistrement de la console. Si Postgres est indisponible,

@@ -62,8 +62,11 @@ export async function ensureSchema() {
   if (process.env.NODE_ENV === "production") {
     const [{ a_jour }] = await client.unsafe<{ a_jour: boolean }[]>(
       `SELECT to_regclass('public.audience_vues') IS NOT NULL
-          AND to_regclass('public.offres') IS NOT NULL
           AND to_regclass('public.inscriptions') IS NOT NULL
+          AND EXISTS (
+                SELECT 1 FROM information_schema.columns
+                WHERE table_name = 'offres' AND column_name = 'points_en'
+              )
           AND EXISTS (
                 SELECT 1 FROM information_schema.columns
                 WHERE table_name = 'agencies' AND column_name = 'workspace_id'
