@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { Geist } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { ProspectTracker } from "@/components/ProspectTracker";
+import { JournalAudience } from "@/components/JournalAudience";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -58,6 +59,9 @@ export default function RootLayout({
         <Suspense fallback={null}>
           <ProspectTracker />
         </Suspense>
+        {/* Journal maison, seule source lisible par la console : le plan Hobby
+            n'expose aucune API de lecture de Vercel Analytics. */}
+        <JournalAudience />
       </body>
     </html>
   );

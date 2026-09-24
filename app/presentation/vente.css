@@ -74,6 +74,16 @@
 .ag-btn--fantome:hover { background: var(--ag-encre); color: var(--ag-encre-texte); border-color: var(--ag-encre); }
 .ag-btn--grand { padding: 15px 30px; font-size: 1.02rem; }
 
+/* --- Bandeau de promotion ------------------------------------------------ */
+/* Au-dessus de l'en-tête collant, et non dedans : il défile avec la page,
+   parce qu'une offre s'annonce une fois — elle n'a pas à suivre le lecteur. */
+.ag-promo {
+  background: var(--ag-encre); color: var(--ag-encre-texte);
+  font-family: var(--ag-titre); font-size: 0.88rem; text-align: center;
+}
+.ag-promo p { margin: 0; padding: 11px 24px; }
+.ag-promo strong { font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; font-size: 0.78rem; }
+
 /* --- En-tête ------------------------------------------------------------- */
 .ag-entete { position: sticky; top: 0; z-index: 50; background: var(--ag-fond); border-bottom: 1px solid var(--ag-filet); }
 .ag-entete__interieur { display: flex; align-items: center; gap: 18px; min-height: 76px; flex-wrap: wrap; padding: 10px 0; }
@@ -197,6 +207,44 @@
 .ag-grille-3 p { margin: 8px 0 0; color: var(--ag-texte-doux); font-size: 0.95rem; }
 .ag-lien { display: inline-block; margin-top: 10px; font-family: var(--ag-titre); font-weight: 600; font-size: 0.9rem; text-decoration: underline; text-underline-offset: 4px; }
 
+/* --- Offres --------------------------------------------------------------- */
+/* `auto-fit` et non deux colonnes fixes : le nombre d'offres se règle depuis la
+   console, et une troisième ne doit pas se retrouver orpheline sur sa ligne. */
+.ag-offres { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 22px; margin-top: 36px; }
+.ag-offre { padding: 30px; border-radius: var(--ag-rayon); background: var(--ag-surface); border: 1px solid transparent; display: flex; flex-direction: column; }
+.ag-offre--principale { border-color: var(--ag-texte); }
+.ag-offre__tete { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.ag-offre__tete h3 { font-size: 1.15rem; }
+.ag-offre__prix { margin: 0; font-family: var(--ag-titre); font-size: 1.9rem; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ag-prix-barre { color: var(--ag-texte-pale); font-size: 0.72em; font-weight: 600; margin-right: 6px; text-decoration: line-through; }
+.ag-offre__detail { margin: 4px 0 0; font-size: 0.9rem; color: var(--ag-texte-pale); }
+.ag-offre__promo { margin: 10px 0 0; font-family: var(--ag-titre); font-size: 0.82rem; font-weight: 600; color: var(--ag-rouge); }
+/* Pousse le bouton en bas : sans cela, deux offres aux arguments inégaux
+   alignent mal leurs boutons et la colonne la plus courte paraît bâclée. */
+.ag-offre .ag-liste { flex: 1; }
+.ag-offre .ag-btn { margin-top: 22px; }
+.ag-mention { margin: 28px auto 0; font-size: 0.88rem; color: var(--ag-texte-pale); text-align: center; max-width: 70ch; }
+.ag-mention--gauche { text-align: left; margin-inline: 0; }
+
+/* --- Formulaire de rappel ------------------------------------------------- */
+.ag-etroit { max-width: 720px; }
+.ag-form { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 32px; }
+.ag-form label { display: block; }
+.ag-form label span { display: block; font-family: var(--ag-titre); font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; }
+.ag-form input {
+  width: 100%; padding: 12px 14px; border-radius: var(--ag-rayon-petit);
+  border: 1px solid var(--ag-filet-fort); background: var(--ag-fond); color: var(--ag-texte);
+  font-family: var(--ag-titre); font-size: 0.98rem;
+}
+.ag-form input:focus { outline: 2px solid var(--ag-encre); outline-offset: 2px; border-color: var(--ag-encre); }
+.ag-form > button { grid-column: 1 / -1; justify-self: start; }
+/* Hors de l'écran plutôt que `display: none` : un automate évite les champs
+   masqués, mais remplit volontiers ceux qu'il croit simplement décalés. */
+.ag-form__piege { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.ag-retour { margin: 24px 0 0; padding: 14px 18px; border-radius: var(--ag-rayon-petit); font-family: var(--ag-titre); font-size: 0.95rem; border: 1px solid; }
+.ag-retour--ok { background: #e7ecdf; border-color: #b3c39b; color: var(--ag-vert); }
+.ag-retour--erreur { background: #f6e3df; border-color: #dcb6ac; color: var(--ag-rouge); }
+
 /* --- Questions ----------------------------------------------------------- */
 .ag-faq { max-width: 800px; }
 .ag-faq__liste { display: flex; flex-direction: column; gap: 12px; margin-top: 36px; }
@@ -256,7 +304,8 @@
   .ag-fuite__chiffre { grid-column: 2; }
 }
 @media (max-width: 700px) {
-  .ag-apercus, .ag-cartes, .ag-etapes, .ag-fuite, .ag-grille-3, .ag-jalons, .ag-pied__grille, .ag-stats { grid-template-columns: 1fr; }
+  .ag-apercus, .ag-cartes, .ag-etapes, .ag-form, .ag-fuite, .ag-grille-3, .ag-jalons, .ag-offres, .ag-pied__grille, .ag-stats { grid-template-columns: 1fr; }
+  .ag-form > button { justify-self: stretch; }
   .ag-fuite { gap: 14px; }
   .ag-fuite__chiffre { grid-column: 1; }
   .ag-appel__interieur { padding: 30px 24px; }

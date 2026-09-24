@@ -51,15 +51,23 @@ export async function ensureSchema() {
   // d'un schéma : à l'arrivée des espaces, la première requête cherchait une
   // colonne `workspace_id` qui n'existait pas encore, et l'application tombait.
   //
-  // Une sonde d'une ligne suffit à trancher : si la colonne est là, la base est
-  // à jour et on sort ; sinon on applique le DDL, idempotent, une seule fois
-  // par instance.
+  // Une sonde d'une ligne suffit à trancher : si la base porte déjà le dernier
+  // objet ajouté au DDL, elle est à jour et on sort ; sinon on applique le DDL,
+  // idempotent, une seule fois par instance.
+  //
+  // **La sonde doit porter sur l'objet ajouté EN DERNIER.** Laissée sur un objet
+  // ancien, elle déclare à jour une base qui ignore tout du nouveau, et la
+  // première requête tombe sur une table absente — c'est exactement ce qui
+  // s'était produit à l'arrivée des espaces.
   if (process.env.NODE_ENV === "production") {
     const [{ a_jour }] = await client.unsafe<{ a_jour: boolean }[]>(
-      `SELECT EXISTS (
-         SELECT 1 FROM information_schema.columns
-         WHERE table_name = 'agencies' AND column_name = 'workspace_id'
-       ) AS a_jour`
+      `SELECT to_regclass('public.audience_vues') IS NOT NULL
+          AND to_regclass('public.offres') IS NOT NULL
+          AND to_regclass('public.inscriptions') IS NOT NULL
+          AND EXISTS (
+                SELECT 1 FROM information_schema.columns
+                WHERE table_name = 'agencies' AND column_name = 'workspace_id'
+              ) AS a_jour`
     );
     if (a_jour) {
       migrated = true;

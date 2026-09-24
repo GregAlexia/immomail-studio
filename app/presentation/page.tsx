@@ -1,7 +1,21 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Archivo, Source_Serif_4 } from "next/font/google";
+import {
+  formaterDate,
+  formaterPrix,
+  offresPubliees,
+  pointsDeLOffre,
+  prixAffiche,
+  reductionActive,
+  type Offre,
+} from "@/lib/db/offres";
+import { actionDemanderRappel } from "./actions";
 import "./vente.css";
+
+// Les tarifs se règlent depuis la console : la page doit refléter le dernier
+// enregistrement, pas l'état du jour où l'on a construit le site.
+export const dynamic = "force-dynamic";
 
 /* Les deux polices de la maison AgenIA : Archivo pour les titres, Source Serif
    pour le texte courant et les italiques d'emphase. Déclarées ici et non dans
@@ -255,9 +269,50 @@ const QUESTIONS = [
   },
 ];
 
-export default function PageDeVente() {
+/**
+ * Les offres, ou rien.
+ *
+ * Une page de vente ne doit pas renvoyer une erreur parce que Postgres a
+ * hoqueté : sans tarifs, elle reste entièrement lisible et renvoie vers un
+ * échange. C'est exactement ce qu'elle faisait avant qu'ils existent.
+ */
+async function offresOuRien(): Promise<Offre[]> {
+  try {
+    return await offresPubliees();
+  } catch {
+    return [];
+  }
+}
+
+const MESSAGES_RAPPEL: Record<string, string> = {
+  envoye: "C'est noté — nous vous rappelons sous deux jours ouvrés.",
+  nom: "Il manque votre nom.",
+  email: "Cette adresse email ne semble pas valide.",
+};
+
+export default async function PageDeVente({
+  searchParams,
+}: {
+  searchParams: Promise<{ envoye?: string; erreur?: string }>;
+}) {
+  const [offres, { envoye, erreur }] = await Promise.all([offresOuRien(), searchParams]);
+  // Le bandeau annonce la plus forte réduction en cours, pas la première venue.
+  const promotion = offres
+    .filter(reductionActive)
+    .sort((a, b) => b.reductionPct - a.reductionPct)[0];
+  const retourRappel = envoye ? MESSAGES_RAPPEL.envoye : erreur ? MESSAGES_RAPPEL[erreur] : null;
+
   return (
     <div className={`ag ${archivo.variable} ${serif.variable}`}>
+      {promotion && (
+        <div className="ag-promo">
+          <p>
+            <strong>Offre en cours</strong> — {promotion.reductionPct} % sur {promotion.nom}
+            {promotion.finOffre ? `, jusqu'au ${formaterDate(promotion.finOffre)}` : ""}.
+          </p>
+        </div>
+      )}
+
       <header className="ag-entete">
         <div className="ag-contenu ag-entete__interieur">
           <div className="ag-marque">
@@ -267,6 +322,7 @@ export default function PageDeVente() {
             <a href="#methode">La méthode</a>
             <a href="#plateforme">Ce que ça fait</a>
             <a href="#sansfiltre">Sans filtre</a>
+            {offres.length > 0 && <a href="#tarifs">Tarifs</a>}
             <a href="#questions">Questions</a>
           </nav>
           <div className="ag-entete__fin">
@@ -541,7 +597,32 @@ export default function PageDeVente() {
         </div>
       </section>
 
-      <section className="ag-section ag-section--alt" id="questions">
+      {offres.length > 0 && (
+        <section className="ag-section ag-section--alt" id="tarifs">
+          <div className="ag-contenu">
+            <div className="ag-tete--centre">
+              <span className="ag-surtitre">Le prix</span>
+              <h2 className="ag-titre">Le prix, sans détour</h2>
+              <p className="ag-sous">
+                Un abonnement mensuel, sans engagement. Ce que vous voyez est ce que vous payez :
+                AgenIA relève de la franchise en base de TVA, il n&apos;y a pas de taxe à ajouter
+                au moment de la facture.
+              </p>
+            </div>
+            <div className="ag-offres">
+              {offres.map((offre) => (
+                <CarteOffre key={offre.id} offre={offre} />
+              ))}
+            </div>
+            <p className="ag-mention">
+              Sans engagement, résiliable à tout moment, aucun frais de mise en service ni de
+              sortie. La démonstration reste ouverte et gratuite, sans compte.
+            </p>
+          </div>
+        </section>
+      )}
+
+      <section className="ag-section" id="questions">
         <div className="ag-contenu ag-faq">
           <span className="ag-surtitre">Questions fréquentes</span>
           <h2 className="ag-titre">Ce qu&apos;on nous demande avant la démonstration</h2>
@@ -553,6 +634,63 @@ export default function PageDeVente() {
               </details>
             ))}
           </div>
+        </div>
+      </section>
+
+      <section className="ag-section ag-section--alt" id="rappel">
+        <div className="ag-contenu ag-etroit">
+          <span className="ag-surtitre">Vous préférez qu&apos;on vous rappelle ?</span>
+          <h2 className="ag-titre">Laissez-nous de quoi vous joindre</h2>
+          <p className="ag-sous">
+            Quatre champs, dont deux facultatifs. Nous rappelons nous-mêmes — vous ne tomberez pas
+            sur un standard.
+          </p>
+
+          {retourRappel && (
+            <p className={envoye ? "ag-retour ag-retour--ok" : "ag-retour ag-retour--erreur"}>
+              {retourRappel}
+            </p>
+          )}
+
+          <form action={actionDemanderRappel} className="ag-form">
+            <label>
+              <span>Votre nom</span>
+              <input name="nom" required maxLength={80} autoComplete="name" />
+            </label>
+            <label>
+              <span>Votre agence</span>
+              <input name="agence" maxLength={120} autoComplete="organization" />
+            </label>
+            <label>
+              <span>Votre email</span>
+              <input name="email" type="email" required maxLength={180} autoComplete="email" />
+            </label>
+            <label>
+              <span>Votre téléphone</span>
+              <input name="telephone" maxLength={40} autoComplete="tel" />
+            </label>
+
+            {/* Piège à robots : caché à l'écran, laissé vide par un visiteur. */}
+            <p className="ag-form__piege" aria-hidden="true">
+              <label>
+                <span>Ne remplissez pas ce champ</span>
+                <input name="site" tabIndex={-1} autoComplete="off" />
+              </label>
+            </p>
+
+            <button className="ag-btn ag-btn--primaire ag-btn--grand" type="submit">
+              Être rappelé
+            </button>
+          </form>
+
+          <p className="ag-mention ag-mention--gauche">
+            Ces coordonnées ne servent qu&apos;à vous rappeler. Elles ne partent vers aucun service
+            tiers, ne sont revendues à personne, et nous les supprimons sur simple demande à{" "}
+            <a href={MAIL} className="ag-lien">
+              contact@agenia.pro
+            </a>
+            .
+          </p>
         </div>
       </section>
 
@@ -593,7 +731,9 @@ export default function PageDeVente() {
                 <li><a href="#plateforme">Ce que ça fait</a></li>
                 <li><a href="#methode">La méthode</a></li>
                 <li><a href="#sansfiltre">Sans filtre</a></li>
+                {offres.length > 0 && <li><a href="#tarifs">Tarifs</a></li>}
                 <li><a href="#questions">Questions</a></li>
+                <li><a href="#rappel">Être rappelé</a></li>
                 <li><Link href="/">Démonstration</Link></li>
               </ul>
             </div>
@@ -623,5 +763,43 @@ export default function PageDeVente() {
         </div>
       </footer>
     </div>
+  );
+}
+
+function CarteOffre({ offre }: { offre: Offre }) {
+  const prix = prixAffiche(offre);
+  const points = pointsDeLOffre(offre);
+
+  return (
+    <article className={`ag-offre${offre.miseEnAvant ? " ag-offre--principale" : ""}`}>
+      <div className="ag-offre__tete">
+        <h3>{offre.nom}</h3>
+        <p className="ag-offre__prix">
+          {/* Le prix barré n'apparaît que pendant la réduction : hors offre, il
+              n'y a rien à barrer et l'afficher serait un faux rabais. */}
+          {prix.barreCentimes !== null && (
+            <span className="ag-prix-barre">{formaterPrix(prix.barreCentimes)}</span>
+          )}
+          {formaterPrix(prix.centimes)}
+        </p>
+      </div>
+      {offre.detail && <p className="ag-offre__detail">{offre.detail}</p>}
+      {prix.reductionPct > 0 && (
+        <p className="ag-offre__promo">
+          −{prix.reductionPct} %{" "}
+          {prix.finOffre ? `jusqu'au ${formaterDate(prix.finOffre)}` : "en ce moment"}
+        </p>
+      )}
+      {points.length > 0 && (
+        <ul className="ag-liste">
+          {points.map((point) => (
+            <li key={point}>{point}</li>
+          ))}
+        </ul>
+      )}
+      <a className="ag-btn ag-btn--primaire" href="#rappel">
+        Être rappelé
+      </a>
+    </article>
   );
 }

@@ -189,6 +189,45 @@ export const DDL_STATEMENTS: string[] = [
     initial_ts TEXT NOT NULL,
     created_at TEXT NOT NULL
   )`,
+  // --- Console d'administration ----------------------------------------------
+  // Ces trois tables ne pendent d'aucune agence : elles décrivent le site, pas
+  // une démonstration. Elles sont donc absentes de TABLES_PAR_AGENCE, et une
+  // réinitialisation d'espace ne les touche pas.
+  `CREATE TABLE IF NOT EXISTS audience_vues (
+    id TEXT PRIMARY KEY,
+    chemin TEXT NOT NULL,
+    commercial TEXT,
+    profil TEXT,
+    pays TEXT,
+    region TEXT,
+    ville TEXT,
+    referent TEXT,
+    vu_le TEXT NOT NULL
+  )`,
+  `CREATE TABLE IF NOT EXISTS offres (
+    id TEXT PRIMARY KEY,
+    nom TEXT NOT NULL,
+    detail TEXT,
+    prix_centimes INTEGER NOT NULL,
+    reduction_pct INTEGER NOT NULL DEFAULT 0,
+    fin_offre TEXT,
+    points TEXT,
+    rang INTEGER NOT NULL DEFAULT 0,
+    mise_en_avant BOOLEAN NOT NULL DEFAULT FALSE,
+    publiee BOOLEAN NOT NULL DEFAULT TRUE,
+    maj_le TEXT NOT NULL
+  )`,
+  `CREATE TABLE IF NOT EXISTS inscriptions (
+    id TEXT PRIMARY KEY,
+    nom TEXT NOT NULL,
+    agence TEXT,
+    email TEXT NOT NULL,
+    telephone TEXT,
+    commercial TEXT,
+    pays TEXT,
+    ville TEXT,
+    cree_le TEXT NOT NULL
+  )`,
   // Toutes les requêtes de l'app filtrent par agence (isolation multi-agences) :
   // sans index, chaque lecture fait un scan complet de table.
   `CREATE INDEX IF NOT EXISTS idx_contacts_agency ON contacts(agency_id)`,
@@ -210,6 +249,10 @@ export const DDL_STATEMENTS: string[] = [
   `CREATE INDEX IF NOT EXISTS idx_automation_runs_agency ON automation_runs(agency_id)`,
   // L'isolation passe par cette colonne : chaque rendu de page y filtre.
   `CREATE INDEX IF NOT EXISTS idx_agencies_workspace ON agencies(workspace_id)`,
+  // Le journal d'audience grossit à chaque page ouverte et la console le lit
+  // toujours par tranche de dates, du plus récent au plus ancien.
+  `CREATE INDEX IF NOT EXISTS idx_audience_vues_date ON audience_vues(vu_le DESC)`,
+  `CREATE INDEX IF NOT EXISTS idx_inscriptions_date ON inscriptions(cree_le DESC)`,
   // Sécurité : RLS activé sans policy → l'API Data Supabase (PostgREST,
   // clé anon publique) ne peut ni lire ni écrire ces tables. L'app n'est
   // pas affectée (connexion avec le rôle postgres, propriétaire des tables).
@@ -229,6 +272,11 @@ export const DDL_STATEMENTS: string[] = [
   `ALTER TABLE automation_runs ENABLE ROW LEVEL SECURITY`,
   `ALTER TABLE demo_clock ENABLE ROW LEVEL SECURITY`,
   `ALTER TABLE workspaces ENABLE ROW LEVEL SECURITY`,
+  // Les inscriptions portent des coordonnées réelles : les laisser lisibles par
+  // la clé anon publique de Supabase serait une fuite, pas une commodité.
+  `ALTER TABLE audience_vues ENABLE ROW LEVEL SECURITY`,
+  `ALTER TABLE offres ENABLE ROW LEVEL SECURITY`,
+  `ALTER TABLE inscriptions ENABLE ROW LEVEL SECURITY`,
 
   // --- Rattrapage des bases antérieures aux espaces ---------------------------
   // Ces instructions manipulent des DONNÉES : elles doivent rester **après**

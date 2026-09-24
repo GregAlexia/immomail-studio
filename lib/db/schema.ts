@@ -201,6 +201,70 @@ export const automationRuns = pgTable("automation_runs", {
   createdAt: text("created_at").notNull(),
 });
 
+/**
+ * Journal d'audience — une ligne par page ouverte.
+ *
+ * Vercel Web Analytics ne se lit pas : sur le plan Hobby il n'expose aucune API,
+ * et il ne conserve jamais d'adresse IP. Pour afficher une fréquentation dans
+ * notre propre console, il faut donc la journaliser nous-mêmes.
+ *
+ * **Aucune donnée personnelle.** Le pays, la région et la ville viennent des
+ * en-têtes posés par Vercel (`x-vercel-ip-*`) ; l'adresse IP, elle, n'est ni lue
+ * ni écrite. Une ville ne désigne personne, là où une IP est une donnée
+ * personnelle qui imposerait mention d'information, base légale et durée de
+ * conservation — pour un gain nul, les agences sortant souvent derrière une IP
+ * partagée.
+ */
+export const audienceVues = pgTable("audience_vues", {
+  id: text("id").primaryKey(),
+  // Le chemin **affiché**, pas la cible de la réécriture : `/c/phil` et non `/`.
+  chemin: text("chemin").notNull(),
+  commercial: text("commercial"),
+  profil: text("profil"),
+  pays: text("pays"),
+  region: text("region"),
+  ville: text("ville"),
+  referent: text("referent"),
+  vuLe: text("vu_le").notNull(),
+});
+
+/**
+ * Offres commerciales affichées sur `/presentation`.
+ *
+ * Prix en **centimes entiers** : un prix stocké en flottant finit par afficher
+ * 148,99 € là où l'on a saisi 149 €.
+ */
+export const offres = pgTable("offres", {
+  id: text("id").primaryKey(),
+  nom: text("nom").notNull(),
+  detail: text("detail"),
+  prixCentimes: integer("prix_centimes").notNull(),
+  reductionPct: integer("reduction_pct").notNull().default(0),
+  // Date de fin de la réduction (AAAA-MM-JJ). Passée, le prix plein reprend
+  // seul, sans intervention.
+  finOffre: text("fin_offre"),
+  // Arguments de l'offre, un par ligne.
+  points: text("points"),
+  rang: integer("rang").notNull().default(0),
+  miseEnAvant: boolean("mise_en_avant").notNull().default(false),
+  publiee: boolean("publiee").notNull().default(true),
+  majLe: text("maj_le").notNull(),
+});
+
+/** Demandes de rappel déposées depuis la page de vente. */
+export const inscriptions = pgTable("inscriptions", {
+  id: text("id").primaryKey(),
+  nom: text("nom").notNull(),
+  agence: text("agence"),
+  email: text("email").notNull(),
+  telephone: text("telephone"),
+  // Le commercial dont le lien a amené le visiteur, s'il y en avait un.
+  commercial: text("commercial"),
+  pays: text("pays"),
+  ville: text("ville"),
+  creeLe: text("cree_le").notNull(),
+});
+
 export const demoClock = pgTable("demo_clock", {
   // Une ligne par espace : l'identifiant est celui de l'espace. Sans cela,
   // avancer l'horloge pour une démonstration la ferait bouger pour toutes.
