@@ -282,7 +282,7 @@ export default function PageDeVente() {
           <div>
             <span className="ag-pastille">
               <span className="ag-pastille__point" />
-              Démonstration ouverte · sans compte
+              Démonstration ouverte
             </span>
             <h1 className="ag-hero__titre">
               Vos leads ne sont pas perdus.
