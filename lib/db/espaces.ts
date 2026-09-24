@@ -41,6 +41,38 @@ export async function espaceExiste(id: string): Promise<boolean> {
   return lignes.length > 0;
 }
 
+export type EspaceResume = {
+  id: string;
+  nom: string;
+  creeLe: string;
+  agences: number;
+  horloge: string | null;
+  derniereVue: string | null;
+  vues: number;
+};
+
+/**
+ * Tous les espaces, pour la console d'administration.
+ *
+ * L'identifiant de l'espace **est** l'étiquette du commercial : c'est ce qui
+ * permet de rapprocher un espace de son trafic sans table de correspondance —
+ * `audience_vues.commercial` porte la même valeur que `workspaces.id`.
+ */
+export async function listerEspaces(): Promise<EspaceResume[]> {
+  await ensureSchema();
+  return client.unsafe<EspaceResume[]>(
+    `SELECT w.id,
+            w.name                                   AS nom,
+            w.created_at                             AS "creeLe",
+            (SELECT COUNT(*) FROM agencies a WHERE a.workspace_id = w.id)::int AS agences,
+            (SELECT c.current_ts FROM demo_clock c WHERE c.id = w.id)          AS horloge,
+            (SELECT MAX(v.vu_le) FROM audience_vues v WHERE v.commercial = w.id) AS "derniereVue",
+            (SELECT COUNT(*) FROM audience_vues v WHERE v.commercial = w.id)::int AS vues
+       FROM workspaces w
+      ORDER BY w.created_at`
+  );
+}
+
 /**
  * Vide un espace, et lui seul.
  *

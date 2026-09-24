@@ -169,6 +169,41 @@ Chaque action est protégée par la table `automation_runs` (`run_key` unique, e
   (déverrouillage dans **Paramétrage**, mémorisé 30 jours par navigateur)
   peut piloter la démo. Sans la variable, tout reste ouvert (mode historique).
 
+## Console d'administration (`/admin`)
+
+Réservée au propriétaire, par **connexion Google** : seule l'adresse
+`ADMIN_EMAIL` (défaut `cojagregory@gmail.com`) ouvre une session. Trois
+écrans :
+
+- **Fréquentation** — pages vues par jour sur 30 jours, pages les plus
+  ouvertes, liens de commerciaux, pays et villes, 25 dernières visites.
+- **Tarifs** — les offres affichées sur `/presentation` : prix, pourcentage de
+  réduction, date de fin, arguments, ordre, mise en avant. Une réduction dont
+  la date est passée s'arrête d'elle-même.
+- **Comptes** — les espaces de démonstration (un par commercial) et les
+  demandes de rappel déposées depuis la page de vente.
+
+Trois variables d'environnement sont nécessaires — `GOOGLE_CLIENT_ID`,
+`GOOGLE_CLIENT_SECRET`, `ADMIN_SESSION_SECRET` (voir `.env.example`). **Tant
+qu'elles manquent, la console reste fermée** : contrairement au mode
+présentateur, elle ne bascule jamais en accès libre.
+
+Le layout protège l'affichage ; chaque Server Action se protège en plus par
+`exigerAdmin()`, une action étant un point d'entrée HTTP appelable sans passer
+par la page.
+
+### Journal d'audience maison
+
+`components/JournalAudience.tsx` signale chaque page ouverte à `/api/vue`, qui
+l'enregistre dans `audience_vues` avec le pays, la région et la ville **posés
+par Vercel sur la requête**. Vercel Web Analytics reste en place, mais il ne se
+*lit* pas : le plan Hobby n'expose aucune API, d'où ce journal.
+
+**L'adresse IP n'est ni lue ni conservée** — Vercel fait la résolution en amont
+et ne transmet que le résultat. Une ville ne désigne personne, là où une IP est
+une donnée personnelle qui imposerait mention d'information, base légale et
+durée de conservation.
+
 ## Mesure d'audience & liens de prospection
 
 **Vercel Web Analytics** (`<Analytics />` dans `app/layout.tsx`) donne les pages
