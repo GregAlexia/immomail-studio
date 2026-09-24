@@ -220,7 +220,7 @@
 /* Sans cette base, le bloc de texte prend toute la largeur et rejette les
    boutons sur une ligne à lui seul, laissant la moitié droite du cartouche
    vide. */
-.ag-appel__interieur > div:first-child { flex: 1 1 30rem; }
+.ag-appel__interieur > div:first-child { flex: 1 1 26rem; }
 .ag-appel h2 { font-size: clamp(1.5rem, 3.2vw, 2.05rem); font-weight: 700; }
 .ag-appel p { margin: 10px 0 0; color: #c9c6bb; max-width: 54ch; }
 .ag-appel .ag-surtitre { color: #a5a195; }
