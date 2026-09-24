@@ -75,7 +75,7 @@ avec des valeurs de démo.
 | `IMMOMAIL_FROM_EMAIL` | `agence@immomail.demo` | A2–A8 (expéditeur email) |
 | `IMMOMAIL_AGENCY_NAME` | `Notre agence` | A7, A8 (signatures) |
 | `IMMOMAIL_AGENCY_INBOX` | = FROM_EMAIL | A5 (alerte interne) |
-| `IMMOMAIL_BASE_URL` | `https://keo.vercel.app` | A4 (PDF quittance) |
+| `IMMOMAIL_BASE_URL` | `https://keo.agenia.pro` | A4 (PDF quittance) |
 | `GOOGLE_REVIEW_LINK` | lien d'exemple | A7 (lien d'avis) |
 | `SMS_API_URL` | endpoint Brevo SMS | A2, A7, A8 |
 

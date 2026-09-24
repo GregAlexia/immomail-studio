@@ -100,7 +100,7 @@ sans configuration, ils tournent avec les valeurs de démo. À personnaliser pou
 | `IMMOMAIL_FROM_EMAIL` | `agence@immomail.demo` | Adresse expéditrice de tous les emails |
 | `IMMOMAIL_AGENCY_NAME` | `Notre agence` | Signature des messages |
 | `IMMOMAIL_AGENCY_INBOX` | valeur de `IMMOMAIL_FROM_EMAIL` | Destinataire des alertes internes (A5) |
-| `IMMOMAIL_BASE_URL` | `https://keo.vercel.app` | Base des URLs : PDF quittance (A4), lien de réservation (A10) |
+| `IMMOMAIL_BASE_URL` | `https://keo.agenia.pro` | Base des URLs : PDF quittance (A4), lien de réservation (A10) |
 | `GOOGLE_REVIEW_LINK` | lien G exemple | Lien « laisser un avis » (A7) |
 | `SMS_API_URL` | endpoint Brevo SMS | Endpoint du provider SMS (A2, A7, A8) |
 
@@ -111,7 +111,7 @@ sans configuration, ils tournent avec les valeurs de démo. À personnaliser pou
   ```yaml
   environment:
     - IMMOMAIL_FROM_EMAIL=contact@mon-agence.fr
-    - IMMOMAIL_BASE_URL=https://keo.vercel.app
+    - IMMOMAIL_BASE_URL=https://keo.agenia.pro
   ```
 - **VPS / systemd** : dans le fichier d'environnement du service n8n.
 - **n8n Cloud** : `$env` n'est **pas accessible** ; deux options :
@@ -192,7 +192,7 @@ L'app déployée (Vercel) doit être accessible depuis l'instance n8n. Test rapi
 le serveur n8n :
 
 ```bash
-curl -sI "https://keo.vercel.app/api/receipt/<un-id-de-bail>?period=2026-07" | head -1
+curl -sI "https://keo.agenia.pro/api/receipt/<un-id-de-bail>?period=2026-07" | head -1
 ```
 
 ---

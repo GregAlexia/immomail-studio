@@ -351,7 +351,7 @@ return $input.all();`);
   // Récupère le vrai PDF généré par l'app (endpoint existant /api/receipt).
   const pdf = node("Générer le PDF (app)", "n8n-nodes-base.httpRequest", 4.2, [720, 300], {
     method: "GET",
-    url: "={{ ($env.IMMOMAIL_BASE_URL || 'https://keo.vercel.app') + $json.attachment_url }}",
+    url: "={{ ($env.IMMOMAIL_BASE_URL || 'https://keo.agenia.pro') + $json.attachment_url }}",
     options: { response: { response: { responseFormat: "file", outputPropertyName: "data" } } },
   });
 
@@ -652,7 +652,7 @@ VALUES (gen_random_uuid()::text, {{ JSON.stringify($json.agency_id) }}, 'A8', {{
       { id: randomUUID(), name: "agency_id", value: "REMPLACER-PAR-ID-AGENCE", type: "string" },
       { id: randomUUID(), name: "agency_name", value: "Agence Horizon Immobilier", type: "string" },
       { id: randomUUID(), name: "from_email", value: "contact@mon-agence.fr", type: "string" },
-      { id: randomUUID(), name: "base_url", value: "https://keo.vercel.app", type: "string" },
+      { id: randomUUID(), name: "base_url", value: "https://keo.agenia.pro", type: "string" },
     ] },
     includeOtherFields: true,
     options: {},

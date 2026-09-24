@@ -73,7 +73,7 @@
     {
       "parameters": {
         "method": "GET",
-        "url": "={{ ($env.IMMOMAIL_BASE_URL || 'https://keo.vercel.app') + $json.attachment_url }}",
+        "url": "={{ ($env.IMMOMAIL_BASE_URL || 'https://keo.agenia.pro') + $json.attachment_url }}",
         "options": {
           "response": {
             "response": {

@@ -4,7 +4,16 @@
 
 Vitrine fonctionnelle des **11 automatisations métier** (A1–A11) du PRD v2.0, avec **horloge de démo pilotable** pour déclencher en direct les automatisations différées (J-1, J+2, J+30…). Données 100 % fictives, **aucune API externe réelle** (SMS/email/avis simulés).
 
-**🔗 Démo en ligne : https://keo.vercel.app**
+**🔗 En ligne :**
+
+| | Adresse |
+|---|---|
+| Démonstration | **https://keo.agenia.pro** (aussi `https://immomail-studio.vercel.app`) |
+| Page de vente | https://keo.agenia.pro/presentation |
+| Console du propriétaire | https://keo.agenia.pro/admin |
+
+> ⚠️ `keo.vercel.app` n'est **pas** ce projet — ce sous-domaine appartient à un
+> tiers. Les anciennes versions de cette documentation le citaient à tort.
 
 > **Note d'interface (démo déployée).** Le menu est volontairement épuré par défaut : *Tableau de bord, Boîte de réception, Agenda & visites, Locations & quittances, Automatisations, Import / Export, Aide & guide, Paramétrage*. Les automatisations A3, A5, A6–A8 et leurs pages (Mandats, Conformité, Marketing, Journal, Boîte d'envoi) existent dans le code et peuvent être **activées à la demande depuis le menu Paramétrage** (réglage mémorisé par navigateur, via cookie). L'horloge de démo se pilote par un **sélecteur de date + bouton Évaluer** (les raccourcis +1 j/sem/mois ont été retirés), et les codes « Ax » ne sont plus affichés dans l'UI. Le guide intégré (**Aide & guide**) documente l'usage des espaces visibles.
 
@@ -130,7 +139,7 @@ Toutes les intégrations passent par `lib/services/*`. Chaque « envoi » crée 
 ### Idempotence
 Chaque action est protégée par la table `automation_runs` (`run_key` unique, ex. `reminder_j1:{appointment_id}`). Avancer/réévaluer l'horloge ne produit **jamais de doublon**.
 
-## Déploiement (déjà en ligne : https://keo.vercel.app)
+## Déploiement (déjà en ligne : https://keo.agenia.pro)
 
 1. Créer un projet **Supabase** en région EU et récupérer la connection string du
    **pooler en mode session (port 5432)**.
@@ -138,6 +147,15 @@ Chaque action est protégée par la table `automation_runs` (`run_key` unique, e
    (crée les tables et charge les 4 agences).
 3. Sur **Vercel** : `vercel link` puis ajouter la variable `DATABASE_URL`
    (`vercel env add DATABASE_URL production`) et déployer `vercel --prod`.
+
+> `DATABASE_URL` n'est définie que sur la cible **Production** : les
+> prévisualisations Vercel n'ont **aucune base**. Tout ce qui lit ou écrit
+> Postgres y est silencieusement inerte — vérifier ces fonctionnalités après
+> fusion, en production, et non sur une prévisualisation.
+
+Le domaine `keo.agenia.pro` est un **CNAME vers `cname.vercel-dns.com`** dans la
+zone OVH d'`agenia.pro` (la zone n'est pas gérée par Vercel). L'apex `agenia.pro`
+pointe ailleurs — ne pas y toucher.
 
 > Le mot de passe contenant des caractères spéciaux (`/ # ! ?`) doit être
 > **encodé en pourcent** dans l'URL (`/`→`%2F`, `#`→`%23`, `!`→`%21`, `?`→`%3F`).
@@ -334,12 +352,35 @@ infinité d'étiquettes et épuiser le quota d'événements), et un même onglet
 n'émet l'événement qu'une fois par couple `p|c` (un rechargement ne gonfle pas
 le compteur, mais le lien d'un autre commercial compte bien à nouveau).
 
-> ⚠️ **Plusieurs commerciaux en même temps.** L'état de démonstration est
-> unique et partagé : une seule horloge (`demo_clock` id `global`),
-> « Réinitialiser » recharge **toutes** les agences, « Évaluer » traite
-> **toutes** les agences. Deux démonstrations simultanées se perturbent donc
-> mutuellement, quel que soit le lien utilisé. Le traçage identifie qui ouvre
-> la démo ; il ne cloisonne rien.
+> ✅ **Plusieurs commerciaux en même temps, c'est réglé.** Ce paragraphe
+> avertissait jusqu'ici que l'état était unique et partagé — une seule horloge
+> `demo_clock` d'identifiant `global`, « Réinitialiser » vidant *toutes* les
+> agences. Les **espaces isolés** (ci-dessus) ont supprimé ce défaut : chaque
+> lien `/c/<nom>` sert son propre jeu, sa propre horloge, et « Réinitialiser »
+> ne touche que l'espace courant. Deux démonstrations simultanées ne se voient
+> plus. Seul l'espace partagé `demo`, servi aux visiteurs sans lien nominatif,
+> reste commun à tous.
+
+## Page de vente
+
+`/presentation` — la page commerciale de Keo, dans la langue visuelle des autres
+produits AgenIA (préfixe CSS `ag-`, Archivo + Source Serif, papier crème).
+Elle vit hors du groupe `(app)` : ni sélecteur d'agence, ni horloge.
+
+Elle est **en rendu dynamique** et lit les offres à chaque affichage, pour
+refléter le dernier enregistrement de la console. Si Postgres est indisponible,
+elle se replie sur « aucune offre » et reste entièrement lisible : une page de
+vente ne doit pas renvoyer une erreur parce que la base a hoqueté.
+
+Le formulaire de rappel écrit dans `inscriptions` et retient, s'il existe, le
+commercial dont le lien a amené le visiteur.
 
 ## Hors périmètre V1 (rappel)
-Authentification, envois réels, app mobile, connexion boîte mail réelle, CRM tiers réel, paiement en ligne. Architecture prête pour la V2 (voir Mock Service Layer).
+
+Envois réels, app mobile, connexion boîte mail réelle, CRM tiers réel, paiement
+en ligne. Architecture prête pour la V2 (voir Mock Service Layer).
+
+**L'authentification n'est plus tout à fait hors périmètre** : la console
+`/admin` en a une, par connexion Google restreinte à une seule adresse. La
+démonstration elle-même n'en a toujours pas — c'est le lien `/c/<nom>` qui y
+tient lieu d'identité.
