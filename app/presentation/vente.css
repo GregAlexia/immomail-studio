@@ -231,7 +231,10 @@
 .ag-appel .ag-btn--primaire:hover { background: #fff; }
 .ag-appel .ag-btn--fantome { color: var(--ag-encre-texte); border-color: #5a5851; }
 .ag-appel .ag-btn--fantome:hover { background: var(--ag-encre-texte); color: var(--ag-encre); border-color: var(--ag-encre-texte); }
-.ag-appel__actions { display: flex; flex-wrap: wrap; gap: 12px; }
+/* Les deux boutons l'un sous l'autre : côte à côte, la colonne devient plus
+   large que la place restante et bascule sous le texte, laissant la moitié
+   droite du cartouche vide. */
+.ag-appel__actions { display: flex; flex-direction: column; gap: 12px; flex: 0 0 auto; }
 
 /* --- Pied ---------------------------------------------------------------- */
 .ag-pied { border-top: 1px solid var(--ag-filet); padding: 52px 0 28px; }
