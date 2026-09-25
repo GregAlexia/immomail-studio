@@ -11,7 +11,25 @@ interface ImportResult {
   error?: string;
 }
 
-export function ImportPanel() {
+/** Intitulés déjà traduits : un composant client ne lit pas le cookie de langue. */
+export type TextesImport = {
+  echecEnvoi: string;
+  titreModele: string;
+  detailModele: string;
+  telecharger: string;
+  titreImport: string;
+  detailImportAvant: string;
+  detailImportFort: string;
+  detailImportApres: string;
+  choisir: string;
+  enCours: string;
+  importer: string;
+  reussi: (n: number, agences: string) => string;
+  redirection: string;
+  echec: string;
+};
+
+export function ImportPanel({ textes: tx }: { textes: TextesImport }) {
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
@@ -29,7 +47,7 @@ export function ImportPanel() {
       setResult(data);
       if (data.ok) setTimeout(() => window.location.assign("/"), 1800);
     } catch {
-      setResult({ ok: false, error: "Échec de l'envoi du fichier." });
+      setResult({ ok: false, error: tx.echecEnvoi });
     } finally {
       setBusy(false);
     }
@@ -41,16 +59,16 @@ export function ImportPanel() {
       <div className="rounded-xl border border-[var(--color-border)] bg-white p-5 shadow-sm">
         <div className="flex items-center gap-2">
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--color-brand-soft)] text-[var(--color-brand-dark)] text-sm font-bold">1</span>
-          <h3 className="font-semibold text-[var(--color-ink)]">Récupérer le modèle Excel</h3>
+          <h3 className="font-semibold text-[var(--color-ink)]">{tx.titreModele}</h3>
         </div>
         <p className="mt-2 text-sm text-[var(--color-muted)]">
-          Téléchargez le classeur pré-rempli avec les données actuelles. Il contient tous les onglets au bon format — modifiez-le, ajoutez vos biens, leads, RDV… puis ré-importez-le.
+          {tx.detailModele}
         </p>
         <a
           href="/api/template"
           className="mt-3 inline-flex items-center gap-2 rounded-lg border border-[var(--color-border)] bg-white px-4 py-2 text-sm font-semibold text-[var(--color-brand-dark)] shadow-sm transition hover:bg-[var(--color-brand-soft)]"
         >
-          <Download size={16} /> Télécharger le modèle (.xlsx)
+          <Download size={16} /> {tx.telecharger}
         </a>
       </div>
 
@@ -58,10 +76,10 @@ export function ImportPanel() {
       <div className="rounded-xl border border-[var(--color-border)] bg-white p-5 shadow-sm">
         <div className="flex items-center gap-2">
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--color-brand-soft)] text-[var(--color-brand-dark)] text-sm font-bold">2</span>
-          <h3 className="font-semibold text-[var(--color-ink)]">Importer votre fichier</h3>
+          <h3 className="font-semibold text-[var(--color-ink)]">{tx.titreImport}</h3>
         </div>
         <p className="mt-2 text-sm text-[var(--color-muted)]">
-          L'import <strong>remplace toutes les données</strong> de la démo par le contenu du fichier. L'affichage reflètera alors directement votre classeur.
+          {tx.detailImportAvant} <strong>{tx.detailImportFort}</strong> {tx.detailImportApres}
         </p>
 
         <div className="mt-4 flex flex-wrap items-center gap-3">
@@ -77,7 +95,7 @@ export function ImportPanel() {
             onClick={() => inputRef.current?.click()}
             className="inline-flex items-center gap-2 rounded-lg border border-[var(--color-border)] bg-white px-4 py-2 text-sm font-medium text-[var(--color-ink)] shadow-sm hover:bg-slate-50"
           >
-            <FileSpreadsheet size={16} /> {file ? file.name : "Choisir un fichier .xlsx"}
+            <FileSpreadsheet size={16} /> {file ? file.name : tx.choisir}
           </button>
           <button
             type="button"
@@ -86,7 +104,7 @@ export function ImportPanel() {
             className="inline-flex items-center gap-2 rounded-lg bg-[var(--color-brand)] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[var(--color-brand-dark)] disabled:opacity-50"
           >
             {busy ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
-            {busy ? "Import en cours…" : "Importer et remplacer les données"}
+            {busy ? tx.enCours : tx.importer}
           </button>
         </div>
 
@@ -95,7 +113,8 @@ export function ImportPanel() {
             {result.ok ? (
               <>
                 <p className="flex items-center gap-2 font-semibold text-emerald-900">
-                  <CheckCircle2 size={18} /> Import réussi — {(result.agencies ?? []).length} agence(s) : {(result.agencies ?? []).join(", ")}
+                  <CheckCircle2 size={18} />{" "}
+                  {tx.reussi((result.agencies ?? []).length, (result.agencies ?? []).join(", "))}
                 </p>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {Object.entries(result.counts ?? {}).map(([k, v]) => (
@@ -111,11 +130,11 @@ export function ImportPanel() {
                     ))}
                   </ul>
                 )}
-                <p className="mt-3 text-sm text-emerald-800">Redirection vers le tableau de bord…</p>
+                <p className="mt-3 text-sm text-emerald-800">{tx.redirection}</p>
               </>
             ) : (
               <p className="flex items-center gap-2 font-semibold text-rose-800">
-                <AlertTriangle size={18} /> {result.error ?? "Échec de l'import."}
+                <AlertTriangle size={18} /> {result.error ?? tx.echec}
               </p>
             )}
           </div>

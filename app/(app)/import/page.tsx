@@ -15,7 +15,28 @@ export default async function ImportPage() {
         )}
       />
 
-      <ImportPanel />
+      <ImportPanel
+        textes={{
+          echecEnvoi: t("Échec de l'envoi du fichier."),
+          titreModele: t("Récupérer le modèle Excel"),
+          detailModele: t(
+            "Téléchargez le classeur pré-rempli avec les données actuelles. Il contient tous les onglets au bon format — modifiez-le, ajoutez vos biens, leads, RDV… puis ré-importez-le."
+          ),
+          telecharger: t("Télécharger le modèle (.xlsx)"),
+          titreImport: t("Importer votre fichier"),
+          detailImportAvant: t("L'import"),
+          detailImportFort: t("remplace toutes les données"),
+          detailImportApres: t(
+            "de la démo par le contenu du fichier. L'affichage reflètera alors directement votre classeur."
+          ),
+          choisir: t("Choisir un fichier .xlsx"),
+          enCours: t("Import en cours…"),
+          importer: t("Importer et remplacer les données"),
+          reussi: (n, agences) => `${t("Import réussi —")} ${n} ${t("agence(s) :")} ${agences}`,
+          redirection: t("Redirection vers le tableau de bord…"),
+          echec: t("Échec de l'import."),
+        }}
+      />
 
       <Card className="mt-6 p-5">
         <div className="flex items-start gap-2">

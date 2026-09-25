@@ -337,6 +337,24 @@ export const EN: Record<string, string> = {
     "Columns, accepted values and examples are detailed in",
   "aide → Fichier Excel source": "Help → Source Excel file",
   "Les onglets absents sont simplement ignorés.": "Missing sheets are simply ignored.",
+  "Échec de l'envoi du fichier.": "The file could not be uploaded.",
+  "Récupérer le modèle Excel": "Get the Excel template",
+  "Téléchargez le classeur pré-rempli avec les données actuelles. Il contient tous les onglets au bon format — modifiez-le, ajoutez vos biens, leads, RDV… puis ré-importez-le.":
+    "Download the workbook, pre-filled with the current data. It holds every sheet in the right format — edit it, add your properties, leads and bookings, then re-import it.",
+  "Télécharger le modèle (.xlsx)": "Download the template (.xlsx)",
+  "Importer votre fichier": "Import your file",
+  "L'import": "The import",
+  "remplace toutes les données": "replaces all the data",
+  "de la démo par le contenu du fichier. L'affichage reflètera alors directement votre classeur.":
+    "in the demo with the contents of the file. What you see will then reflect your workbook directly.",
+  "Choisir un fichier .xlsx": "Choose an .xlsx file",
+  "Import en cours…": "Importing…",
+  "Importer et remplacer les données": "Import and replace the data",
+  "Import réussi —": "Import successful —",
+  "agence(s) :": "agency/agencies:",
+  "Redirection vers le tableau de bord…": "Taking you to the dashboard…",
+  "Échec de l'import.": "The import failed.",
+  "Voir la quittance (PDF)": "View the receipt (PDF)",
 
   // --- Paramétrage ----------------------------------------------------------
   "Choisissez les espaces visibles dans le menu de l'application. Les pages désactivées restent accessibles par leur adresse directe ; seul le menu change. Le réglage est mémorisé sur ce navigateur.":
