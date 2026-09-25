@@ -6,7 +6,22 @@ import { Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NAV } from "./nav-items";
 
-export function Sidebar({ enabledKeys }: { enabledKeys: string[] }) {
+/**
+ * `libelles` porte les intitulés déjà traduits, indexés par clé de menu : un
+ * composant client ne peut pas lire le cookie de langue côté serveur, et son
+ * parent a de toute façon déjà le traducteur en main.
+ */
+export function Sidebar({
+  enabledKeys,
+  libelles,
+  sousTitre,
+  mentionBas,
+}: {
+  enabledKeys: string[];
+  libelles: Record<string, string>;
+  sousTitre: string;
+  mentionBas: string;
+}) {
   const pathname = usePathname();
   const items = NAV.filter((item) => enabledKeys.includes(item.key));
   return (
@@ -17,7 +32,7 @@ export function Sidebar({ enabledKeys }: { enabledKeys: string[] }) {
         </div>
         <div>
           <p className="font-bold leading-tight text-[var(--color-ink)]">Keo</p>
-          <p className="text-xs leading-tight text-[var(--color-muted)]">Démo agences immobilières</p>
+          <p className="text-xs leading-tight text-[var(--color-muted)]">{sousTitre}</p>
         </div>
       </div>
       <nav className="flex-1 space-y-1 px-3 py-2">
@@ -36,7 +51,7 @@ export function Sidebar({ enabledKeys }: { enabledKeys: string[] }) {
               )}
             >
               <Icon size={18} />
-              <span className="flex-1">{item.label}</span>
+              <span className="flex-1">{libelles[item.key] ?? item.label}</span>
               {item.badge && (
                 <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-500">
                   {item.badge}
@@ -47,7 +62,7 @@ export function Sidebar({ enabledKeys }: { enabledKeys: string[] }) {
         })}
       </nav>
       <div className="border-t border-[var(--color-border)] px-5 py-3 text-[10px] text-[var(--color-muted)]">
-        Données 100 % fictives · démo commerciale
+        {mentionBas}
       </div>
     </aside>
   );

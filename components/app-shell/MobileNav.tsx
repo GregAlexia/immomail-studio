@@ -12,7 +12,19 @@ import { NAV } from "./nav-items";
 const emptySubscribe = () => () => {};
 const useMounted = () => useSyncExternalStore(emptySubscribe, () => true, () => false);
 
-export function MobileNav({ enabledKeys }: { enabledKeys: string[] }) {
+export function MobileNav({
+  enabledKeys,
+  libelles,
+  sousTitre,
+  ouvrirMenu,
+  fermerMenu,
+}: {
+  enabledKeys: string[];
+  libelles: Record<string, string>;
+  sousTitre: string;
+  ouvrirMenu: string;
+  fermerMenu: string;
+}) {
   const [open, setOpen] = useState(false);
   const mounted = useMounted();
   const pathname = usePathname();
@@ -29,7 +41,7 @@ export function MobileNav({ enabledKeys }: { enabledKeys: string[] }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        aria-label="Ouvrir le menu"
+        aria-label={ouvrirMenu}
         className="flex items-center gap-2 rounded-lg border border-[var(--color-border)] bg-white px-2 py-1.5 text-[var(--color-ink)] shadow-sm"
       >
         <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[var(--color-brand)] text-white">
@@ -50,10 +62,10 @@ export function MobileNav({ enabledKeys }: { enabledKeys: string[] }) {
                 </div>
                 <div>
                   <p className="font-bold leading-tight text-[var(--color-ink)]">Keo</p>
-                  <p className="text-xs leading-tight text-[var(--color-muted)]">Démo agences immobilières</p>
+                  <p className="text-xs leading-tight text-[var(--color-muted)]">{sousTitre}</p>
                 </div>
               </div>
-              <button type="button" onClick={() => setOpen(false)} aria-label="Fermer le menu" className="text-[var(--color-muted)] hover:text-[var(--color-ink)]">
+              <button type="button" onClick={() => setOpen(false)} aria-label={fermerMenu} className="text-[var(--color-muted)] hover:text-[var(--color-ink)]">
                 <X size={22} />
               </button>
             </div>
@@ -74,7 +86,7 @@ export function MobileNav({ enabledKeys }: { enabledKeys: string[] }) {
                     )}
                   >
                     <Icon size={18} />
-                    <span className="flex-1">{item.label}</span>
+                    <span className="flex-1">{libelles[item.key] ?? item.label}</span>
                     {item.badge && (
                       <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-500">{item.badge}</span>
                     )}

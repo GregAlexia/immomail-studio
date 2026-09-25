@@ -7,7 +7,7 @@ import { AUTOMATIONS, type AutomationType } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 export default async function MessagesPage({ searchParams }: { searchParams: Promise<{ type?: string }> }) {
-  const { agency } = await pageContext();
+  const { agency, t } = await pageContext();
   const { type } = await searchParams;
   const filter = (type as AutomationType) || undefined;
   const messages = await getMessages(agency.id, filter);
@@ -19,8 +19,8 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
   return (
     <>
       <PageHeader
-        title="Boîte d'envoi"
-        description="Tous les SMS, emails et PDF générés par les automatisations — avec un aperçu fidèle à ce que recevrait le client. (Envois simulés : aucune API réelle.)"
+        title={t("Boîte d'envoi")}
+        description={t("Tous les SMS, emails et PDF générés par les automatisations — avec un aperçu fidèle à ce que recevrait le client. (Envois simulés : aucune API réelle.)")}
       >
         <div className="flex gap-2">
           <Badge tone="brand">{emails} emails</Badge>
@@ -30,7 +30,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
 
       <div className="mb-5 flex flex-wrap gap-2">
         <Link href="/messages" className={cn("rounded-full px-3 py-1 text-sm font-medium", !filter ? "bg-[var(--color-brand)] text-white" : "border border-[var(--color-border)] bg-white text-[var(--color-muted)]")}>
-          Tout
+          {t("Tout")}
         </Link>
         {codes.map((c) => (
           <Link key={c} href={`/messages?type=${c}`} className={cn("rounded-full px-3 py-1 text-sm font-medium", filter === c ? "bg-[var(--color-brand)] text-white" : "border border-[var(--color-border)] bg-white text-[var(--color-muted)] hover:bg-slate-50")}>
@@ -40,7 +40,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
       </div>
 
       {messages.length === 0 ? (
-        <EmptyState title="Aucun message envoyé" hint="Déclenchez des automatisations (horloge / Évaluer) pour générer des messages." />
+        <EmptyState title={t("Aucun message envoyé")} hint={t("Déclenchez des automatisations (horloge / Évaluer) pour générer des messages.")} />
       ) : (
         <div className="grid gap-4 lg:grid-cols-2">
           {messages.map((m) => (
