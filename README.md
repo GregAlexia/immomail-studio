@@ -187,6 +187,35 @@ pointe ailleurs — ne pas y toucher.
   (déverrouillage dans **Paramétrage**, mémorisé 30 jours par navigateur)
   peut piloter la démo. Sans la variable, tout reste ouvert (mode historique).
 
+## Démonstration bilingue (bouton FR / EN)
+
+La bascule vit dans l'en-tête de l'application, à côté de l'horloge. Deux
+boutons plutôt qu'un seul qui alterne : l'état courant est visible sans avoir à
+cliquer. Le choix est mémorisé par cookie, et `?lang=en` le pose dès la
+première page — un commercial peut donc envoyer `/c/phil?lang=en`.
+
+**Un cookie, pas un préfixe d'URL** — contrairement à la page de vente, qui
+sert l'anglais sous `/en`. Celle-ci est publique et indexée, il lui faut deux
+adresses distinctes ; la démonstration n'est indexée nulle part, et doubler
+chaque route casserait les liens `/c/<nom>` déjà distribués.
+
+**Traduction façon gettext** : la chaîne française est la clé
+(`lib/i18n/en.ts`). Sur treize pages déjà écrites, substituer partout des
+identifiants abstraits aurait demandé de tout réécrire ; ici un oubli laisse le
+français à l'écran plutôt qu'une clé nue. Le filet est
+`npx tsx scripts/verifier-traductions.ts`, qui liste les `t("…")` sans
+traduction et sort en erreur s'il en reste.
+
+Les composants clients ne traduisent pas eux-mêmes : leur parent serveur leur
+passe des chaînes déjà traduites, donc rien à charger côté navigateur.
+
+**Ce qui reste en français, délibérément.** Les données de démonstration
+(agences, biens, contacts), les messages que les automatisations produisent
+— emails, SMS, quittances — et la page publique de réservation
+`/book/[id]`. Ce sont des biens français vendus par une agence française à des
+clients français : les rédiger en anglais donnerait une démonstration
+invraisemblable. C'est l'outil qui change de langue, pas le marché.
+
 ## Console d'administration (`/admin`)
 
 Réservée au propriétaire, par **connexion Google** : seule l'adresse
