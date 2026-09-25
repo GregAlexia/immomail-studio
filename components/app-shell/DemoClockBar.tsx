@@ -49,6 +49,12 @@ function Btn({
  *
  * Un composant client ne lit pas le cookie de langue : son parent serveur a
  * déjà le traducteur en main et lui passe des chaînes prêtes à afficher.
+ *
+ * **Uniquement des chaînes.** Une fonction ne franchit pas la frontière
+ * serveur → client : React sérialise les props, et un `(n) => …` y lève
+ * « Functions cannot be passed directly to Client Components ». Le compte
+ * n'étant connu que côté client, ce sont les deux formes — singulier et
+ * pluriel — qui traversent, et l'assemblage se fait ici.
  */
 export type TextesHorloge = {
   dateDemo: string;
@@ -67,10 +73,12 @@ export type TextesHorloge = {
   verrouDetailApres: string;
   fermer: string;
   declencheesTitre: string;
-  declenchees: (n: number) => string;
+  declencheeUne: string;
+  declencheesPlusieurs: string;
   aucune: string;
   dejaAJour: string;
-  autres: (n: number) => string;
+  autresAvant: string;
+  autresApres: string;
 };
 
 export function DemoClockBar({
@@ -246,7 +254,9 @@ export function DemoClockBar({
               <div className="flex min-w-0 items-center gap-2 font-semibold text-[var(--color-ink)]">
                 <Sparkles size={18} className="shrink-0 text-[var(--color-brand)]" />
                 <span className="truncate">
-                  {toast.events.length > 0 ? tx.declenchees(toast.events.length) : tx.aucune}
+                  {toast.events.length > 0
+                    ? `${toast.events.length} ${toast.events.length > 1 ? tx.declencheesPlusieurs : tx.declencheeUne}`
+                    : tx.aucune}
                 </span>
               </div>
               <button
@@ -274,7 +284,8 @@ export function DemoClockBar({
                   ))}
                   {toast.events.length > 12 && (
                     <li className="flex items-center gap-1 pt-1 text-xs text-[var(--color-muted)]">
-                      <ChevronRight size={12} /> {tx.autres(toast.events.length - 12)}
+                      <ChevronRight size={12} /> {tx.autresAvant} {toast.events.length - 12}{" "}
+                      {tx.autresApres}
                     </li>
                   )}
                 </ul>

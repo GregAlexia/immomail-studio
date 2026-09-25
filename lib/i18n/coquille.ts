@@ -38,13 +38,16 @@ export function textesHorloge(t: Traducteur): TextesHorloge {
     fermer: t("Fermer"),
     declencheesTitre: t("Automatisations déclenchées"),
     // Le pluriel n'a pas les mêmes règles d'une langue à l'autre : on traduit
-    // la phrase entière dans chaque nombre plutôt que de coller un « s ».
-    declenchees: (n) =>
-      `${n} ${n > 1 ? t("automatisations déclenchées") : t("automatisation déclenchée")}`,
+    // la phrase entière dans chaque nombre plutôt que de coller un « s ». Les
+    // deux formes traversent, le composant choisit — une fonction, elle, ne
+    // franchirait pas la frontière serveur → client.
+    declencheeUne: t("automatisation déclenchée"),
+    declencheesPlusieurs: t("automatisations déclenchées"),
     aucune: t("Aucune nouvelle automatisation"),
     dejaAJour: t(
       "Tout est déjà à jour pour cette date. Avancez encore l'horloge pour déclencher les échéances suivantes."
     ),
-    autres: (n) => `${t("et")} ${n} ${t("autres — voir le Journal d'activité")}`,
+    autresAvant: t("et"),
+    autresApres: t("autres — voir le Journal d'activité"),
   };
 }

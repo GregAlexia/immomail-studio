@@ -24,7 +24,10 @@ export type TextesImport = {
   choisir: string;
   enCours: string;
   importer: string;
-  reussi: (n: number, agences: string) => string;
+  // Deux fragments et non une fonction : une fonction ne franchit pas la
+  // frontière serveur → client.
+  reussiAvant: string;
+  reussiApres: string;
   redirection: string;
   echec: string;
 };
@@ -114,7 +117,8 @@ export function ImportPanel({ textes: tx }: { textes: TextesImport }) {
               <>
                 <p className="flex items-center gap-2 font-semibold text-emerald-900">
                   <CheckCircle2 size={18} />{" "}
-                  {tx.reussi((result.agencies ?? []).length, (result.agencies ?? []).join(", "))}
+                  {tx.reussiAvant} {(result.agencies ?? []).length} {tx.reussiApres}{" "}
+                  {(result.agencies ?? []).join(", ")}
                 </p>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {Object.entries(result.counts ?? {}).map(([k, v]) => (

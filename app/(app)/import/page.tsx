@@ -32,7 +32,8 @@ export default async function ImportPage() {
           choisir: t("Choisir un fichier .xlsx"),
           enCours: t("Import en cours…"),
           importer: t("Importer et remplacer les données"),
-          reussi: (n, agences) => `${t("Import réussi —")} ${n} ${t("agence(s) :")} ${agences}`,
+          reussiAvant: t("Import réussi —"),
+          reussiApres: t("agence(s) :"),
           redirection: t("Redirection vers le tableau de bord…"),
           echec: t("Échec de l'import."),
         }}
