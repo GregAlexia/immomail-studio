@@ -6,7 +6,23 @@ import { NAV, LOCKED_KEYS, DEFAULT_KEYS } from "@/components/app-shell/nav-items
 import { saveMenuKeys } from "@/app/actions";
 import { cn } from "@/lib/utils";
 
-export function MenuSettingsForm({ initialKeys }: { initialKeys: string[] }) {
+/** Intitulés déjà traduits : un composant client ne lit pas le cookie de langue. */
+export type TextesMenus = {
+  libelles: Record<string, string>;
+  descriptions: Record<string, string>;
+  enregistrement: string;
+  enregistrer: string;
+  retablir: string;
+  enregistre: string;
+};
+
+export function MenuSettingsForm({
+  initialKeys,
+  textes: tx,
+}: {
+  initialKeys: string[];
+  textes: TextesMenus;
+}) {
   const [keys, setKeys] = useState<Set<string>>(new Set(initialKeys));
   const [saved, setSaved] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -53,11 +69,11 @@ export function MenuSettingsForm({ initialKeys }: { initialKeys: string[] }) {
               </span>
               <span className="min-w-0 flex-1">
                 <span className="flex items-center gap-2 font-medium text-[var(--color-ink)]">
-                  {item.label}
+                  {tx.libelles[item.key] ?? item.label}
                   {locked && <Lock size={12} className="text-[var(--color-muted)]" />}
                 </span>
                 {item.description && (
-                  <span className="block truncate text-sm text-[var(--color-muted)]">{item.description}</span>
+                  <span className="block truncate text-sm text-[var(--color-muted)]">{tx.descriptions[item.key] ?? item.description}</span>
                 )}
               </span>
               <input
@@ -93,7 +109,7 @@ export function MenuSettingsForm({ initialKeys }: { initialKeys: string[] }) {
           disabled={pending}
           className="inline-flex items-center gap-2 rounded-lg bg-[var(--color-brand)] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:brightness-95 disabled:opacity-60"
         >
-          {pending ? "Enregistrement…" : "Enregistrer"}
+          {pending ? tx.enregistrement : tx.enregistrer}
         </button>
         <button
           type="button"
@@ -101,11 +117,11 @@ export function MenuSettingsForm({ initialKeys }: { initialKeys: string[] }) {
           disabled={pending}
           className="rounded-lg border border-[var(--color-border)] bg-white px-4 py-2 text-sm font-medium text-[var(--color-muted)] transition hover:text-[var(--color-ink)]"
         >
-          Rétablir les menus par défaut
+          {tx.retablir}
         </button>
         {saved && (
           <span className="inline-flex items-center gap-1 text-sm font-medium text-emerald-600">
-            <Check size={16} /> Enregistré — la navigation est à jour
+            <Check size={16} /> {tx.enregistre}
           </span>
         )}
       </div>

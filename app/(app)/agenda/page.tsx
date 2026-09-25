@@ -61,7 +61,7 @@ export default async function AgendaPage() {
             {upcoming.length === 0 ? (
               <div className="p-5"><EmptyState title={t("Aucune visite à venir")} /></div>
             ) : (
-              <Table head={<><Th>Contact</Th><Th>Bien</Th><Th>Date</Th><Th>Suivi automatique</Th><Th>Statut</Th></>}>
+              <Table head={<><Th>{t("Contact")}</Th><Th>{t("Bien")}</Th><Th>{t("Date")}</Th><Th>{t("Suivi automatique")}</Th><Th>{t("Statut")}</Th></>}>
                 {upcoming.map((apt) => <Row key={apt.id} apt={apt} />)}
               </Table>
             )}
@@ -70,7 +70,7 @@ export default async function AgendaPage() {
           {past.length > 0 && (
             <Card>
               <CardHeader title={t("Visites passées")} subtitle={`${past.length} ${t("RDV")}`} />
-              <Table head={<><Th>Contact</Th><Th>Bien</Th><Th>Date</Th><Th>Suivi automatique</Th><Th>Statut</Th></>}>
+              <Table head={<><Th>{t("Contact")}</Th><Th>{t("Bien")}</Th><Th>{t("Date")}</Th><Th>{t("Suivi automatique")}</Th><Th>{t("Statut")}</Th></>}>
                 {past.map((apt) => <Row key={apt.id} apt={apt} />)}
               </Table>
             </Card>
