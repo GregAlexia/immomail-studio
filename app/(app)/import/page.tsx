@@ -2,32 +2,60 @@ import Link from "next/link";
 import { Info } from "lucide-react";
 import { PageHeader, Card } from "@/components/ui";
 import { ImportPanel } from "@/components/ImportPanel";
+import { traducteur } from "@/lib/i18n";
 
-export default function ImportPage() {
+export default async function ImportPage() {
+  const t = await traducteur();
   return (
     <div className="max-w-3xl">
       <PageHeader
-        title="Import / Export Excel"
-        description="Pilotez la démo avec vos propres données : téléchargez le modèle, modifiez-le, ré-importez-le. Le contenu affiché reflète directement le fichier."
+        title={t("Import / Export Excel")}
+        description={t(
+          "Pilotez la démo avec vos propres données : téléchargez le modèle, modifiez-le, ré-importez-le. Le contenu affiché reflète directement le fichier."
+        )}
       />
 
-      <ImportPanel />
+      <ImportPanel
+        textes={{
+          echecEnvoi: t("Échec de l'envoi du fichier."),
+          titreModele: t("Récupérer le modèle Excel"),
+          detailModele: t(
+            "Téléchargez le classeur pré-rempli avec les données actuelles. Il contient tous les onglets au bon format — modifiez-le, ajoutez vos biens, leads, RDV… puis ré-importez-le."
+          ),
+          telecharger: t("Télécharger le modèle (.xlsx)"),
+          titreImport: t("Importer votre fichier"),
+          detailImportAvant: t("L'import"),
+          detailImportFort: t("remplace toutes les données"),
+          detailImportApres: t(
+            "de la démo par le contenu du fichier. L'affichage reflètera alors directement votre classeur."
+          ),
+          choisir: t("Choisir un fichier .xlsx"),
+          enCours: t("Import en cours…"),
+          importer: t("Importer et remplacer les données"),
+          reussi: (n, agences) => `${t("Import réussi —")} ${n} ${t("agence(s) :")} ${agences}`,
+          redirection: t("Redirection vers le tableau de bord…"),
+          echec: t("Échec de l'import."),
+        }}
+      />
 
       <Card className="mt-6 p-5">
         <div className="flex items-start gap-2">
           <Info size={18} className="mt-0.5 shrink-0 text-[var(--color-brand)]" />
           <div className="text-sm text-[var(--color-muted)]">
-            <p className="font-medium text-[var(--color-ink)]">Onglets reconnus dans le classeur</p>
+            <p className="font-medium text-[var(--color-ink)]">{t("Onglets reconnus dans le classeur")}</p>
             <p className="mt-1">
-              <strong>Agences</strong> (nom + ville), <strong>Paramètres</strong> (date de démo), <strong>Stock de biens</strong>, <strong>Acheteurs</strong>, <strong>Boîte de réception</strong>, <strong>Leads qualifiés</strong>, <strong>Rendez-vous</strong>, <strong>Suivi des visites</strong>, <strong>Mandats</strong>, <strong>Baux</strong>, <strong>Conformité</strong>, <strong>Transactions</strong>, <strong>Segments newsletter</strong>.
+              {t("Les onglets du classeur portent des noms français — ce sont les clés de lecture du fichier, elles ne changent pas avec la langue de l'interface : Agences, Paramètres, Stock de biens, Acheteurs, Boîte de réception, Leads qualifiés, Rendez-vous, Suivi des visites, Mandats, Baux, Conformité, Transactions, Segments newsletter.")}
             </p>
             <p className="mt-2">
-              <strong>Multi-agences :</strong> listez vos agences dans l'onglet <strong>Agences</strong>, puis indiquez l'agence de chaque ligne via la colonne <strong>Agence</strong> (présente sur chaque onglet de données). Une ligne sans agence est rattachée à la première agence listée.
+              <strong>{t("Multi-agences :")}</strong>{" "}
+              {t("listez vos agences dans l'onglet Agences, puis indiquez l'agence de chaque ligne via la colonne Agence (présente sur chaque onglet de données). Une ligne sans agence est rattachée à la première agence listée.")}
             </p>
             <p className="mt-2">
-              Le détail des colonnes, valeurs acceptées et exemples est dans l'
-              <Link href="/aide#excel" className="font-medium text-[var(--color-brand-dark)] hover:underline">aide → Fichier Excel source</Link>.
-              Les onglets absents sont simplement ignorés.
+              {t("Le détail des colonnes, valeurs acceptées et exemples est dans l'")}
+              <Link href="/aide#excel" className="font-medium text-[var(--color-brand-dark)] hover:underline">
+                {t("aide → Fichier Excel source")}
+              </Link>
+              . {t("Les onglets absents sont simplement ignorés.")}
             </p>
           </div>
         </div>

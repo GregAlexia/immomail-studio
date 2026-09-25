@@ -7,6 +7,7 @@ import {
   PROFIL_COOKIE,
   PROFIL_PAR_DEFAUT,
 } from "@/lib/demo-profil";
+import { LANGUE_COOKIE, langueValide } from "@/lib/i18n/langue";
 
 const UN_AN = 60 * 60 * 24 * 365;
 
@@ -37,6 +38,10 @@ export function proxy(request: NextRequest) {
 
   const profil = valide(searchParams.get("p"));
   const nom = valide(searchParams.get("n"));
+  // `?lang=en` sert l'interface en anglais dès la première page : un commercial
+  // peut envoyer `/c/phil?lang=en` à un prospect anglophone sans lui demander
+  // de cliquer sur la bascule après coup.
+  const langue = langueValide(searchParams.get("lang"));
 
   // --- Lien nominatif par chemin : /c/phil -----------------------------------
   // On réécrit vers l'accueil **sans** changer l'URL affichée. La page vue est
@@ -54,6 +59,10 @@ export function proxy(request: NextRequest) {
     // un prospect le nom d'un autre.
     if (nom) poser(reponse, NOM_COOKIE, nom);
     else reponse.cookies.delete(NOM_COOKIE);
+    // La langue, elle, n'est PAS effacée en l'absence de `?lang=` : c'est un
+    // réglage d'affichage que le visiteur a pu choisir lui-même, pas le nom
+    // d'un prospect précédent qu'il faut faire disparaître.
+    if (langue) poser(reponse, LANGUE_COOKIE, langue);
     return reponse;
   }
 
@@ -63,6 +72,7 @@ export function proxy(request: NextRequest) {
   if (nom) poser(reponse, NOM_COOKIE, nom);
   const commercial = valide(searchParams.get("c"));
   if (commercial) poser(reponse, COMMERCIAL_COOKIE, commercial);
+  if (langue) poser(reponse, LANGUE_COOKIE, langue);
   return reponse;
 }
 

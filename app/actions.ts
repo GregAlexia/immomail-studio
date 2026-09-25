@@ -7,6 +7,7 @@ import { db } from "@/lib/db/client";
 import { contacts, newsletterSegments, properties, transactions } from "@/lib/db/schema";
 import { AGENCY_COOKIE, getSelectedAgency } from "@/lib/agency";
 import { NOM_COOKIE, PROFIL_COOKIE } from "@/lib/demo-profil";
+import { LANGUE_COOKIE, LANGUE_PAR_DEFAUT, langueValide } from "@/lib/i18n/langue";
 import { MENU_COOKIE } from "@/lib/menu-settings";
 import { LOCKED_KEYS, NAV } from "@/components/app-shell/nav-items";
 import {
@@ -40,6 +41,19 @@ export async function setAgency(agencyId: string) {
   // autre agence hériterait du nom du prospect.
   store.delete(PROFIL_COOKIE);
   store.delete(NOM_COOKIE);
+  revalidateAll();
+}
+
+// ---------- Langue de l'interface ----------
+/**
+ * Un réglage d'affichage, pas un changement d'espace : la langue ne touche ni
+ * aux données, ni à l'agence, ni à l'horloge. `revalidateAll()` suffit à
+ * réafficher toute la coquille dans la nouvelle langue.
+ */
+export async function setLangue(langue: string): Promise<void> {
+  const valide = langueValide(langue) ?? LANGUE_PAR_DEFAUT;
+  const store = await cookies();
+  store.set(LANGUE_COOKIE, valide, { path: "/", maxAge: 60 * 60 * 24 * 365, sameSite: "lax" });
   revalidateAll();
 }
 

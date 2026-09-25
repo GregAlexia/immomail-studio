@@ -2,6 +2,7 @@ import { Mail, MessageSquare, Paperclip } from "lucide-react";
 import { Card, AutomationTag } from "@/components/ui";
 import { fmtDateTime } from "@/lib/date";
 import type { AutomationType } from "@/lib/types";
+import { getLangue, traducteur } from "@/lib/i18n";
 
 export interface MessageView {
   id: string;
@@ -15,8 +16,12 @@ export interface MessageView {
   sentAt: string;
 }
 
-export function MessagePreview({ m }: { m: MessageView }) {
+export async function MessagePreview({ m }: { m: MessageView }) {
   const isSms = m.channel === "sms";
+  // Composant serveur : il lit la langue lui-même. Seule l'enveloppe est
+  // traduite — le corps du message, lui, est ce que recevrait un client
+  // français de l'agence, et reste tel quel.
+  const [t, langue] = await Promise.all([traducteur(), getLangue()]);
   return (
     <Card className="overflow-hidden">
       <div className="flex items-center justify-between gap-2 border-b border-[var(--color-border)] bg-slate-50 px-4 py-2.5">
@@ -33,7 +38,7 @@ export function MessagePreview({ m }: { m: MessageView }) {
         </div>
         <div className="flex items-center gap-2">
           {m.automationType && <AutomationTag type={m.automationType as AutomationType} />}
-          <span className="text-xs text-[var(--color-muted)]">{fmtDateTime(m.sentAt)}</span>
+          <span className="text-xs text-[var(--color-muted)]">{fmtDateTime(m.sentAt, langue)}</span>
         </div>
       </div>
       <div className="px-4 py-3">
@@ -46,7 +51,7 @@ export function MessagePreview({ m }: { m: MessageView }) {
             rel="noopener noreferrer"
             className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-[var(--color-border)] bg-white px-3 py-1.5 text-sm font-medium text-[var(--color-brand-dark)] hover:bg-[var(--color-brand-soft)]"
           >
-            <Paperclip size={14} /> Voir la quittance (PDF)
+            <Paperclip size={14} /> {t("Voir la quittance (PDF)")}
           </a>
         )}
       </div>

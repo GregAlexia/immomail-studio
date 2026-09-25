@@ -21,15 +21,17 @@ const CATEGORIES: { key: string; label: string }[] = [
 ];
 
 export default async function AutomationsPage() {
-  const { agency } = await pageContext();
+  const { agency, t } = await pageContext();
   const counts = await getActivityCounts(agency.id);
   const items = Object.values(AUTOMATIONS);
 
   return (
     <>
       <PageHeader
-        title="Automatisations"
-        description="Les 11 automatisations de la plateforme, regroupées par espace. Le code (A1…A11) de chaque carte correspond au flux n8n du même nom — voir le dossier n8n-workflows/ et son guide débutant."
+        title={t("Automatisations")}
+        description={t(
+          "Les 11 automatisations de la plateforme, regroupées par espace. Le code (A1…A11) de chaque carte correspond au flux n8n du même nom — voir le dossier n8n-workflows/ et son guide débutant."
+        )}
       />
       <div className="space-y-8">
         {CATEGORIES.map((cat) => {
@@ -37,7 +39,7 @@ export default async function AutomationsPage() {
           if (catItems.length === 0) return null;
           return (
             <section key={cat.key}>
-              <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-[var(--color-muted)]">{cat.label}</h2>
+              <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-[var(--color-muted)]">{t(cat.label)}</h2>
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {catItems.map((a) => (
                   <Card key={a.code} className="flex flex-col p-5">
@@ -45,18 +47,18 @@ export default async function AutomationsPage() {
                       <span className="rounded-md bg-[var(--color-brand-soft)] px-2 py-0.5 font-mono text-sm font-bold text-[var(--color-brand-dark)]">
                         {a.code}
                       </span>
-                      <Badge tone="green"><CheckCircle2 size={12} /> Active</Badge>
+                      <Badge tone="green"><CheckCircle2 size={12} /> {t("Active")}</Badge>
                     </div>
-                    <h3 className="font-semibold text-[var(--color-ink)]">{a.title}</h3>
-                    <p className="mt-1 text-sm text-[var(--color-muted)]">{a.value}</p>
+                    <h3 className="font-semibold text-[var(--color-ink)]">{t(a.title)}</h3>
+                    <p className="mt-1 text-sm text-[var(--color-muted)]">{t(a.value)}</p>
                     <div className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600">
-                      <span className="font-semibold">Sortie visible :</span> {a.output}
+                      <span className="font-semibold">{t("Sortie visible :")}</span> {t(a.output)}
                     </div>
                     <div className="mt-3 flex items-center justify-between">
                       <span className="text-xs text-[var(--color-muted)]">
-                        {counts[a.code] ? `${counts[a.code]} déclenchement(s)` : "En attente de déclenchement"}
+                        {counts[a.code] ? `${counts[a.code]} ${t("déclenchement(s)")}` : t("En attente de déclenchement")}
                       </span>
-                      <Link href={DETAIL_HREF[a.code]} className="text-sm font-medium text-[var(--color-brand-dark)]">Voir le détail →</Link>
+                      <Link href={DETAIL_HREF[a.code]} className="text-sm font-medium text-[var(--color-brand-dark)]">{t("Voir le détail")} →</Link>
                     </div>
                   </Card>
                 ))}

@@ -7,9 +7,11 @@ import { setAgency } from "@/app/actions";
 export function AgencySelector({
   agencies,
   selectedId,
+  titre,
 }: {
   agencies: { id: string; name: string; city: string | null }[];
   selectedId: string;
+  titre: string;
 }) {
   const [pending, startTransition] = useTransition();
   return (
@@ -18,6 +20,8 @@ export function AgencySelector({
       <div className="relative">
         <select
           value={selectedId}
+          aria-label={titre}
+          title={titre}
           disabled={pending}
           onChange={(e) => {
             const id = e.target.value;

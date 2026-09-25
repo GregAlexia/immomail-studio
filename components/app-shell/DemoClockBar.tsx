@@ -44,12 +44,43 @@ function Btn({
   );
 }
 
+/**
+ * Intitulés de la barre d'horloge, déjà traduits par le layout.
+ *
+ * Un composant client ne lit pas le cookie de langue : son parent serveur a
+ * déjà le traducteur en main et lui passe des chaînes prêtes à afficher.
+ */
+export type TextesHorloge = {
+  dateDemo: string;
+  evaluer: string;
+  evaluerTitre: string;
+  reinitialiser: string;
+  reinitialiserTitre: string;
+  traitement: string;
+  confirmerTitre: string;
+  confirmerQuestion: string;
+  confirmerDetail: string;
+  annuler: string;
+  verrouTitre: string;
+  verrouDetailAvant: string;
+  verrouLienParametrage: string;
+  verrouDetailApres: string;
+  fermer: string;
+  declencheesTitre: string;
+  declenchees: (n: number) => string;
+  aucune: string;
+  dejaAJour: string;
+  autres: (n: number) => string;
+};
+
 export function DemoClockBar({
   currentISO,
   currentLabel,
+  textes: tx,
 }: {
   currentISO: string;
   currentLabel: string;
+  textes: TextesHorloge;
 }) {
   const [pending, startTransition] = useTransition();
   const [toast, setToast] = useState<EngineResult | null>(null);
@@ -81,7 +112,7 @@ export function DemoClockBar({
         <div className="flex items-center gap-2 rounded-lg bg-[var(--color-brand-soft)] px-3 py-1.5 text-[var(--color-brand-dark)]">
           <CalendarClock size={18} className="shrink-0" />
           <span className="text-sm font-semibold">
-            <span className="hidden sm:inline">Date de démo : </span>
+            <span className="hidden sm:inline">{tx.dateDemo} </span>
             {currentLabel}
           </span>
         </div>
@@ -95,8 +126,8 @@ export function DemoClockBar({
           className="rounded-md border border-[var(--color-border)] bg-white px-2 py-1.5 text-sm shadow-sm focus:border-[var(--color-brand)] focus:outline-none"
         />
 
-        <Btn onClick={() => run(() => evaluateNow())} disabled={pending} title="Évaluer les automatisations échues maintenant">
-          {pending ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} />} Évaluer
+        <Btn onClick={() => run(() => evaluateNow())} disabled={pending} title={tx.evaluerTitre}>
+          {pending ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} />} {tx.evaluer}
         </Btn>
 
         <button
@@ -104,14 +135,14 @@ export function DemoClockBar({
           onClick={() => setConfirmReset(true)}
           disabled={pending}
           className="inline-flex items-center gap-1 rounded-md border border-[var(--color-border)] bg-white px-2.5 py-1.5 text-sm font-medium text-rose-600 shadow-sm transition hover:bg-rose-50 disabled:opacity-50"
-          title="Réinitialiser la démo"
+          title={tx.reinitialiserTitre}
         >
-          <RotateCcw size={14} /> <span className="hidden sm:inline">Réinitialiser</span>
+          <RotateCcw size={14} /> <span className="hidden sm:inline">{tx.reinitialiser}</span>
         </button>
 
         {pending && (
           <span className="inline-flex items-center gap-1.5 text-sm text-[var(--color-muted)]" role="status">
-            <Loader2 size={14} className="animate-spin" /> Traitement…
+            <Loader2 size={14} className="animate-spin" /> {tx.traitement}
           </span>
         )}
       </div>
@@ -122,17 +153,14 @@ export function DemoClockBar({
           <div
             role="dialog"
             aria-modal="true"
-            aria-label="Confirmer la réinitialisation"
+            aria-label={tx.confirmerTitre}
             className="fixed inset-x-0 bottom-0 z-[71] flex flex-col rounded-t-2xl border border-rose-200 bg-white shadow-2xl sm:inset-x-auto sm:left-1/2 sm:top-1/2 sm:bottom-auto sm:w-96 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-xl"
           >
             <div className="flex items-start gap-3 px-4 py-4">
               <span className="rounded-lg bg-rose-100 p-2 text-rose-700"><RotateCcw size={18} /></span>
               <div className="min-w-0 flex-1">
-                <p className="font-semibold text-[var(--color-ink)]">Réinitialiser la démo ?</p>
-                <p className="mt-1 text-sm text-[var(--color-muted)]">
-                  Toutes les données actuelles (leads, rendez-vous, messages, journal) seront remplacées
-                  par le jeu de démonstration initial et l'horloge reviendra à sa date de départ.
-                </p>
+                <p className="font-semibold text-[var(--color-ink)]">{tx.confirmerQuestion}</p>
+                <p className="mt-1 text-sm text-[var(--color-muted)]">{tx.confirmerDetail}</p>
               </div>
             </div>
             <div className="flex gap-2 border-t border-[var(--color-border)] p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
@@ -141,7 +169,7 @@ export function DemoClockBar({
                 onClick={() => setConfirmReset(false)}
                 className="flex-1 rounded-lg border border-[var(--color-border)] bg-white px-4 py-2.5 text-sm font-semibold text-[var(--color-ink)] shadow-sm transition hover:bg-slate-50"
               >
-                Annuler
+                {tx.annuler}
               </button>
               <button
                 type="button"
@@ -155,7 +183,7 @@ export function DemoClockBar({
                 }}
                 className="flex-1 rounded-lg bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-700"
               >
-                Réinitialiser
+                {tx.reinitialiser}
               </button>
             </div>
           </div>
@@ -169,19 +197,19 @@ export function DemoClockBar({
           <div
             role="dialog"
             aria-modal="true"
-            aria-label="Action verrouillée"
+            aria-label={tx.verrouTitre}
             className="fixed inset-x-0 bottom-0 z-[71] flex flex-col rounded-t-2xl border border-amber-200 bg-white shadow-2xl sm:inset-x-auto sm:bottom-6 sm:right-6 sm:w-96 sm:rounded-xl"
           >
             <div className="flex items-start gap-3 px-4 py-4">
               <span className="rounded-lg bg-amber-100 p-2 text-amber-700"><Lock size={18} /></span>
               <div className="min-w-0 flex-1">
-                <p className="font-semibold text-[var(--color-ink)]">Action verrouillée</p>
+                <p className="font-semibold text-[var(--color-ink)]">{tx.verrouTitre}</p>
                 <p className="mt-1 text-sm text-[var(--color-muted)]">
-                  Cette démo est protégée : l'horloge, la réinitialisation et l'import sont réservés au présentateur.
-                  Déverrouillez le mode présentateur dans{" "}
+                  {tx.verrouDetailAvant}{" "}
                   <Link href="/parametres" className="font-medium text-[var(--color-brand-dark)] underline" onClick={() => setLocked(false)}>
-                    Paramétrage
-                  </Link>.
+                    {tx.verrouLienParametrage}
+                  </Link>
+                  {tx.verrouDetailApres}
                 </p>
               </div>
             </div>
@@ -191,7 +219,7 @@ export function DemoClockBar({
                 onClick={() => setLocked(false)}
                 className="w-full rounded-lg bg-[var(--color-brand)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:brightness-95"
               >
-                Fermer
+                {tx.fermer}
               </button>
             </div>
           </div>
@@ -211,22 +239,20 @@ export function DemoClockBar({
           <div
             role="dialog"
             aria-modal="true"
-            aria-label="Automatisations déclenchées"
+            aria-label={tx.declencheesTitre}
             className="fixed inset-x-0 bottom-0 z-[71] flex max-h-[75dvh] flex-col rounded-t-2xl border border-[var(--color-border)] bg-white shadow-2xl sm:inset-x-auto sm:bottom-6 sm:right-6 sm:w-96 sm:max-h-[70vh] sm:rounded-xl"
           >
             <div className="flex items-center justify-between gap-2 border-b border-[var(--color-border)] px-4 py-3">
               <div className="flex min-w-0 items-center gap-2 font-semibold text-[var(--color-ink)]">
                 <Sparkles size={18} className="shrink-0 text-[var(--color-brand)]" />
                 <span className="truncate">
-                  {toast.events.length > 0
-                    ? `${toast.events.length} automatisation${toast.events.length > 1 ? "s" : ""} déclenchée${toast.events.length > 1 ? "s" : ""}`
-                    : "Aucune nouvelle automatisation"}
+                  {toast.events.length > 0 ? tx.declenchees(toast.events.length) : tx.aucune}
                 </span>
               </div>
               <button
                 type="button"
                 onClick={() => setToast(null)}
-                aria-label="Fermer"
+                aria-label={tx.fermer}
                 className="-m-2 shrink-0 rounded-lg p-2 text-[var(--color-muted)] transition hover:bg-slate-100 hover:text-[var(--color-ink)]"
               >
                 <X size={20} />
@@ -235,9 +261,7 @@ export function DemoClockBar({
 
             <div className="min-h-0 flex-1 overflow-y-auto px-4 py-2">
               {toast.events.length === 0 ? (
-                <p className="py-3 text-sm text-[var(--color-muted)]">
-                  Tout est déjà à jour pour cette date. Avancez encore l'horloge pour déclencher les échéances suivantes.
-                </p>
+                <p className="py-3 text-sm text-[var(--color-muted)]">{tx.dejaAJour}</p>
               ) : (
                 <ul className="space-y-2 py-1">
                   {toast.events.slice(0, 12).map((e, i) => (
@@ -250,7 +274,7 @@ export function DemoClockBar({
                   ))}
                   {toast.events.length > 12 && (
                     <li className="flex items-center gap-1 pt-1 text-xs text-[var(--color-muted)]">
-                      <ChevronRight size={12} /> et {toast.events.length - 12} autre(s) — voir le Journal d'activité
+                      <ChevronRight size={12} /> {tx.autres(toast.events.length - 12)}
                     </li>
                   )}
                 </ul>
@@ -263,7 +287,7 @@ export function DemoClockBar({
                 onClick={() => setToast(null)}
                 className="w-full rounded-lg bg-[var(--color-brand)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:brightness-95"
               >
-                Fermer
+                {tx.fermer}
               </button>
             </div>
           </div>
