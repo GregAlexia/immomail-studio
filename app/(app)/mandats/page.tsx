@@ -4,7 +4,7 @@ import { PageHeader, Card, Badge, EmptyState, Table, Th, Td, Tr, AutomationTag }
 import { fmtDate, fromISO } from "@/lib/date";
 
 export default async function MandatesPage() {
-  const { agency, current } = await pageContext();
+  const { agency, current, t, langue } = await pageContext();
   const [mandates, activity, pm, cm] = await Promise.all([
     getMandates(agency.id),
     getActivity(agency.id, "A3"),
@@ -16,17 +16,19 @@ export default async function MandatesPage() {
   return (
     <>
       <PageHeader
-        title="Mandats"
-        description="Alerte automatique avant l'échéance d'un mandat (30 jours), avec relance pré-rédigée au propriétaire — pour ne jamais perdre un renouvellement (A3)."
+        title={t("Mandats")}
+        description={t(
+          "Alerte automatique avant l'échéance d'un mandat (30 jours), avec relance pré-rédigée au propriétaire — pour ne jamais perdre un renouvellement (A3)."
+        )}
       >
         <AutomationTag type="A3" withTitle />
       </PageHeader>
 
       {mandates.length === 0 ? (
-        <EmptyState title="Aucun mandat" />
+        <EmptyState title={t("Aucun mandat")} />
       ) : (
         <Card>
-          <Table head={<><Th>Bien</Th><Th>Propriétaire</Th><Th>Type</Th><Th>Échéance</Th><Th>Statut</Th><Th>Relance auto</Th></>}>
+          <Table head={<><Th>{t("Bien")}</Th><Th>{t("Propriétaire")}</Th><Th>{t("Type")}</Th><Th>{t("Échéance")}</Th><Th>{t("Statut")}</Th><Th>{t("Relance auto")}</Th></>}>
             {mandates.map((m) => {
               const prop = pm.byId.get(m.propertyId);
               const owner = cm.get(m.ownerId);
@@ -35,15 +37,15 @@ export default async function MandatesPage() {
                 <Tr key={m.id}>
                   <Td><span className="font-medium text-[var(--color-ink)]">{prop?.title ?? "—"}</span><p className="text-xs text-[var(--color-muted)]">{prop?.ref}</p></Td>
                   <Td>{fullName(owner)}<p className="text-xs text-[var(--color-muted)]">{owner?.email}</p></Td>
-                  <Td><Badge tone="gray">{m.type === "exclusive" ? "Exclusif" : "Simple"}</Badge></Td>
+                  <Td><Badge tone="gray">{m.type === "exclusive" ? t("Exclusif") : t("Simple")}</Badge></Td>
                   <Td>
-                    {fmtDate(m.endDate)}
+                    {fmtDate(m.endDate, langue)}
                     <p className={`text-xs ${days <= 0 ? "text-rose-600" : days <= 30 ? "text-amber-600" : "text-[var(--color-muted)]"}`}>
-                      {days <= 0 ? `Expiré depuis ${-days} j` : `Dans ${days} j`}
+                      {days <= 0 ? `${t("Expiré depuis")} ${-days} ${t("j")}` : `${t("Dans")} ${days} ${t("j")}`}
                     </p>
                   </Td>
-                  <Td><Badge tone={m.status === "active" ? "green" : "gray"}>{m.status === "active" ? "Actif" : m.status}</Badge></Td>
-                  <Td>{relaunched.has(m.id) ? <Badge tone="brand">Relance envoyée</Badge> : <Badge tone="gray">—</Badge>}</Td>
+                  <Td><Badge tone={m.status === "active" ? "green" : "gray"}>{m.status === "active" ? t("Actif") : m.status}</Badge></Td>
+                  <Td>{relaunched.has(m.id) ? <Badge tone="brand">{t("Relance envoyée")}</Badge> : <Badge tone="gray">—</Badge>}</Td>
                 </Tr>
               );
             })}

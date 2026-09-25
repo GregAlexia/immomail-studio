@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import type { AutomationType } from "@/lib/types";
 import { AUTOMATIONS } from "@/lib/types";
+import { traducteur } from "@/lib/i18n";
 
 export function Card({ className, children }: { className?: string; children: React.ReactNode }) {
   return (
@@ -69,11 +70,20 @@ const categoryTone: Record<string, BadgeTone> = {
   marketing: "green",
 };
 
-export function AutomationTag({ type, withTitle = false }: { type: AutomationType; withTitle?: boolean }) {
+export async function AutomationTag({
+  type,
+  withTitle = false,
+}: {
+  type: AutomationType;
+  withTitle?: boolean;
+}) {
   // Les codes "Ax" ne sont pas affichés. Sans titre demandé, aucun badge.
   if (!withTitle) return null;
   const a = AUTOMATIONS[type];
-  return <Badge tone={categoryTone[a.category]}>{a.title}</Badge>;
+  // Composant serveur : il peut lire la langue lui-même, ce qui évite de faire
+  // remonter un traducteur jusqu'à chaque appelant.
+  const t = await traducteur();
+  return <Badge tone={categoryTone[a.category]}>{t(a.title)}</Badge>;
 }
 
 export function StatCard({
