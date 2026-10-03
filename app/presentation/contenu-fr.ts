@@ -32,8 +32,8 @@ export const CONTENU_FR: ContenuVente = {
     pastille: "Démonstration ouverte",
     titre: ["Vos leads ne sont pas perdus.", "Ils sont arrivés trop tard."],
     lead:
-      "Une demande de portail rappelée trois heures plus tard a déjà appelé l'agence suivante. " +
-      "Un rappel de visite oublié devient un créneau vide. Un mandat qui expire dans trente jours " +
+      "Une demande de portail rappelée 3 heures plus tard a déjà appelé l'agence suivante. " +
+      "Un rappel de visite oublié devient un créneau vide. Un mandat qui expire dans 30 jours " +
       "ne se signale nulle part.",
     leadFin: [
       "Aucun de ces oublis n'apparaît sur un tableau de bord : ils se confondent avec le marché, la saison, ou ",
@@ -68,13 +68,13 @@ export const CONTENU_FR: ContenuVente = {
         tete: "Rappel de visite",
         note: "avant",
         valeur: "J-1 · H-2",
-        legende: "Deux envois par visite, sans que personne y pense.",
+        legende: "2 envois par visite, sans que personne y pense.",
       },
     ],
   },
 
   bande: {
-    label: "Onze automatisations, livrées ensemble",
+    label: "11 automatisations, livrées ensemble",
     items: [
       "Tri des emails de portails",
       "Réponse instantanée 24/7",
@@ -117,32 +117,32 @@ export const CONTENU_FR: ContenuVente = {
       "ressemblent au marché, et c'est pour ça que personne ne les corrige.",
     oublis: [
       {
-        num: "01",
+        num: "1",
         titre: "Entre le portail et le rappel",
         probleme:
-          "Les demandes de SeLoger, Leboncoin, Bien'ici et du formulaire arrivent dans la même boîte que les factures et les pièces de dossier. Celle qu'on rappelle trois heures plus tard a déjà appelé l'agence d'en face.",
+          "Les demandes de SeLoger, Leboncoin, Bien'ici et du formulaire arrivent dans la même boîte que les factures et les pièces de dossier. Celle qu'on rappelle 3 heures plus tard a déjà appelé l'agence d'en face.",
         reponse:
           "Keo lit chaque email, distingue une vraie demande d'un suivi de visite, d'un envoi de pièces ou d'un spam, crée le lead qualifié, le route au bon négociateur, ouvre la fiche contact et envoie l'accusé de réception horodaté.",
         label: "8 emails bruts",
         chiffre: "5 leads",
       },
       {
-        num: "02",
+        num: "2",
         titre: "Entre le rendez-vous et la visite",
         probleme:
           "Un créneau calé le lundi pour le samedi tient à un seul fil : que le client s'en souvienne. Le lapin ne coûte pas une visite, il coûte le déplacement, le créneau et le vendeur qui attendait.",
         reponse:
-          "Le créneau se réserve en ligne et se bloque aussitôt. La confirmation part à la réservation, le rappel la veille, puis deux heures avant. Aucun de ces envois ne dépend de quelqu'un qui y pense.",
+          "Le créneau se réserve en ligne et se bloque aussitôt. La confirmation part à la réservation, le rappel la veille, puis 2 heures avant. Aucun de ces envois ne dépend de quelqu'un qui y pense.",
         label: "Rappels J-1 · H-2",
         chiffre: "2 envois",
       },
       {
-        num: "03",
+        num: "3",
         titre: "Entre la signature et l'échéance",
         probleme:
           "Un mandat expire, un DPE arrive à terme, une quittance est due. Rien de tout cela ne remonte : ça se voit le jour où le propriétaire a déjà signé ailleurs.",
         reponse:
-          "Le mandat alerte trente jours avant et la relance propriétaire part avec. Les diagnostics passent en orange puis en rouge. Les quittances sont générées au jour d'échéance, en PDF, prêtes à envoyer.",
+          "Le mandat alerte 30 jours avant et la relance propriétaire part avec. Les diagnostics passent en orange puis en rouge. Les quittances sont générées au jour d'échéance, en PDF, prêtes à envoyer.",
         label: "Mandat · DPE · bail",
         chiffre: "J-30",
       },
@@ -157,22 +157,22 @@ export const CONTENU_FR: ContenuVente = {
       "personne n'a le temps de faire qui cessent d'attendre quelqu'un.",
     etapes: [
       {
-        num: "01",
+        num: "1",
         titre: "Vos demandes arrivent triées",
         texte:
           "Vous n'ouvrez plus des emails, vous ouvrez des fiches. Qualifiées, attribuées, déjà répondues — même celles tombées un dimanche à 22 h 40.",
       },
       {
-        num: "02",
+        num: "2",
         titre: "Vos visites se calent seules",
         texte:
-          "Le client choisit son créneau sur une page de réservation. Confirmation, rappel la veille, rappel deux heures avant : rien à déclencher.",
+          "Le client choisit son créneau sur une page de réservation. Confirmation, rappel la veille, rappel 2 heures avant : rien à déclencher.",
       },
       {
-        num: "03",
+        num: "3",
         titre: "Vos échéances se signalent",
         texte:
-          "Quittances éditées, mandats en alerte à trente jours, diagnostics suivis. Vous arrêtez de tenir le calendrier dans votre tête.",
+          "Quittances éditées, mandats en alerte à 30 jours, diagnostics suivis. Vous arrêtez de tenir le calendrier dans votre tête.",
       },
     ],
   },
@@ -199,7 +199,7 @@ export const CONTENU_FR: ContenuVente = {
       {
         titre: "Rendez-vous et rappels",
         texte:
-          "Page de réservation publique, créneau bloqué à la volée, confirmation immédiate, puis rappels la veille et deux heures avant, par SMS et par email.",
+          "Page de réservation publique, créneau bloqué à la volée, confirmation immédiate, puis rappels la veille et 2 heures avant, par SMS et par email.",
         label: "Créneau réservé",
         valeur: "Confirmé",
       },
@@ -213,14 +213,14 @@ export const CONTENU_FR: ContenuVente = {
       {
         titre: "Mandats et conformité",
         texte:
-          "Les mandats alertent trente jours avant terme, avec la relance propriétaire. Les diagnostics, le PNO et les baux passent d'« à venir » à « imminent » puis à « dépassé ».",
+          "Les mandats alertent 30 jours avant terme, avec la relance propriétaire. Les diagnostics, le PNO et les baux passent d'« à venir » à « imminent » puis à « dépassé ».",
         label: "Mandat MA-14",
         valeur: "J-30",
       },
       {
         titre: "Après la signature",
         texte:
-          "Newsletter segmentée aux acheteurs dont le projet correspond, demande d'avis Google deux jours après la signature avec relance à cinq, demande de parrainage à trente.",
+          "Newsletter segmentée aux acheteurs dont le projet correspond, demande d'avis Google 2 jours après la signature avec relance à 5, demande de parrainage à 30.",
         label: "Signature + 2 j",
         valeur: "Avis",
       },
@@ -240,7 +240,7 @@ export const CONTENU_FR: ContenuVente = {
         ton: "vif",
         intro: "Tout fonctionne, ouvert, sans compte.",
         points: [
-          "Les onze automatisations",
+          "Les 11 automatisations",
           "Quittances en PDF réels",
           "Aperçus fidèles des SMS et des emails",
           "Journal horodaté de chaque exécution",
@@ -289,7 +289,7 @@ export const CONTENU_FR: ContenuVente = {
     titre: "Nous ne vous montrerons pas d'avis clients",
     sous:
       "Le produit est jeune, et des témoignages que vous ne pouvez pas vérifier ne valent pas " +
-      "grand-chose. Voici six choses que vous pouvez contrôler vous-même, maintenant, sans nous " +
+      "grand-chose. Voici 6 choses que vous pouvez contrôler vous-même, maintenant, sans nous " +
       "croire sur parole.",
     engagements: [
       {
@@ -368,7 +368,7 @@ export const CONTENU_FR: ContenuVente = {
       },
       {
         q: "Mes données sont-elles isolées ?",
-        r: "Oui. Chaque espace de démonstration est indépendant : les biens, les contacts et même l'horloge d'un espace n'apparaissent dans aucun autre. Deux présentations peuvent tourner en même temps sans se gêner.",
+        r: "Oui. Chaque espace de démonstration est indépendant : les biens, les contacts et même l'horloge d'un espace n'apparaissent dans aucun autre. 2 présentations peuvent tourner en même temps sans se gêner.",
       },
       {
         q: "Puis-je mettre mes propres biens dans la démonstration ?",
@@ -389,7 +389,7 @@ export const CONTENU_FR: ContenuVente = {
     surtitre: "Vous préférez qu'on vous rappelle ?",
     titre: "Laissez-nous de quoi vous joindre",
     sous:
-      "Quatre champs, dont deux facultatifs. Nous rappelons nous-mêmes — vous ne tomberez pas sur " +
+      "4 champs, dont 2 facultatifs. Nous rappelons nous-mêmes — vous ne tomberez pas sur " +
       "un standard.",
     champs: {
       nom: "Votre nom",
@@ -404,7 +404,7 @@ export const CONTENU_FR: ContenuVente = {
       ".",
     ],
     messages: {
-      envoye: "C'est noté — nous vous rappelons sous deux jours ouvrés.",
+      envoye: "C'est noté — nous vous rappelons sous 2 jours ouvrés.",
       nom: "Il manque votre nom.",
       email: "Cette adresse email ne semble pas valide.",
     },
@@ -414,7 +414,7 @@ export const CONTENU_FR: ContenuVente = {
     surtitre: "Démonstration ouverte",
     titre: "Voyez-le tourner avant qu'on en parle.",
     texte:
-      "Ouvrez la boîte de réception, triez les huit emails, avancez la date d'une semaine. En deux " +
+      "Ouvrez la boîte de réception, triez les 8 emails, avancez la date d'une semaine. En 2 " +
       "minutes vous saurez si ça vous sert.",
     points: [
       "Sans compte ni adresse email",

@@ -47,8 +47,8 @@ export const CONTENU_EN: ContenuVente = {
     pastille: "Open demo",
     titre: ["Your leads aren't lost.", "They arrived too late."],
     lead:
-      "A portal enquiry called back three hours later has already rung the agency down the road. " +
-      "A forgotten viewing reminder becomes an empty slot. A listing agreement expiring in thirty " +
+      "A portal enquiry called back 3 hours later has already rung the agency down the road. " +
+      "A forgotten viewing reminder becomes an empty slot. A listing agreement expiring in 30 " +
       "days flags itself nowhere.",
     leadFin: [
       "None of these lapses shows up on a dashboard: they blend into the market, the season, or ",
@@ -83,13 +83,13 @@ export const CONTENU_EN: ContenuVente = {
         tete: "Viewing reminder",
         note: "before",
         valeur: "1 day · 2 hrs",
-        legende: "Two messages per viewing, with nobody remembering to send them.",
+        legende: "2 messages per viewing, with nobody remembering to send them.",
       },
     ],
   },
 
   bande: {
-    label: "Eleven automations, delivered together",
+    label: "11 automations, delivered together",
     items: [
       "Portal enquiries sorted",
       "Instant reply, around the clock",
@@ -132,32 +132,32 @@ export const CONTENU_EN: ContenuVente = {
       "that is why nobody fixes them.",
     oublis: [
       {
-        num: "01",
+        num: "1",
         titre: "Between the portal and the callback",
         probleme:
-          "Enquiries from SeLoger, Leboncoin, Bien'ici and your own form land in the same inbox as invoices and paperwork. The one you call back three hours later has already rung the agency across the street.",
+          "Enquiries from SeLoger, Leboncoin, Bien'ici and your own form land in the same inbox as invoices and paperwork. The one you call back 3 hours later has already rung the agency across the street.",
         reponse:
           "Keo reads every email, tells a real enquiry apart from a post-viewing follow-up, a document upload or spam, creates the qualified lead, routes it to the right agent, opens the contact record and sends a timestamped acknowledgement.",
         label: "8 raw emails",
         chiffre: "5 leads",
       },
       {
-        num: "02",
+        num: "2",
         titre: "Between the booking and the viewing",
         probleme:
           "A Monday booking for Saturday hangs on one thread: the client remembering. A no-show doesn't cost you a viewing — it costs the journey, the slot, and the seller who waited in.",
         reponse:
-          "The slot is booked online and blocked at once. Confirmation goes out on booking, a reminder the day before, another two hours ahead. None of it depends on someone thinking of it.",
+          "The slot is booked online and blocked at once. Confirmation goes out on booking, a reminder the day before, another 2 hours ahead. None of it depends on someone thinking of it.",
         label: "1 day · 2 hrs",
         chiffre: "2 messages",
       },
       {
-        num: "03",
+        num: "3",
         titre: "Between the signature and the deadline",
         probleme:
           "A listing agreement (mandat) runs out, an energy certificate (DPE) reaches its term, a rent receipt falls due. None of it surfaces: you find out the day the owner has already signed elsewhere.",
         reponse:
-          "The listing alerts thirty days ahead and the owner chase goes with it. Certificates turn amber, then red. Rent receipts are generated on the due date, as PDFs, ready to send.",
+          "The listing alerts 30 days ahead and the owner chase goes with it. Certificates turn amber, then red. Rent receipts are generated on the due date, as PDFs, ready to send.",
         label: "Listing · DPE · lease",
         chiffre: "30 days",
       },
@@ -172,22 +172,22 @@ export const CONTENU_EN: ContenuVente = {
       "has time for that stop waiting on someone.",
     etapes: [
       {
-        num: "01",
+        num: "1",
         titre: "Your enquiries arrive sorted",
         texte:
           "You stop opening emails and start opening records. Qualified, assigned, already answered — including the ones that landed at 10:40 pm on a Sunday.",
       },
       {
-        num: "02",
+        num: "2",
         titre: "Your viewings book themselves",
         texte:
-          "The client picks a slot on a booking page. Confirmation, a reminder the day before, another two hours ahead: nothing to trigger.",
+          "The client picks a slot on a booking page. Confirmation, a reminder the day before, another 2 hours ahead: nothing to trigger.",
       },
       {
-        num: "03",
+        num: "3",
         titre: "Your deadlines announce themselves",
         texte:
-          "Rent receipts issued, listings flagged thirty days out, certificates tracked. You stop keeping the calendar in your head.",
+          "Rent receipts issued, listings flagged 30 days out, certificates tracked. You stop keeping the calendar in your head.",
       },
     ],
   },
@@ -214,7 +214,7 @@ export const CONTENU_EN: ContenuVente = {
       {
         titre: "Bookings and reminders",
         texte:
-          "A public booking page, the slot blocked on the spot, immediate confirmation, then reminders the day before and two hours ahead, by SMS and email.",
+          "A public booking page, the slot blocked on the spot, immediate confirmation, then reminders the day before and 2 hours ahead, by SMS and email.",
         label: "Slot booked",
         valeur: "Confirmed",
       },
@@ -228,14 +228,14 @@ export const CONTENU_EN: ContenuVente = {
       {
         titre: "Listings and compliance",
         texte:
-          "Listing agreements alert thirty days before term, owner chase included. Energy certificates, landlord insurance and leases move from “upcoming” to “imminent” to “overdue”.",
+          "Listing agreements alert 30 days before term, owner chase included. Energy certificates, landlord insurance and leases move from “upcoming” to “imminent” to “overdue”.",
         label: "Listing MA-14",
         valeur: "30 days",
       },
       {
         titre: "After the signature",
         texte:
-          "A newsletter segmented to the buyers whose brief matches, a Google review request two days after signing with a nudge at five, a referral request at thirty.",
+          "A newsletter segmented to the buyers whose brief matches, a Google review request 2 days after signing with a nudge at 5, a referral request at 30.",
         label: "Signed + 2 days",
         valeur: "Review",
       },
@@ -255,7 +255,7 @@ export const CONTENU_EN: ContenuVente = {
         ton: "vif",
         intro: "All of it works, open, no account.",
         points: [
-          "The eleven automations",
+          "The 11 automations",
           "Rent receipts as real PDFs",
           "Faithful previews of every SMS and email",
           "A timestamped log of every run",
@@ -303,7 +303,7 @@ export const CONTENU_EN: ContenuVente = {
     surtitre: "What you can check yourself",
     titre: "We won't show you customer testimonials",
     sous:
-      "The product is young, and testimonials you cannot verify aren't worth much. Here are six " +
+      "The product is young, and testimonials you cannot verify aren't worth much. Here are 6 " +
       "things you can check for yourself, right now, without taking our word for any of it.",
     engagements: [
       {
@@ -381,7 +381,7 @@ export const CONTENU_EN: ContenuVente = {
       },
       {
         q: "Is our data isolated?",
-        r: "Yes. Each demo workspace is independent: the properties, the contacts and even the clock of one workspace appear in no other. Two presentations can run at the same time without disturbing each other.",
+        r: "Yes. Each demo workspace is independent: the properties, the contacts and even the clock of one workspace appear in no other. 2 presentations can run at the same time without disturbing each other.",
       },
       {
         q: "Can we put our own properties into the demo?",
@@ -402,7 +402,7 @@ export const CONTENU_EN: ContenuVente = {
     surtitre: "Would you rather we called?",
     titre: "Leave us a way to reach you",
     sous:
-      "Four fields, two of them optional. We call back ourselves — you won't reach a switchboard.",
+      "4 fields, 2 of them optional. We call back ourselves — you won't reach a switchboard.",
     champs: {
       nom: "Your name",
       agence: "Your agency",
@@ -416,7 +416,7 @@ export const CONTENU_EN: ContenuVente = {
       ".",
     ],
     messages: {
-      envoye: "Noted — we'll call you back within two working days.",
+      envoye: "Noted — we'll call you back within 2 working days.",
       nom: "Your name is missing.",
       email: "That email address doesn't look valid.",
     },
@@ -426,7 +426,7 @@ export const CONTENU_EN: ContenuVente = {
     surtitre: "Open demo",
     titre: "Watch it run before we talk.",
     texte:
-      "Open the inbox, sort the eight emails, move the date forward a week. Two minutes and you'll " +
+      "Open the inbox, sort the 8 emails, move the date forward a week. 2 minutes and you'll " +
       "know whether it's any use to you.",
     points: [
       "No account, no email address",

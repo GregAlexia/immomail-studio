@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Archivo, Source_Serif_4 } from "next/font/google";
+import { Bricolage_Grotesque, IBM_Plex_Mono, Karla } from "next/font/google";
 import {
   detailDeLOffre,
   formaterDate,
@@ -15,17 +15,15 @@ import { actionDemanderRappel } from "./actions";
 import type { ContenuVente } from "./contenu";
 import "./vente.css";
 
-/* Les deux polices de la maison AgenIA : Archivo pour les titres, Source Serif
-   pour le texte courant et les italiques d'emphase. Déclarées ici et non dans
-   le layout racine : elles n'habillent que cette page, l'application garde
-   Geist. */
-const archivo = Archivo({ subsets: ["latin"], variable: "--ag-police-titre", display: "swap" });
-const serif = Source_Serif_4({
-  subsets: ["latin"],
-  style: ["normal", "italic"],
-  variable: "--ag-police-corps",
-  display: "swap",
-});
+/* Les trois polices de la page de vente, alignées sur margeo.agenia.pro pour
+   que les deux produits de la maison se présentent dans la même langue
+   visuelle : Bricolage Grotesque pour les titres, Karla pour le texte
+   courant, IBM Plex Mono pour les chiffres et les étiquettes techniques (ce
+   que margeo appelle `.num`/`.eyebrow`). Déclarées ici et non dans le layout
+   racine : elles n'habillent que cette page, l'application garde Geist. */
+const titre = Bricolage_Grotesque({ subsets: ["latin"], variable: "--ag-police-titre", display: "swap" });
+const corps = Karla({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--ag-police-corps", display: "swap" });
+const mono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--ag-police-mono", display: "swap" });
 
 /**
  * Les offres, ou rien.
@@ -74,7 +72,7 @@ export async function Vente({
        l'application en français, et une page ne peut pas le changer. L'attribut
        vaut pour tout son sous-arbre — c'est ce que lisent les synthèses vocales
        et les moteurs. */
-    <div className={`ag ${archivo.variable} ${serif.variable}`} lang={c.langue}>
+    <div className={`ag ${titre.variable} ${corps.variable} ${mono.variable}`} lang={c.langue}>
       {promotion && (
         <div className="ag-promo">
           <p>
