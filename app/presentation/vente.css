@@ -1,386 +1,331 @@
 /* ===========================================================================
    Système de mise en page des pages de vente AgenIA (préfixe `ag-`).
-   Repris de margeo.agenia.pro : mêmes tokens (papier vert pâle, encre
-   presque noire, accent vert bouteille), mêmes trois polices (Bricolage
-   Grotesque pour les titres, Karla pour le texte courant, IBM Plex Mono pour
-   les chiffres et les étiquettes techniques), mêmes motifs — bordures nettes
-   à 3px plutôt que des coins très arrondis, badges numérotés carrés, tableau
-   comparatif, FAQ en accordéon. La structure HTML (Vente.tsx) n'a pas bougé :
-   seule l'habillage change, pour que les deux produits de la maison se
-   présentent dans la même langue visuelle sans rien retoucher au formulaire
-   de rappel ni aux tarifs tirés de la base.
+   Repris à l'identique de margeo.agenia.pro, afin que les deux produits de la
+   maison se présentent dans la même langue visuelle : même papier crème, même
+   encre, Archivo pour les titres et Source Serif pour le texte courant.
 
    Tout est porté par `.ag`, jamais par `body` : la feuille cohabite avec le
    Tailwind de l'application, qui habille toutes les autres pages.
    ======================================================================== */
 
 .ag {
-  --ag-fond: #f5f7f3;
-  --ag-surface: #ffffff;
-  --ag-surface-2: #ebeee6;
-  --ag-filet: #dce2d6;
-  --ag-filet-fort: #c3ccba;
-  --ag-texte: #131f1b;
-  --ag-texte-doux: #4a5a51;
-  --ag-texte-pale: #7c8c82;
-  --ag-accent: #0b6354;
-  --ag-accent-fort: #094f43;
-  --ag-accent-texte: #ffffff;
-  --ag-accent-doux: #ddede7;
-  --ag-encre: #131f1b;
-  --ag-encre-texte: #f5f7f3;
-  --ag-rouge: #a93726;
-  --ag-rouge-doux: #f8e5e1;
-  --ag-vert: #2c6e3c;
-  --ag-vert-doux: #e2efe2;
-  --ag-ambre: #8e5e06;
-  --ag-ombre: 0 1px 0 rgba(19, 31, 27, 0.04), 0 8px 24px -12px rgba(19, 31, 27, 0.18);
-  --ag-rayon: 3px;
-  --ag-rayon-petit: 2px;
-  --ag-largeur: 1120px;
+  --ag-fond: #f0efe8;
+  --ag-surface: #e6e0d3;
+  --ag-surface-2: #ddd6c5;
+  --ag-filet: #d3ccbc;
+  --ag-filet-fort: #b9b1a0;
+  --ag-texte: #171613;
+  --ag-texte-doux: #57534a;
+  --ag-texte-pale: #8b857a;
+  --ag-encre: #121210;
+  --ag-encre-texte: #f5f4ee;
+  --ag-rouge: #a33a2a;
+  --ag-vert: #2f6b43;
+  --ag-ambre: #8a5a12;
+  --ag-rayon: 14px;
+  --ag-rayon-petit: 9px;
+  --ag-largeur: 1160px;
   --ag-titre: var(--ag-police-titre), "Segoe UI", system-ui, sans-serif;
-  --ag-corps: var(--ag-police-corps), "Helvetica Neue", Arial, sans-serif;
-  --ag-mono: var(--ag-police-mono), ui-monospace, monospace;
+  --ag-corps: var(--ag-police-corps), Georgia, "Times New Roman", serif;
 
   min-height: 100vh;
   background: var(--ag-fond);
   color: var(--ag-texte);
   font-family: var(--ag-corps);
-  font-size: 17px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
 
 /* `globals.css` peint le fond de l'application en ardoise claire. La page de
-   vente est la seule à réclamer le papier vert pâle jusque sous le pli. */
+   vente est la seule à réclamer le papier crème jusque sous le pli. */
 :root:root body:has(.ag) {
-  background-color: #f5f7f3;
+  background-color: #f0efe8;
 }
 
 .ag :where(h1, h2, h3, h4) {
   font-family: var(--ag-titre);
-  line-height: 1.1;
-  letter-spacing: -0.02em;
-  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -0.015em;
+  font-weight: 600;
   margin: 0;
-  text-wrap: balance;
 }
 .ag :where(a) { color: inherit; text-decoration: none; }
-.ag :where(a, button, summary):focus-visible { outline: 2px solid var(--ag-accent); outline-offset: 3px; border-radius: 2px; }
+.ag :where(a, button, summary):focus-visible { outline: 2px solid var(--ag-encre); outline-offset: 3px; }
 .ag [id] { scroll-margin-top: 92px; }
-.ag table { border-collapse: collapse; }
 
 .ag-contenu { width: 100%; max-width: var(--ag-largeur); margin: 0 auto; padding: 0 24px; }
 
-/* Emphase du titre d'accroche : une couleur, pas une italique — c'est le
-   traitement de margeo (`.hero h1 em`), et la page n'a plus d'italique nulle
-   part ailleurs. */
-.ag-emphase { font-style: normal; color: var(--ag-rouge); }
+/* L'italique du serif, seul ornement typographique de la page. */
+.ag-emphase { font-family: var(--ag-corps); font-style: italic; font-weight: 600; letter-spacing: 0; }
 
 /* --- Boutons ------------------------------------------------------------- */
 .ag-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  padding: 13px 22px; border-radius: var(--ag-rayon);
-  font-family: var(--ag-corps); font-weight: 700; font-size: 0.95rem;
+  padding: 12px 22px; border-radius: var(--ag-rayon-petit);
+  font-family: var(--ag-titre); font-weight: 600; font-size: 0.95rem;
   cursor: pointer; border: 1px solid transparent; text-align: center; max-width: 100%;
-  transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
-.ag-btn::after { content: "\2192"; transition: transform 0.16s ease; }
+.ag-btn::after { content: "\2192"; font-family: var(--ag-titre); transition: transform 0.2s ease; }
 .ag-btn:hover::after { transform: translateX(3px); }
-.ag-btn--primaire { background: var(--ag-accent); color: var(--ag-accent-texte); }
-.ag-btn--primaire:hover { background: var(--ag-accent-fort); transform: translateY(-1px); }
-.ag-btn--fantome { background: transparent; color: var(--ag-texte); border-color: var(--ag-filet-fort); }
-.ag-btn--fantome:hover { border-color: var(--ag-accent); color: var(--ag-accent); }
-.ag-btn--grand { padding: 15px 28px; font-size: 1rem; }
+.ag-btn--primaire { background: var(--ag-encre); color: var(--ag-encre-texte); }
+.ag-btn--primaire:hover { background: #2b2a26; }
+.ag-btn--fantome { background: transparent; color: var(--ag-texte); border-color: var(--ag-texte); }
+.ag-btn--fantome:hover { background: var(--ag-encre); color: var(--ag-encre-texte); border-color: var(--ag-encre); }
+.ag-btn--grand { padding: 15px 30px; font-size: 1.02rem; }
 
 /* --- Bandeau de promotion ------------------------------------------------ */
 /* Au-dessus de l'en-tête collant, et non dedans : il défile avec la page,
    parce qu'une offre s'annonce une fois — elle n'a pas à suivre le lecteur. */
 .ag-promo {
-  background: var(--ag-accent); color: var(--ag-accent-texte);
-  font-family: var(--ag-mono); font-size: 0.86rem; text-align: center;
+  background: var(--ag-encre); color: var(--ag-encre-texte);
+  font-family: var(--ag-titre); font-size: 0.88rem; text-align: center;
 }
-.ag-promo p { margin: 0; padding: 10px 24px; }
-.ag-promo strong { font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; font-size: 0.76rem; }
+.ag-promo p { margin: 0; padding: 11px 24px; }
+.ag-promo strong { font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; font-size: 0.78rem; }
 
 /* --- En-tête ------------------------------------------------------------- */
-.ag-entete {
-  position: sticky; top: 0; z-index: 50;
-  background: color-mix(in srgb, var(--ag-fond) 88%, transparent);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--ag-filet);
-}
-.ag-entete__interieur { display: flex; align-items: center; gap: 22px; min-height: 66px; flex-wrap: wrap; padding: 10px 0; }
-.ag-marque { flex: 0 0 auto; display: flex; align-items: center; gap: 9px; font-family: var(--ag-titre); font-weight: 800; font-size: 1.3rem; letter-spacing: -0.03em; }
-.ag-marque::before {
-  content: "K"; width: 24px; height: 24px; border-radius: var(--ag-rayon); background: var(--ag-accent); color: var(--ag-accent-texte);
-  display: inline-grid; place-items: center; font-family: var(--ag-mono); font-size: 0.82rem; font-weight: 600;
-}
-.ag-marque span { font-family: var(--ag-mono); font-style: normal; font-weight: 400; font-size: 0.74rem; color: var(--ag-texte-pale); margin-left: 4px; letter-spacing: 0.02em; }
-.ag-nav { display: flex; gap: 20px; margin-left: auto; }
-.ag-nav a { font-family: var(--ag-corps); font-size: 0.92rem; font-weight: 500; color: var(--ag-texte-doux); transition: color 0.16s ease; }
-.ag-nav a:hover { color: var(--ag-accent); }
+.ag-entete { position: sticky; top: 0; z-index: 50; background: var(--ag-fond); border-bottom: 1px solid var(--ag-filet); }
+.ag-entete__interieur { display: flex; align-items: center; gap: 18px; min-height: 76px; flex-wrap: wrap; padding: 10px 0; }
+.ag-marque { flex: 0 0 auto; font-family: var(--ag-titre); font-weight: 700; font-size: 1.35rem; letter-spacing: -0.02em; }
+.ag-marque span { font-family: var(--ag-corps); font-style: italic; font-weight: 400; font-size: 0.86rem; color: var(--ag-texte-pale); margin-left: 10px; letter-spacing: 0; }
+.ag-nav { display: flex; gap: 4px; margin-left: auto; }
+.ag-nav a { padding: 8px 14px; border-radius: 999px; font-family: var(--ag-titre); font-size: 0.95rem; font-weight: 500; transition: background 0.2s ease; }
+.ag-nav a:hover { background: var(--ag-surface); }
 .ag-entete__fin { display: flex; align-items: center; gap: 8px; margin-left: 4px; }
 /* Bascule de langue : visible sans concurrencer l'appel à l'action voisin,
-   d'où le contour plutôt que l'aplat. */
+   d'où le contour plutôt que l'aplat noir. */
 .ag-langue {
-  padding: 10px 15px; border-radius: var(--ag-rayon);
+  padding: 11px 16px; border-radius: var(--ag-rayon-petit);
   border: 1px solid var(--ag-filet-fort); background: transparent;
-  font-family: var(--ag-corps); font-weight: 600; font-size: 0.88rem; white-space: nowrap;
-  transition: border-color 0.16s ease, color 0.16s ease;
+  font-family: var(--ag-titre); font-weight: 600; font-size: 0.9rem; white-space: nowrap;
+  transition: border-color 0.2s ease, background 0.2s ease;
 }
-.ag-langue:hover { border-color: var(--ag-accent); color: var(--ag-accent); }
+.ag-langue:hover { border-color: var(--ag-texte); background: var(--ag-surface); }
 
 /* --- Hero ---------------------------------------------------------------- */
-.ag-hero { padding: clamp(40px, 5vw, 68px) 0 clamp(52px, 7vw, 84px); }
-.ag-hero__grille { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: clamp(32px, 4vw, 56px); align-items: start; }
+.ag-hero { padding: clamp(44px, 7vw, 82px) 0 52px; }
+.ag-hero__grille { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 48px; align-items: start; }
 .ag-pastille {
-  display: inline-flex; align-items: center; gap: 8px;
-  font-family: var(--ag-mono); font-size: 0.76rem; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase;
-  color: var(--ag-accent);
+  display: inline-flex; align-items: center; gap: 9px; padding: 7px 15px; border-radius: 999px;
+  font-family: var(--ag-titre); font-size: 0.8rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--ag-texte-doux); background: var(--ag-surface); border: 1px solid var(--ag-filet);
 }
-.ag-pastille__point { width: 7px; height: 7px; border-radius: 50%; background: var(--ag-accent); }
-.ag-hero__titre { font-size: clamp(2.2rem, 4.8vw, 3.5rem); font-weight: 800; margin-top: 18px; }
-.ag-hero__lead { font-size: clamp(1.05rem, 1.8vw, 1.2rem); color: var(--ag-texte-doux); margin: 18px 0 0; max-width: 54ch; }
+.ag-pastille__point { width: 8px; height: 8px; border-radius: 50%; background: var(--ag-encre); }
+.ag-hero__titre { font-size: clamp(2.2rem, 5.2vw, 3.6rem); font-weight: 700; margin-top: 22px; text-wrap: balance; }
+.ag-hero__lead { font-size: clamp(1.05rem, 2vw, 1.22rem); color: var(--ag-texte-doux); margin: 20px 0 0; }
 .ag-hero__lead strong { color: var(--ag-texte); font-weight: 600; }
-.ag-hero__actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
-.ag-hero__note { margin: 16px 0 0; font-family: var(--ag-mono); font-size: 0.78rem; color: var(--ag-texte-pale); letter-spacing: 0.02em; }
+.ag-hero__actions { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 30px; }
+.ag-hero__note { margin: 16px 0 0; font-size: 0.86rem; color: var(--ag-texte-pale); }
 
-/* Les quatre aperçus chiffrés, traités comme autant de reçus posés côte à
-   côte : bordure nette, ombre portée, valeur en chiffres tabulaires — la même
-   idée que le ticket de margeo, sans son horizontalité de tableau. */
-.ag-apercus { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 18px; }
-.ag-apercu {
-  padding: 16px 18px; border-radius: var(--ag-rayon); background: var(--ag-surface);
-  border: 1px solid var(--ag-filet-fort); box-shadow: var(--ag-ombre);
-}
+.ag-apercus { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 18px; }
+.ag-apercu { padding: 20px; border-radius: var(--ag-rayon); background: var(--ag-surface); border: 1px solid var(--ag-filet); }
 .ag-apercu__tete {
   display: flex; align-items: center; justify-content: space-between; gap: 10px;
-  font-family: var(--ag-mono); font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ag-texte-pale);
-  padding-bottom: 10px; border-bottom: 1px dashed var(--ag-filet-fort);
+  font-family: var(--ag-titre); font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ag-texte-pale);
 }
-.ag-apercu__note { font-weight: 400; letter-spacing: 0.02em; text-transform: none; }
-.ag-apercu__valeur { font-family: var(--ag-titre); font-size: 1.7rem; font-weight: 700; margin: 10px 0 0; font-variant-numeric: tabular-nums; }
-.ag-apercu__legende { margin: 6px 0 0; font-size: 0.86rem; color: var(--ag-texte-doux); }
+.ag-apercu__note { border-radius: 999px; background: var(--ag-fond); border: 1px solid var(--ag-filet); padding: 2px 9px; letter-spacing: 0.02em; text-transform: none; }
+.ag-apercu__valeur { font-family: var(--ag-titre); font-size: 1.85rem; font-weight: 700; margin: 10px 0 0; font-variant-numeric: tabular-nums; }
+.ag-apercu__legende { margin: 6px 0 0; font-size: 0.88rem; color: var(--ag-texte-doux); }
 .ag-ton-vert { color: var(--ag-vert); }
 .ag-ton-ambre { color: var(--ag-ambre); }
 
-/* --- Chiffres clés --------------------------------------------------------- */
-.ag-stats { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; }
-.ag-stats li { border-top: 3px solid var(--ag-accent); padding-top: 16px; }
-.ag-stats li:nth-child(2) { border-top-color: var(--ag-filet-fort); }
-.ag-stats li:nth-child(3) { border-top-color: var(--ag-vert); }
-.ag-stats strong {
-  display: block; font-family: var(--ag-titre); font-size: clamp(1.9rem, 3.6vw, 2.5rem); font-weight: 700;
-  line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums;
-}
+/* --- Chiffres ------------------------------------------------------------ */
+.ag-stats { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+.ag-stats li { padding-left: 18px; border-left: 2px solid var(--ag-filet-fort); }
+.ag-stats strong { display: block; font-family: var(--ag-titre); font-size: clamp(1.7rem, 3.4vw, 2.2rem); font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
 .ag-stats b { display: block; margin-top: 10px; font-weight: 600; }
-.ag-stats span { display: block; margin-top: 4px; color: var(--ag-texte-doux); font-size: 0.92rem; max-width: 32ch; }
+.ag-stats span { display: block; margin-top: 4px; color: var(--ag-texte-doux); font-size: 0.92rem; }
 
 /* --- Bandeau de pastilles ------------------------------------------------ */
-.ag-bande { padding: 28px 0 10px; }
-.ag-bande__label { margin: 0 0 18px; text-align: center; font-family: var(--ag-mono); font-size: 0.74rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ag-texte-pale); }
-.ag-bande__liste { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 12px; list-style: none; margin: 0; padding: 0; }
+.ag-bande { padding: 26px 0 8px; }
+.ag-bande__label { margin: 0 0 18px; text-align: center; font-family: var(--ag-titre); font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ag-texte-pale); }
+.ag-bande__liste { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px 14px; list-style: none; margin: 0; padding: 0; }
 .ag-bande__liste li {
-  padding: 8px 15px; border-radius: var(--ag-rayon); font-family: var(--ag-corps); font-size: 0.88rem; font-weight: 500;
+  padding: 9px 16px; border-radius: 999px; font-family: var(--ag-titre); font-size: 0.9rem; font-weight: 500;
   color: var(--ag-texte-doux); background: var(--ag-surface); border: 1px solid var(--ag-filet);
 }
 
 /* --- Sections ------------------------------------------------------------ */
 .ag-section { padding: clamp(56px, 8vw, 92px) 0; }
-.ag-section--alt { background: var(--ag-surface); border-top: 1px solid var(--ag-filet); border-bottom: 1px solid var(--ag-filet); }
-.ag-surtitre {
-  display: inline-block; font-family: var(--ag-mono); font-weight: 500; font-size: 0.74rem;
-  letter-spacing: 0.14em; text-transform: uppercase; color: var(--ag-accent); margin-bottom: 16px;
-}
-.ag-titre { font-size: clamp(1.7rem, 3.4vw, 2.4rem); font-weight: 700; }
-.ag-sous { color: var(--ag-texte-doux); font-size: 1.05rem; margin: 16px 0 0; max-width: 68ch; }
+.ag-section--alt { background: #eae8de; border-top: 1px solid var(--ag-filet); border-bottom: 1px solid var(--ag-filet); }
+.ag-surtitre { display: inline-block; font-family: var(--ag-titre); font-weight: 700; font-size: 0.78rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ag-texte-pale); margin-bottom: 14px; }
+.ag-titre { font-size: clamp(1.65rem, 3.6vw, 2.4rem); font-weight: 700; text-wrap: balance; }
+.ag-sous { color: var(--ag-texte-doux); font-size: 1.06rem; margin: 16px 0 0; max-width: 68ch; }
 .ag-tete--centre { max-width: 720px; margin: 0 auto 48px; text-align: center; }
 .ag-tete--centre .ag-sous { margin-left: auto; margin-right: auto; }
 
 /* --- Les oublis (problème / réponse / chiffre) --------------------------- */
-.ag-fuites { display: flex; flex-direction: column; gap: 18px; margin-top: 44px; }
-.ag-fuite {
-  display: grid; grid-template-columns: 2.25rem 1fr 11rem; gap: 24px; align-items: start;
-  padding: 26px; border-radius: var(--ag-rayon); background: var(--ag-surface); border: 1px solid var(--ag-filet);
-}
-.ag-fuite__num {
-  width: 36px; height: 36px; border-radius: var(--ag-rayon-petit); background: var(--ag-accent); color: var(--ag-accent-texte);
-  font-family: var(--ag-mono); font-size: 0.85rem; font-weight: 600; display: grid; place-items: center;
-}
-.ag-fuite h3 { font-size: 1.18rem; }
+.ag-fuites { display: flex; flex-direction: column; gap: 20px; margin-top: 44px; }
+.ag-fuite { display: grid; grid-template-columns: 3.5rem 1fr 11rem; gap: 24px; align-items: start; padding: 28px; border-radius: var(--ag-rayon); background: var(--ag-surface); }
+.ag-fuite__num { font-family: var(--ag-titre); font-size: 2rem; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.ag-fuite h3 { font-size: 1.2rem; }
 .ag-fuite__probleme { color: var(--ag-texte-doux); margin: 10px 0 0; }
 .ag-fuite__reponse { margin: 14px 0 0; padding-left: 16px; border-left: 2px solid var(--ag-filet-fort); }
-.ag-fuite__chiffre { padding: 16px; border-radius: var(--ag-rayon); background: var(--ag-fond); border: 1px dashed var(--ag-filet-fort); text-align: center; }
-.ag-fuite__chiffre span { display: block; font-family: var(--ag-mono); font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ag-texte-pale); }
-.ag-fuite__chiffre strong { display: block; margin-top: 6px; font-family: var(--ag-titre); font-size: 1.35rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.ag-fuite__chiffre { padding: 18px 16px; border-radius: var(--ag-rayon-petit); background: var(--ag-fond); border: 1px solid var(--ag-filet); text-align: center; }
+.ag-fuite__chiffre span { display: block; font-family: var(--ag-titre); font-size: 0.74rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ag-texte-pale); }
+.ag-fuite__chiffre strong { display: block; margin-top: 6px; font-family: var(--ag-titre); font-size: 1.4rem; font-weight: 700; font-variant-numeric: tabular-nums; }
 
 /* --- Étapes -------------------------------------------------------------- */
-/* Reprend la grille à filets de margeo : 1px de fond visible entre des
-   cartes sans bordure propre, ce qui dessine une grille nette sans empiler
-   les traits. */
-.ag-etapes { list-style: none; margin: 44px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--ag-filet); border: 1px solid var(--ag-filet); }
-.ag-etape { padding: 26px 22px 24px; background: var(--ag-surface); display: flex; flex-direction: column; gap: 8px; }
-.ag-etape__num {
-  width: 26px; height: 26px; border-radius: var(--ag-rayon-petit); background: var(--ag-accent); color: var(--ag-accent-texte);
-  font-family: var(--ag-mono); font-size: 0.78rem; font-weight: 600; display: inline-grid; place-items: center;
+.ag-etapes { list-style: none; margin: 44px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+.ag-etape { padding: 28px 24px; border-radius: var(--ag-rayon); background: var(--ag-surface); transition: background 0.25s ease, transform 0.25s ease; }
+.ag-etape:hover { background: var(--ag-surface-2); transform: translateY(-3px); }
+.ag-etape__num { display: block; font-family: var(--ag-titre); font-weight: 700; font-size: 2rem; line-height: 1; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--ag-filet-fort); font-variant-numeric: tabular-nums; }
+.ag-etape h3 { font-size: 1.12rem; }
+.ag-etape p { margin: 8px 0 0; color: var(--ag-texte-doux); font-size: 0.96rem; }
+
+/* --- Avant / après --------------------------------------------------------
+   Repris de prospeo.agenia.pro : un vrai tableau HTML, la lecture en ligne
+   fait l'argument. En dessous de 700px il se replie en fiches empilées —
+   `data-colonne` (posé sur chaque <td> dans Vente.tsx) fournit l'étiquette
+   que `::before` affiche à la place de l'en-tête de colonne, qui disparaît. */
+.ag-avant-apres {
+  width: 100%; margin-top: 34px; border-collapse: separate; border-spacing: 0;
+  background: var(--ag-surface); border: 1px solid var(--ag-filet); border-radius: var(--ag-rayon);
+  overflow: hidden; font-size: 0.98rem;
 }
-.ag-etape h3 { font-size: 1.1rem; margin-top: 4px; }
-.ag-etape p { margin: 0; color: var(--ag-texte-doux); font-size: 0.95rem; }
+.ag-avant-apres th, .ag-avant-apres td { padding: 16px 20px; text-align: left; vertical-align: top; border-top: 1px solid var(--ag-filet); }
+.ag-avant-apres thead th { border-top: 0; font-family: var(--ag-titre); font-size: 0.78rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ag-texte-pale); }
+.ag-avant-apres tbody th { width: 20%; font-family: var(--ag-titre); font-weight: 600; color: var(--ag-texte); }
+.ag-avant-apres td:nth-of-type(1) { width: 38%; color: var(--ag-texte-doux); }
+.ag-avant-apres td:nth-of-type(2) { color: var(--ag-texte); font-weight: 500; }
 
 /* --- Cartes de la plateforme --------------------------------------------- */
-.ag-cartes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 44px; }
-.ag-carte { display: flex; flex-direction: column; padding: 26px; border-radius: var(--ag-rayon); background: var(--ag-surface); border: 1px solid var(--ag-filet); transition: border-color 0.16s ease; }
-.ag-carte:hover { border-color: var(--ag-accent); }
-.ag-carte h3 { font-size: 1.1rem; }
-.ag-carte p { margin: 10px 0 0; flex: 1; color: var(--ag-texte-doux); font-size: 0.96rem; }
+.ag-cartes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 44px; }
+.ag-carte { display: flex; flex-direction: column; padding: 28px; border-radius: var(--ag-rayon); background: var(--ag-surface); transition: background 0.25s ease, transform 0.25s ease; }
+.ag-carte:hover { background: var(--ag-surface-2); transform: translateY(-3px); }
+.ag-carte h3 { font-size: 1.15rem; }
+.ag-carte p { margin: 10px 0 0; flex: 1; color: var(--ag-texte-doux); font-size: 0.98rem; }
 .ag-carte__apercu {
   display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 18px;
-  padding: 11px 15px; border-radius: var(--ag-rayon-petit); background: var(--ag-fond); border: 1px dashed var(--ag-filet-fort);
+  padding: 12px 16px; border-radius: var(--ag-rayon-petit); background: var(--ag-fond); border: 1px solid var(--ag-filet);
 }
-.ag-carte__apercu span { font-family: var(--ag-mono); font-size: 0.68rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ag-texte-pale); }
-.ag-carte__apercu strong { font-family: var(--ag-mono); font-weight: 600; font-variant-numeric: tabular-nums; color: var(--ag-accent); }
+.ag-carte__apercu span { font-family: var(--ag-titre); font-size: 0.74rem; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ag-texte-pale); }
+.ag-carte__apercu strong { font-family: var(--ag-titre); font-weight: 700; font-variant-numeric: tabular-nums; }
 
 /* --- Listes à flèche ----------------------------------------------------- */
 .ag-liste { list-style: none; margin: 16px 0 0; padding: 0; display: flex; flex-direction: column; gap: 9px; }
 .ag-liste li { padding: 8px 0 0; border-top: 1px solid var(--ag-filet); color: var(--ag-texte-doux); font-size: 0.95rem; }
-.ag-liste li::before { content: "\2192\2002"; font-family: var(--ag-mono); font-size: 0.85em; color: var(--ag-accent); }
+.ag-liste li::before { content: "\2192\2002"; font-family: var(--ag-titre); font-size: 0.85em; color: var(--ag-texte); }
 
 /* --- Jalons (sans filtre) ------------------------------------------------ */
-.ag-jalons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 44px; }
-.ag-jalon { padding: 24px; border-radius: var(--ag-rayon); background: var(--ag-surface); border: 1px solid var(--ag-filet); }
+.ag-jalons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 44px; }
+.ag-jalon { padding: 26px; border-radius: var(--ag-rayon); background: var(--ag-surface); }
 .ag-jalon__etat {
-  display: inline-block; padding: 4px 11px; border-radius: var(--ag-rayon-petit); border: 1px solid currentColor;
-  font-family: var(--ag-mono); font-size: 0.7rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+  display: inline-block; padding: 4px 12px; border-radius: 999px; border: 1px solid currentColor;
+  font-family: var(--ag-titre); font-size: 0.74rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
 }
 .ag-jalon__etat--vif { color: var(--ag-vert); }
 .ag-jalon__etat--tiede { color: var(--ag-ambre); }
 .ag-jalon__etat--froid { color: var(--ag-texte-pale); }
 .ag-jalon__intro { margin: 14px 0 0; font-size: 0.92rem; color: var(--ag-texte-pale); }
 
-/* --- Origine --------------------------------------------------------------- */
-/* Même traitement que `.claim` sur margeo : un bloc accentué, pas une
-   italique — c'est le seul endroit de la page où une phrase se détache ainsi
-   du corps du texte. */
+/* --- Origine ------------------------------------------------------------- */
 .ag-origine { max-width: 760px; }
-.ag-citation {
-  margin: 18px 0 0; padding: 22px 26px; border-left: 3px solid var(--ag-accent); border-radius: 0 var(--ag-rayon) var(--ag-rayon) 0;
-  background: var(--ag-accent-doux); font-family: var(--ag-titre); font-weight: 600; font-size: clamp(1.15rem, 2vw, 1.4rem);
-  line-height: 1.35; letter-spacing: -0.01em;
-}
+.ag-citation { margin: 18px 0 0; padding-left: 22px; border-left: 2px solid var(--ag-filet-fort); font-size: 1.28rem; line-height: 1.5; font-style: italic; }
 .ag-origine p { color: var(--ag-texte-doux); margin: 18px 0 0; }
-.ag-signature { margin-top: 24px; font-family: var(--ag-mono); font-size: 0.8rem; color: var(--ag-texte-pale); }
+.ag-signature { margin-top: 24px; font-family: var(--ag-titre); font-size: 0.86rem; color: var(--ag-texte-pale); }
 
 /* --- Grille des engagements ---------------------------------------------- */
-.ag-grille-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 40px; }
-.ag-grille-3 > div { background: var(--ag-surface); border: 1px solid var(--ag-filet); border-radius: var(--ag-rayon); padding: 22px; }
-.ag-grille-3 h3 { font-size: 1.04rem; }
+.ag-grille-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; margin-top: 40px; }
+.ag-grille-3 h3 { font-size: 1.05rem; }
 .ag-grille-3 p { margin: 8px 0 0; color: var(--ag-texte-doux); font-size: 0.95rem; }
-.ag-lien { display: inline-block; margin-top: 12px; font-family: var(--ag-corps); font-weight: 700; font-size: 0.9rem; color: var(--ag-accent); text-decoration: underline; text-underline-offset: 4px; }
+.ag-lien { display: inline-block; margin-top: 10px; font-family: var(--ag-titre); font-weight: 600; font-size: 0.9rem; text-decoration: underline; text-underline-offset: 4px; }
 
 /* --- Offres --------------------------------------------------------------- */
 /* `auto-fit` et non deux colonnes fixes : le nombre d'offres se règle depuis la
    console, et une troisième ne doit pas se retrouver orpheline sur sa ligne. */
-.ag-offres { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 18px; margin-top: 36px; align-items: stretch; }
-.ag-offre { padding: 26px 22px 24px; border-radius: var(--ag-rayon); background: var(--ag-surface); border: 1px solid var(--ag-filet); display: flex; flex-direction: column; position: relative; }
-/* La mise en avant d'une offre (`offre.miseEnAvant`, réglée depuis la
-   console) n'a pas de libellé en base : on la marque par la bordure accent,
-   pas par un texte « le plus choisi » qui devrait alors exister en deux
-   langues quelque part — et certainement pas injecté depuis la CSS. */
-.ag-offre--principale { border-color: var(--ag-accent); border-width: 2px; }
+.ag-offres { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 22px; margin-top: 36px; }
+.ag-offre { padding: 30px; border-radius: var(--ag-rayon); background: var(--ag-surface); border: 1px solid transparent; display: flex; flex-direction: column; }
+.ag-offre--principale { border-color: var(--ag-texte); }
 .ag-offre__tete { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
-.ag-offre__tete h3 { font-size: 1.1rem; font-weight: 700; }
-.ag-offre__prix { margin: 0; font-family: var(--ag-titre); font-size: 1.8rem; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.ag-prix-barre { color: var(--ag-texte-pale); font-size: 0.68em; font-weight: 600; margin-right: 6px; text-decoration: line-through; }
-.ag-offre__detail { margin: 4px 0 0; font-size: 0.88rem; color: var(--ag-texte-pale); }
-.ag-offre__promo { margin: 10px 0 0; font-family: var(--ag-mono); font-size: 0.8rem; font-weight: 600; color: var(--ag-rouge); }
+.ag-offre__tete h3 { font-size: 1.15rem; }
+.ag-offre__prix { margin: 0; font-family: var(--ag-titre); font-size: 1.9rem; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ag-prix-barre { color: var(--ag-texte-pale); font-size: 0.72em; font-weight: 600; margin-right: 6px; text-decoration: line-through; }
+.ag-offre__detail { margin: 4px 0 0; font-size: 0.9rem; color: var(--ag-texte-pale); }
+.ag-offre__promo { margin: 10px 0 0; font-family: var(--ag-titre); font-size: 0.82rem; font-weight: 600; color: var(--ag-rouge); }
 /* Pousse le bouton en bas : sans cela, deux offres aux arguments inégaux
    alignent mal leurs boutons et la colonne la plus courte paraît bâclée. */
 .ag-offre .ag-liste { flex: 1; }
-.ag-offre .ag-btn { margin-top: 22px; justify-content: center; }
-.ag-mention { margin: 28px auto 0; font-family: var(--ag-mono); font-size: 0.82rem; color: var(--ag-texte-pale); text-align: center; max-width: 70ch; letter-spacing: 0.01em; }
+.ag-offre .ag-btn { margin-top: 22px; }
+.ag-mention { margin: 28px auto 0; font-size: 0.88rem; color: var(--ag-texte-pale); text-align: center; max-width: 70ch; }
 .ag-mention--gauche { text-align: left; margin-inline: 0; }
 
 /* --- Formulaire de rappel ------------------------------------------------- */
 .ag-etroit { max-width: 720px; }
 .ag-form { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 32px; }
 .ag-form label { display: block; }
-.ag-form label span { display: block; font-family: var(--ag-corps); font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; }
+.ag-form label span { display: block; font-family: var(--ag-titre); font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; }
 .ag-form input {
-  width: 100%; padding: 12px 14px; border-radius: var(--ag-rayon);
-  border: 1px solid var(--ag-filet-fort); background: var(--ag-surface); color: var(--ag-texte);
-  font-family: var(--ag-corps); font-size: 0.98rem;
+  width: 100%; padding: 12px 14px; border-radius: var(--ag-rayon-petit);
+  border: 1px solid var(--ag-filet-fort); background: var(--ag-fond); color: var(--ag-texte);
+  font-family: var(--ag-titre); font-size: 0.98rem;
 }
-.ag-form input:focus { outline: 2px solid var(--ag-accent); outline-offset: 2px; border-color: var(--ag-accent); }
+.ag-form input:focus { outline: 2px solid var(--ag-encre); outline-offset: 2px; border-color: var(--ag-encre); }
 .ag-form > button { grid-column: 1 / -1; justify-self: start; }
 /* Hors de l'écran plutôt que `display: none` : un automate évite les champs
    masqués, mais remplit volontiers ceux qu'il croit simplement décalés. */
 .ag-form__piege { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
-.ag-retour { margin: 24px 0 0; padding: 14px 18px; border-radius: var(--ag-rayon); font-family: var(--ag-corps); font-weight: 600; font-size: 0.95rem; border: 1px solid; }
-.ag-retour--ok { background: var(--ag-vert-doux); border-color: var(--ag-vert); color: var(--ag-vert); }
-.ag-retour--erreur { background: var(--ag-rouge-doux); border-color: var(--ag-rouge); color: var(--ag-rouge); }
+.ag-retour { margin: 24px 0 0; padding: 14px 18px; border-radius: var(--ag-rayon-petit); font-family: var(--ag-titre); font-size: 0.95rem; border: 1px solid; }
+.ag-retour--ok { background: #e7ecdf; border-color: #b3c39b; color: var(--ag-vert); }
+.ag-retour--erreur { background: #f6e3df; border-color: #dcb6ac; color: var(--ag-rouge); }
 
-/* --- Questions ------------------------------------------------------------- */
-/* Repris à l'identique de margeo : bordure haute sur le conteneur, bordure
-   basse par question, « + » qui pivote à 45° à l'ouverture. */
+/* --- Questions ----------------------------------------------------------- */
 .ag-faq { max-width: 800px; }
-.ag-faq__liste { margin-top: 36px; border-top: 1px solid var(--ag-filet); }
-.ag-faq__item { border-bottom: 1px solid var(--ag-filet); }
+.ag-faq__liste { display: flex; flex-direction: column; gap: 12px; margin-top: 36px; }
+.ag-faq__item { border: 1px solid var(--ag-filet); border-radius: var(--ag-rayon-petit); background: var(--ag-surface); padding: 4px 20px; transition: background 0.25s ease; }
+.ag-faq__item[open] { background: var(--ag-surface-2); }
 .ag-faq__item summary {
-  cursor: pointer; list-style: none; padding: 20px 36px 20px 0; position: relative;
-  font-family: var(--ag-titre); font-weight: 600; font-size: 1.05rem; letter-spacing: -0.01em;
+  cursor: pointer; list-style: none; padding: 16px 0; font-family: var(--ag-titre); font-weight: 600; font-size: 1.02rem;
+  display: flex; justify-content: space-between; align-items: center; gap: 16px;
 }
 .ag-faq__item summary::-webkit-details-marker { display: none; }
-.ag-faq__item summary::after {
-  content: "+"; position: absolute; right: 4px; top: 16px; font-family: var(--ag-mono);
-  font-size: 1.4rem; font-weight: 400; color: var(--ag-accent); transition: transform 0.18s ease;
-}
+.ag-faq__item summary::after { content: "+"; font-size: 1.5rem; line-height: 1; transition: transform 0.25s ease; }
 .ag-faq__item[open] summary::after { transform: rotate(45deg); }
-.ag-faq__item p { margin: 0 0 22px; color: var(--ag-texte-doux); font-size: 0.98rem; max-width: 68ch; }
+.ag-faq__item p { margin: 0 0 18px; color: var(--ag-texte-doux); }
 
 /* --- Appel final --------------------------------------------------------- */
 .ag-appel { padding: 0 0 clamp(56px, 8vw, 92px); }
 .ag-appel__interieur {
   display: flex; align-items: center; justify-content: space-between; gap: 32px; flex-wrap: wrap;
-  padding: 44px; border-radius: var(--ag-rayon); background: var(--ag-encre); color: var(--ag-encre-texte);
+  padding: 44px; border-radius: 20px; background: var(--ag-encre); color: var(--ag-encre-texte);
 }
 /* Sans cette base, le bloc de texte prend toute la largeur et rejette les
    boutons sur une ligne à lui seul, laissant la moitié droite du cartouche
    vide. */
 .ag-appel__interieur > div:first-child { flex: 1 1 26rem; }
-.ag-appel h2 { font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 700; }
-.ag-appel p { margin: 10px 0 0; color: #a4b6aa; max-width: 54ch; }
-.ag-appel .ag-surtitre { color: #74dcbe; }
-.ag-appel__points { list-style: none; margin: 18px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; color: #a4b6aa; font-size: 0.95rem; }
+.ag-appel h2 { font-size: clamp(1.5rem, 3.2vw, 2.05rem); font-weight: 700; }
+.ag-appel p { margin: 10px 0 0; color: #c9c6bb; max-width: 54ch; }
+.ag-appel .ag-surtitre { color: #a5a195; }
+.ag-appel__points { list-style: none; margin: 18px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; color: #c9c6bb; }
 .ag-appel__points li { position: relative; padding-left: 22px; }
-.ag-appel__points li::before { content: "\2713"; position: absolute; left: 0; color: #4ecba9; font-weight: 700; }
-.ag-appel .ag-btn--primaire { background: #4ecba9; color: #05201a; }
-.ag-appel .ag-btn--primaire:hover { background: #74dcbe; }
-.ag-appel .ag-btn--fantome { color: var(--ag-encre-texte); border-color: #35473b; }
-.ag-appel .ag-btn--fantome:hover { border-color: #4ecba9; color: #4ecba9; }
+.ag-appel__points li::before { content: "\2713"; position: absolute; left: 0; color: var(--ag-encre-texte); font-weight: 700; }
+.ag-appel .ag-btn--primaire { background: var(--ag-encre-texte); color: var(--ag-encre); }
+.ag-appel .ag-btn--primaire:hover { background: #fff; }
+.ag-appel .ag-btn--fantome { color: var(--ag-encre-texte); border-color: #5a5851; }
+.ag-appel .ag-btn--fantome:hover { background: var(--ag-encre-texte); color: var(--ag-encre); border-color: var(--ag-encre-texte); }
 /* Les deux boutons l'un sous l'autre : côte à côte, la colonne devient plus
    large que la place restante et bascule sous le texte, laissant la moitié
    droite du cartouche vide. */
 .ag-appel__actions { display: flex; flex-direction: column; gap: 12px; flex: 0 0 auto; }
 
-/* --- Pied ------------------------------------------------------------------ */
-.ag-pied { border-top: 1px solid var(--ag-filet); background: var(--ag-surface); padding: 52px 0 28px; }
+/* --- Pied ---------------------------------------------------------------- */
+.ag-pied { border-top: 1px solid var(--ag-filet); padding: 52px 0 28px; }
 .ag-pied__grille { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
-.ag-pied h4 { font-family: var(--ag-mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ag-texte-pale); font-weight: 500; margin-bottom: 14px; }
+.ag-pied h4 { font-family: var(--ag-titre); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ag-texte-pale); margin-bottom: 14px; }
 .ag-pied ul { list-style: none; margin: 0; padding: 0; }
-.ag-pied li a { display: block; padding: 5px 0; font-family: var(--ag-corps); font-size: 0.92rem; color: var(--ag-texte-doux); }
-.ag-pied li a:hover { color: var(--ag-accent); }
+.ag-pied li a { display: block; padding: 5px 0; font-family: var(--ag-titre); font-size: 0.93rem; color: var(--ag-texte-doux); }
+.ag-pied li a:hover { color: var(--ag-texte); text-decoration: underline; }
 .ag-pied__mention { margin-top: 8px; font-size: 0.78rem; color: var(--ag-texte-pale); }
-.ag-pied__bas { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--ag-filet); font-family: var(--ag-mono); font-size: 0.78rem; color: var(--ag-texte-pale); }
+.ag-pied__bas { margin-top: 40px; padding-top: 22px; border-top: 1px solid var(--ag-filet); font-family: var(--ag-titre); font-size: 0.82rem; color: var(--ag-texte-pale); }
 
-/* --- Adaptations ----------------------------------------------------------- */
+/* --- Adaptations ---------------------------------------------------------- */
 @media (max-width: 1150px) {
   .ag-nav { display: none; }
   .ag-entete__fin { margin-left: auto; }
   .ag-hero__grille { grid-template-columns: 1fr; gap: 36px; }
   .ag-cartes, .ag-grille-3, .ag-jalons { grid-template-columns: repeat(2, 1fr); }
-  .ag-etapes { grid-template-columns: repeat(2, 1fr); }
-  .ag-fuite { grid-template-columns: 2.25rem 1fr; }
+  .ag-fuite { grid-template-columns: 3rem 1fr; }
   .ag-fuite__chiffre { grid-column: 2; }
 }
 @media (max-width: 700px) {
@@ -390,7 +335,20 @@
   .ag-fuite__chiffre { grid-column: 1; }
   .ag-appel__interieur { padding: 30px 24px; }
   .ag-hero__actions .ag-btn, .ag-appel__actions .ag-btn { width: 100%; }
+
+  .ag-avant-apres thead { display: none; }
+  .ag-avant-apres, .ag-avant-apres tbody, .ag-avant-apres tr, .ag-avant-apres th, .ag-avant-apres td { display: block; width: auto; }
+  .ag-avant-apres tr + tr { border-top: 1px solid var(--ag-filet); }
+  .ag-avant-apres th, .ag-avant-apres td { border-top: 0; padding: 4px 18px; }
+  .ag-avant-apres tbody th { width: auto; padding-top: 16px; }
+  .ag-avant-apres td:nth-of-type(1), .ag-avant-apres td:nth-of-type(2) { width: auto; }
+  .ag-avant-apres td:last-child { padding-bottom: 16px; }
+  .ag-avant-apres td::before {
+    content: attr(data-colonne) " — "; font-family: var(--ag-titre); font-size: 0.78rem; font-weight: 600;
+    letter-spacing: 0.04em; text-transform: uppercase; color: var(--ag-texte-pale);
+  }
 }
 @media (prefers-reduced-motion: reduce) {
-  .ag-btn, .ag-carte, .ag-faq__item summary::after { transition: none; }
+  .ag-btn, .ag-carte, .ag-etape, .ag-faq__item { transition: none; }
+  .ag-carte:hover, .ag-etape:hover { transform: none; }
 }

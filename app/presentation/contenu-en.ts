@@ -132,7 +132,7 @@ export const CONTENU_EN: ContenuVente = {
       "that is why nobody fixes them.",
     oublis: [
       {
-        num: "1",
+        num: "01",
         titre: "Between the portal and the callback",
         probleme:
           "Enquiries from SeLoger, Leboncoin, Bien'ici and your own form land in the same inbox as invoices and paperwork. The one you call back 3 hours later has already rung the agency across the street.",
@@ -142,7 +142,7 @@ export const CONTENU_EN: ContenuVente = {
         chiffre: "5 leads",
       },
       {
-        num: "2",
+        num: "02",
         titre: "Between the booking and the viewing",
         probleme:
           "A Monday booking for Saturday hangs on one thread: the client remembering. A no-show doesn't cost you a viewing — it costs the journey, the slot, and the seller who waited in.",
@@ -152,7 +152,7 @@ export const CONTENU_EN: ContenuVente = {
         chiffre: "2 messages",
       },
       {
-        num: "3",
+        num: "03",
         titre: "Between the signature and the deadline",
         probleme:
           "A listing agreement (mandat) runs out, an energy certificate (DPE) reaches its term, a rent receipt falls due. None of it surfaces: you find out the day the owner has already signed elsewhere.",
@@ -172,22 +172,60 @@ export const CONTENU_EN: ContenuVente = {
       "has time for that stop waiting on someone.",
     etapes: [
       {
-        num: "1",
+        num: "01",
         titre: "Your enquiries arrive sorted",
         texte:
           "You stop opening emails and start opening records. Qualified, assigned, already answered — including the ones that landed at 10:40 pm on a Sunday.",
       },
       {
-        num: "2",
+        num: "02",
         titre: "Your viewings book themselves",
         texte:
           "The client picks a slot on a booking page. Confirmation, a reminder the day before, another 2 hours ahead: nothing to trigger.",
       },
       {
-        num: "3",
+        num: "03",
         titre: "Your deadlines announce themselves",
         texte:
           "Rent receipts issued, listings flagged 30 days out, certificates tracked. You stop keeping the calendar in your head.",
+      },
+    ],
+  },
+
+  avantApres: {
+    surtitre: "Before, after",
+    titre: "The same work, with and without Keo",
+    sous:
+      "One row, one task. On the left, what an agency does with an inbox and a shared calendar; " +
+      "on the right, the same task inside Keo.",
+    colonneSujet: "Task",
+    colonneAvant: "Today",
+    colonneApres: "With Keo",
+    lignes: [
+      {
+        sujet: "Sorting a portal email",
+        avant: "Read in the same inbox as invoices, handled whenever someone has time.",
+        apres: "Classified, qualified and routed to the agent within seconds.",
+      },
+      {
+        sujet: "Replying to a prospect",
+        avant: "A reply at the next inbox check, sometimes the next day.",
+        apres: "A personalised acknowledgement leaves the second it exists, day or night.",
+      },
+      {
+        sujet: "Confirming a viewing",
+        avant: "A text typed by hand, if someone remembers.",
+        apres: "Instant confirmation, a reminder the day before, another 2 hours ahead.",
+      },
+      {
+        sujet: "Tracking a listing",
+        avant: "Noticed at the deadline, sometimes after.",
+        apres: "Flagged 30 days ahead, with the owner chase already sent.",
+      },
+      {
+        sujet: "Issuing a rent receipt",
+        avant: "Generated and sent lease by lease, every start of month.",
+        apres: "A PDF issued on the due date, for every lease, with nobody thinking of it.",
       },
     ],
   },

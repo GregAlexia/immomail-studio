@@ -117,7 +117,7 @@ export const CONTENU_FR: ContenuVente = {
       "ressemblent au marché, et c'est pour ça que personne ne les corrige.",
     oublis: [
       {
-        num: "1",
+        num: "01",
         titre: "Entre le portail et le rappel",
         probleme:
           "Les demandes de SeLoger, Leboncoin, Bien'ici et du formulaire arrivent dans la même boîte que les factures et les pièces de dossier. Celle qu'on rappelle 3 heures plus tard a déjà appelé l'agence d'en face.",
@@ -127,7 +127,7 @@ export const CONTENU_FR: ContenuVente = {
         chiffre: "5 leads",
       },
       {
-        num: "2",
+        num: "02",
         titre: "Entre le rendez-vous et la visite",
         probleme:
           "Un créneau calé le lundi pour le samedi tient à un seul fil : que le client s'en souvienne. Le lapin ne coûte pas une visite, il coûte le déplacement, le créneau et le vendeur qui attendait.",
@@ -137,7 +137,7 @@ export const CONTENU_FR: ContenuVente = {
         chiffre: "2 envois",
       },
       {
-        num: "3",
+        num: "03",
         titre: "Entre la signature et l'échéance",
         probleme:
           "Un mandat expire, un DPE arrive à terme, une quittance est due. Rien de tout cela ne remonte : ça se voit le jour où le propriétaire a déjà signé ailleurs.",
@@ -157,22 +157,60 @@ export const CONTENU_FR: ContenuVente = {
       "personne n'a le temps de faire qui cessent d'attendre quelqu'un.",
     etapes: [
       {
-        num: "1",
+        num: "01",
         titre: "Vos demandes arrivent triées",
         texte:
           "Vous n'ouvrez plus des emails, vous ouvrez des fiches. Qualifiées, attribuées, déjà répondues — même celles tombées un dimanche à 22 h 40.",
       },
       {
-        num: "2",
+        num: "02",
         titre: "Vos visites se calent seules",
         texte:
           "Le client choisit son créneau sur une page de réservation. Confirmation, rappel la veille, rappel 2 heures avant : rien à déclencher.",
       },
       {
-        num: "3",
+        num: "03",
         titre: "Vos échéances se signalent",
         texte:
           "Quittances éditées, mandats en alerte à 30 jours, diagnostics suivis. Vous arrêtez de tenir le calendrier dans votre tête.",
+      },
+    ],
+  },
+
+  avantApres: {
+    surtitre: "Avant, après",
+    titre: "Le même travail, avec et sans Keo",
+    sous:
+      "Une ligne, une tâche. À gauche, ce que fait une agence avec une boîte mail et un agenda " +
+      "partagé ; à droite, la même tâche dans Keo.",
+    colonneSujet: "Tâche",
+    colonneAvant: "Aujourd'hui",
+    colonneApres: "Avec Keo",
+    lignes: [
+      {
+        sujet: "Trier un email de portail",
+        avant: "Lu dans la même boîte que les factures, traité quand quelqu'un a le temps.",
+        apres: "Classé, qualifié et routé au négociateur en quelques secondes.",
+      },
+      {
+        sujet: "Répondre à un prospect",
+        avant: "Une réponse à la prochaine ouverture de la messagerie, parfois le lendemain.",
+        apres: "Un accusé de réception personnalisé part à la seconde, jour et nuit.",
+      },
+      {
+        sujet: "Confirmer une visite",
+        avant: "Un SMS tapé à la main, s'il y a pensé.",
+        apres: "Confirmation immédiate, rappel la veille, rappel 2 heures avant.",
+      },
+      {
+        sujet: "Suivre un mandat",
+        avant: "Découvert à l'échéance, parfois après.",
+        apres: "Alerté 30 jours avant, avec la relance au propriétaire déjà partie.",
+      },
+      {
+        sujet: "Éditer une quittance",
+        avant: "Générée et envoyée bail par bail, chaque début de mois.",
+        apres: "PDF émis au jour d'échéance, pour chaque bail, sans que personne y pense.",
       },
     ],
   },

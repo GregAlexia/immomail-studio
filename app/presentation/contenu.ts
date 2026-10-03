@@ -48,6 +48,8 @@ export type Jalon = {
 
 export type Engagement = { titre: string; texte: string; lien?: Lien };
 
+export type LigneAvantApres = { sujet: string; avant: string; apres: string };
+
 export type Question = { q: string; r: string };
 
 export type TeteSection = { surtitre: string; titre: string; sous: string };
@@ -88,6 +90,12 @@ export type ContenuVente = {
 
   methode: TeteSection & { oublis: Oubli[] };
   pratique: TeteSection & { etapes: Etape[] };
+  avantApres: TeteSection & {
+    colonneSujet: string;
+    colonneAvant: string;
+    colonneApres: string;
+    lignes: LigneAvantApres[];
+  };
   plateforme: TeteSection & { cartes: Carte[] };
   sansFiltre: TeteSection & { jalons: Jalon[] };
 
