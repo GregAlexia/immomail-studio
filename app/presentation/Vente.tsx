@@ -90,7 +90,7 @@ export async function Vente({
         </div>
       )}
 
-      <header className="ag-entete">
+      <header className="ag-entete ag-sombre">
         <div className="ag-contenu ag-entete__interieur">
           <div className="ag-marque">
             Keo<span>{c.edite}</span>
@@ -115,52 +115,95 @@ export async function Vente({
         </div>
       </header>
 
-      <section className="ag-hero">
-        <div className="ag-contenu ag-hero__grille">
+      {/* Accroche : reprise de la maquette d'écran de prospeo.agenia.pro —
+          mêmes classes `ag-hp__*`, même bandeau sombre. Le mot qui tourne est
+          en CSS pur (`ag-hp__defile`, @keyframes dans vente.css) : un lecteur
+          d'écran ne lit que le premier, via `ag-sr`, le défilement animé lui
+          étant caché. Aucune valeur de l'écran d'exemple n'est attribuée à un
+          client — la légende le précise. */}
+      <section className="ag-sombre ag-hp">
+        <div className="ag-contenu ag-hp__grille">
           <div>
-            <span className="ag-pastille">
-              <span className="ag-pastille__point" />
-              {c.hero.pastille}
-            </span>
-            <h1 className="ag-hero__titre">
-              {c.hero.titre[0]}
-              <br />
-              <span className="ag-emphase">{c.hero.titre[1]}</span>
+            <span className="ag-hp__pastille">{c.hero.pastille}</span>
+            <h1 className="ag-hp__titre">
+              <span className="ag-hp__titre-doux">{c.hero.titreAvant} </span>
+              <span className="ag-hp__mot">
+                <span className="ag-sr">{c.hero.mots[0]}</span>
+                <span className="ag-hp__defile" aria-hidden>
+                  {[...c.hero.mots, c.hero.mots[0]].map((m, i) => (
+                    <span key={`${m}-${i}`}>{m}</span>
+                  ))}
+                </span>
+              </span>
             </h1>
-            <p className="ag-hero__lead">{c.hero.lead}</p>
-            <p className="ag-hero__lead">
-              {c.hero.leadFin[0]}
-              <strong>{c.hero.leadFin[1]}</strong>
-              {c.hero.leadFin[2]}
+            <p className="ag-hp__sous">
+              <strong>{c.hero.sousTitreFort}</strong>
+              {c.hero.sousTitre}
             </p>
-            <div className="ag-hero__actions">
+            <div className="ag-hp__actions">
               <Link className="ag-btn ag-btn--primaire ag-btn--grand" href="/">
                 {c.hero.ctaDemo}
               </Link>
-              <a
-                className="ag-btn ag-btn--fantome ag-btn--grand"
-                href={c.whatsapp}
-                target="_blank"
-                rel="noopener"
-              >
+              <a className="ag-btn ag-btn--fantome ag-btn--grand" href={c.whatsapp} target="_blank" rel="noopener">
                 {c.hero.ctaQuestion}
               </a>
             </div>
-            <p className="ag-hero__note">{c.hero.note}</p>
+            <ul className="ag-hero__rassurance ag-hp__rassurance">
+              {c.hero.rassurance.map((x) => (
+                <li key={x}>{x}</li>
+              ))}
+            </ul>
           </div>
 
-          <div className="ag-apercus">
-            {c.hero.apercus.map((a) => (
-              <div className="ag-apercu" key={a.tete}>
-                <p className="ag-apercu__tete">
-                  {a.tete}
-                  <span className="ag-apercu__note">{a.note}</span>
-                </p>
-                <p className={`ag-apercu__valeur${a.ton ? ` ag-ton-${a.ton}` : ""}`}>{a.valeur}</p>
-                <p className="ag-apercu__legende">{a.legende}</p>
+          {/* L'écran d'exemple : des figures, pas des images. */}
+          <figure className="ag-hp__ecran">
+            <div className="ag-hp__rangee">
+              <div className="ag-hp__carte">
+                <div className="ag-hp__tete">
+                  <span className="ag-hp__icone" aria-hidden>✉</span>
+                  <span className="ag-hp__puce">{c.hero.ecran.carte1.puce}</span>
+                </div>
+                <p className={`ag-hp__valeur ag-hp__valeur--${c.hero.ecran.carte1.ton}`}>{c.hero.ecran.carte1.valeur}</p>
+                <p className="ag-hp__etiquette">{c.hero.ecran.carte1.etiquette}</p>
+                <p className="ag-hp__detail">{c.hero.ecran.carte1.detail}</p>
               </div>
-            ))}
-          </div>
+              <div className="ag-hp__carte">
+                <div className="ag-hp__tete">
+                  <span className="ag-hp__icone" aria-hidden>⏰</span>
+                  <span className="ag-hp__puce">{c.hero.ecran.carte2.puce}</span>
+                </div>
+                <p className={`ag-hp__valeur ag-hp__valeur--${c.hero.ecran.carte2.ton}`}>{c.hero.ecran.carte2.valeur}</p>
+                <p className="ag-hp__etiquette">{c.hero.ecran.carte2.etiquette}</p>
+                <p className="ag-hp__detail">{c.hero.ecran.carte2.detail}</p>
+              </div>
+            </div>
+            <div className="ag-hp__liaison" aria-hidden />
+            <div className="ag-hp__carte ag-hp__carte--large">
+              <div className="ag-hp__tete">
+                <span className="ag-hp__titre-carte">
+                  <span className="ag-hp__icone" aria-hidden>↗</span>
+                  {c.hero.ecran.file.titre}
+                </span>
+                <span className="ag-hp__puce">{c.hero.ecran.file.puce}</span>
+              </div>
+              <ul className="ag-hp__plats">
+                {c.hero.ecran.file.lignes.map((l) => (
+                  <li key={l.nom}>
+                    <span>
+                      <span className={`ag-hp__point ag-hp__point--${l.ton}`} aria-hidden />
+                      {l.nom}
+                    </span>
+                    <strong>{l.valeur}</strong>
+                  </li>
+                ))}
+              </ul>
+              <p className="ag-hp__pied">
+                <span>{c.hero.ecran.file.piedEtiquette}</span>
+                <strong>{c.hero.ecran.file.piedValeur}</strong>
+              </p>
+            </div>
+            <figcaption className="ag-hp__legende">{c.hero.ecran.legende}</figcaption>
+          </figure>
         </div>
       </section>
 

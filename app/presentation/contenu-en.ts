@@ -45,47 +45,43 @@ export const CONTENU_EN: ContenuVente = {
 
   hero: {
     pastille: "Open demo",
-    titre: ["Your leads aren't lost.", "They arrived too late."],
-    lead:
-      "A portal enquiry called back 3 hours later has already rung the agency down the road. " +
-      "A forgotten viewing reminder becomes an empty slot. A listing agreement expiring in 30 " +
-      "days flags itself nowhere.",
-    leadFin: [
-      "None of these lapses shows up on a dashboard: they blend into the market, the season, or ",
-      "“it was a busy week”",
-      ". That is exactly where Keo works.",
-    ],
+    titreAvant: "So nothing ever arrives too late, Keo is busy",
+    mots: ["sorting the emails", "confirming the viewings", "watching the listings", "issuing the receipts"],
+    sousTitreFort: "11 automations",
+    sousTitre:
+      " for independent estate agencies: the email gets its reply, the viewing its reminder, the " +
+      "listing its chase — while you're with a client.",
     ctaDemo: "See the demo",
     ctaQuestion: "Ask a question",
-    note: "No account · no email address · entirely fictional data",
-    apercus: [
-      {
-        tete: "First reply",
-        note: "to the lead",
+    rassurance: ["No account", "No email address", "Entirely fictional data"],
+    ecran: {
+      carte1: {
+        etiquette: "First reply",
         valeur: "< 1 min",
         ton: "vert",
-        legende: "8 emails sorted, 5 qualified leads, 5 replies sent.",
+        detail: "8 emails sorted, 5 qualified leads",
+        puce: "Today",
       },
-      {
-        tete: "Listing expiring",
-        note: "alert",
+      carte2: {
+        etiquette: "Listing expiring",
         valeur: "30 days",
         ton: "ambre",
-        legende: "The owner is chased before they look elsewhere.",
+        detail: "Owner chase already sent",
+        puce: "Alert",
       },
-      {
-        tete: "Rent receipt",
-        note: "due date",
-        valeur: "PDF",
-        legende: "Issued on the day, ready to send.",
+      file: {
+        titre: "Your day, today",
+        puce: "Automatic",
+        lignes: [
+          { nom: "Rent receipt", valeur: "PDF", ton: "vert" },
+          { nom: "Viewing reminder", valeur: "1 day · 2 hrs", ton: "ambre" },
+          { nom: "Google review", valeur: "2 days", ton: "vert" },
+        ],
+        piedEtiquette: "Left to do",
+        piedValeur: "nothing",
       },
-      {
-        tete: "Viewing reminder",
-        note: "before",
-        valeur: "1 day · 2 hrs",
-        legende: "2 messages per viewing, with nobody remembering to send them.",
-      },
-    ],
+      legende: "Example screen — entirely fictional data",
+    },
   },
 
   bande: {

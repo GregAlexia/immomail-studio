@@ -16,15 +16,13 @@ export type Langue = "fr" | "en";
 
 export type Lien = { texte: string; href: string };
 
-export type Apercu = {
-  tete: string;
-  note: string;
-  valeur: string;
-  ton?: "vert" | "ambre";
-  legende: string;
-};
-
 export type Stat = { valeur: string; libelle: string; detail: string };
+
+/** Une ligne de la « file » affichée dans la maquette d'écran du hero. */
+export type LigneEcran = { nom: string; valeur: string; ton: "vert" | "ambre" };
+
+/** Une des deux petites cartes de la maquette d'écran du hero. */
+export type CarteEcran = { etiquette: string; valeur: string; ton: "vert" | "ambre"; detail: string; puce: string };
 
 export type Oubli = {
   num: string;
@@ -74,15 +72,35 @@ export type ContenuVente = {
     demo: string;
   };
 
+  /**
+   * Repris de la maquette d'écran de prospeo.agenia.pro : un seul « écran
+   * d'exemple » à droite plutôt que quatre cartes séparées — mêmes classes
+   * `ag-hp__*`, même bandeau sombre (`ag-sombre`) sur l'en-tête et le hero.
+   * Aucune valeur n'est attribuée à un client, comme la légende le précise.
+   */
   hero: {
     pastille: string;
-    titre: [string, string];
-    lead: string;
-    leadFin: [string, string, string];
+    /** Le début de la phrase ; `mots` tourne en CSS pour la terminer. */
+    titreAvant: string;
+    mots: [string, string, string, string];
+    sousTitreFort: string;
+    sousTitre: string;
     ctaDemo: string;
     ctaQuestion: string;
-    note: string;
-    apercus: [Apercu, Apercu, Apercu, Apercu];
+    /** Les engagements à puce sous les boutons (coché en vert). */
+    rassurance: string[];
+    ecran: {
+      carte1: CarteEcran;
+      carte2: CarteEcran;
+      file: {
+        titre: string;
+        puce: string;
+        lignes: [LigneEcran, LigneEcran, LigneEcran];
+        piedEtiquette: string;
+        piedValeur: string;
+      };
+      legende: string;
+    };
   };
 
   bande: { label: string; items: string[] };

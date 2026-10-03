@@ -30,47 +30,43 @@ export const CONTENU_FR: ContenuVente = {
 
   hero: {
     pastille: "Démonstration ouverte",
-    titre: ["Vos leads ne sont pas perdus.", "Ils sont arrivés trop tard."],
-    lead:
-      "Une demande de portail rappelée 3 heures plus tard a déjà appelé l'agence suivante. " +
-      "Un rappel de visite oublié devient un créneau vide. Un mandat qui expire dans 30 jours " +
-      "ne se signale nulle part.",
-    leadFin: [
-      "Aucun de ces oublis n'apparaît sur un tableau de bord : ils se confondent avec le marché, la saison, ou ",
-      "« la semaine a été chargée »",
-      ". C'est exactement là que Keo travaille.",
-    ],
+    titreAvant: "Pour ne plus jamais arriver trop tard, Keo s'occupe de",
+    mots: ["trier les emails", "confirmer les visites", "surveiller les mandats", "éditer les quittances"],
+    sousTitreFort: "11 automatisations",
+    sousTitre:
+      " pour les agences immobilières indépendantes : l'email reçoit sa réponse, la visite son " +
+      "rappel, le mandat sa relance — pendant que vous êtes avec un client.",
     ctaDemo: "Voir la démonstration",
     ctaQuestion: "Poser une question",
-    note: "Sans compte · sans adresse email · données entièrement fictives",
-    apercus: [
-      {
-        tete: "Première réponse",
-        note: "au lead",
+    rassurance: ["Sans compte", "Sans adresse email", "Données entièrement fictives"],
+    ecran: {
+      carte1: {
+        etiquette: "Première réponse",
         valeur: "< 1 min",
         ton: "vert",
-        legende: "8 emails triés, 5 leads qualifiés, 5 réponses parties.",
+        detail: "8 emails triés, 5 leads qualifiés",
+        puce: "Aujourd'hui",
       },
-      {
-        tete: "Mandat à terme",
-        note: "alerte",
+      carte2: {
+        etiquette: "Mandat à terme",
         valeur: "J-30",
         ton: "ambre",
-        legende: "Le propriétaire est relancé avant de regarder ailleurs.",
+        detail: "Relance propriétaire déjà partie",
+        puce: "Alerte",
       },
-      {
-        tete: "Quittance de loyer",
-        note: "échéance",
-        valeur: "PDF",
-        legende: "Éditée au jour dit, prête à envoyer.",
+      file: {
+        titre: "Votre journée, aujourd'hui",
+        puce: "Automatique",
+        lignes: [
+          { nom: "Quittance de loyer", valeur: "PDF", ton: "vert" },
+          { nom: "Rappel de visite", valeur: "J-1 · H-2", ton: "ambre" },
+          { nom: "Avis Google", valeur: "J+2", ton: "vert" },
+        ],
+        piedEtiquette: "Reste à faire",
+        piedValeur: "rien",
       },
-      {
-        tete: "Rappel de visite",
-        note: "avant",
-        valeur: "J-1 · H-2",
-        legende: "2 envois par visite, sans que personne y pense.",
-      },
-    ],
+      legende: "Écran d'exemple — données entièrement fictives",
+    },
   },
 
   bande: {

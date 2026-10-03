@@ -85,6 +85,10 @@
 .ag-promo strong { font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; font-size: 0.78rem; }
 
 /* --- En-tête ------------------------------------------------------------- */
+/* Bordure visible seulement quand une bannière de promotion précède l'en-tête
+   sombre : sans offre en cours, le bandeau sombre touche directement le fond
+   de la page et n'a besoin d'aucun trait. */
+.ag-promo + .ag-entete.ag-sombre { border-top: 1px solid var(--ag-filet); }
 .ag-entete { position: sticky; top: 0; z-index: 50; background: var(--ag-fond); border-bottom: 1px solid var(--ag-filet); }
 .ag-entete__interieur { display: flex; align-items: center; gap: 18px; min-height: 76px; flex-wrap: wrap; padding: 10px 0; }
 .ag-marque { flex: 0 0 auto; font-family: var(--ag-titre); font-weight: 700; font-size: 1.35rem; letter-spacing: -0.02em; }
@@ -103,32 +107,90 @@
 }
 .ag-langue:hover { border-color: var(--ag-texte); background: var(--ag-surface); }
 
-/* --- Hero ---------------------------------------------------------------- */
-.ag-hero { padding: clamp(44px, 7vw, 82px) 0 52px; }
-.ag-hero__grille { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 48px; align-items: start; }
-.ag-pastille {
-  display: inline-flex; align-items: center; gap: 9px; padding: 7px 15px; border-radius: 999px;
-  font-family: var(--ag-titre); font-size: 0.8rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
-  color: var(--ag-texte-doux); background: var(--ag-surface); border: 1px solid var(--ag-filet);
+/* --- Thème sombre (en-tête + accroche) ------------------------------------
+   Repris à l'identique de prospeo.agenia.pro, lui-même fidèle à la vraie
+   margeo.vercel.app : une redéfinition des mêmes jetons, posée sur `.ag-sombre`,
+   qui s'applique à tout ce qu'elle enveloppe sans toucher une seule règle de
+   couleur ailleurs — c'est tout l'intérêt de passer par les variables plutôt
+   que par des classes de couleur Tailwind (voir l'en-tête de ce fichier). */
+.ag-sombre {
+  --ag-fond: #121210; --ag-surface: #1c1b18; --ag-surface-2: #282722;
+  --ag-filet: #2f2d28; --ag-filet-fort: #4a473f;
+  --ag-texte: #f5f4ee; --ag-texte-doux: #b8b3a6; --ag-texte-pale: #8b857a;
+  --ag-encre: #f5f4ee; --ag-encre-texte: #121210;
+  --ag-rouge: #e48a77; --ag-vert: #86c79c; --ag-ambre: #dcae62;
+  background: var(--ag-fond); color: var(--ag-texte);
 }
-.ag-pastille__point { width: 8px; height: 8px; border-radius: 50%; background: var(--ag-encre); }
-.ag-hero__titre { font-size: clamp(2.2rem, 5.2vw, 3.6rem); font-weight: 700; margin-top: 22px; text-wrap: balance; }
-.ag-hero__lead { font-size: clamp(1.05rem, 2vw, 1.22rem); color: var(--ag-texte-doux); margin: 20px 0 0; }
-.ag-hero__lead strong { color: var(--ag-texte); font-weight: 600; }
-.ag-hero__actions { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 30px; }
-.ag-hero__note { margin: 16px 0 0; font-size: 0.86rem; color: var(--ag-texte-pale); }
+/* Le bouton primaire s'inverse (encre claire) en sombre : son survol doit
+   donc aller vers le blanc, pas vers le quasi-noir prévu pour le thème clair. */
+.ag-sombre .ag-btn--primaire:hover { background: #ffffff; }
 
-.ag-apercus { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 18px; }
-.ag-apercu { padding: 20px; border-radius: var(--ag-rayon); background: var(--ag-surface); border: 1px solid var(--ag-filet); }
-.ag-apercu__tete {
-  display: flex; align-items: center; justify-content: space-between; gap: 10px;
-  font-family: var(--ag-titre); font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ag-texte-pale);
+/* Réservé au contenu des lecteurs d'écran : le mot qui tourne (`ag-hp__defile`)
+   leur est caché, ils ne lisent que ce premier mot. */
+.ag-sr { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* --- Accroche -------------------------------------------------------------- */
+.ag-hp { position: relative; padding: clamp(36px, 5vw, 64px) 0 clamp(56px, 7vw, 96px); }
+.ag-hp__grille { display: grid; grid-template-columns: 1.25fr 0.75fr; gap: 48px; align-items: center; }
+.ag-hp__pastille {
+  display: inline-flex; padding: 7px 15px; border-radius: 999px; border: 1px solid var(--ag-filet-fort);
+  font-family: var(--ag-titre); font-size: 0.82rem; font-weight: 600; color: var(--ag-texte-doux);
 }
-.ag-apercu__note { border-radius: 999px; background: var(--ag-fond); border: 1px solid var(--ag-filet); padding: 2px 9px; letter-spacing: 0.02em; text-transform: none; }
-.ag-apercu__valeur { font-family: var(--ag-titre); font-size: 1.85rem; font-weight: 700; margin: 10px 0 0; font-variant-numeric: tabular-nums; }
-.ag-apercu__legende { margin: 6px 0 0; font-size: 0.88rem; color: var(--ag-texte-doux); }
-.ag-ton-vert { color: var(--ag-vert); }
-.ag-ton-ambre { color: var(--ag-ambre); }
+.ag-hp__titre { margin-top: 22px; font-size: clamp(2.2rem, 4.2vw, 3.3rem); font-weight: 700; line-height: 1.08; letter-spacing: -0.02em; }
+.ag-hp__titre-doux { color: var(--ag-texte-doux); }
+/* Le mot qui tourne : une colonne de `span` dont seule la première ligne est
+   visible (`height: 1.12em; overflow: hidden`), que l'animation fait défiler
+   verticalement d'un cran toutes les ~4 s. */
+.ag-hp__mot { display: inline-block; height: 1.12em; overflow: hidden; vertical-align: bottom; }
+.ag-hp__defile { display: flex; flex-direction: column; animation: ag-hp-defile 10s infinite; }
+.ag-hp__defile > span { display: block; height: 1.12em; line-height: 1.12em; }
+@keyframes ag-hp-defile {
+  0%, 17% { transform: translateY(0); }
+  21%, 37% { transform: translateY(-1.12em); }
+  41%, 57% { transform: translateY(-2.24em); }
+  61%, 77% { transform: translateY(-3.36em); }
+  81%, 100% { transform: translateY(-4.48em); }
+}
+.ag-hp__sous { margin: 22px 0 0; max-width: 40em; font-size: clamp(1.05rem, 1.8vw, 1.2rem); color: var(--ag-texte-doux); }
+.ag-hp__sous strong { color: var(--ag-texte); font-weight: 600; }
+.ag-hp__actions { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 30px; }
+.ag-hp__rassurance { margin-top: 22px; }
+
+/* L'écran d'exemple : deux petites cartes, reliées par un trait à une carte
+   plus large qui liste la « file » du jour. Des figures, pas des images —
+   aucune valeur n'est attribuée à un client (voir la légende). */
+.ag-hp__ecran { margin: 0; }
+.ag-hp__rangee { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.ag-hp__carte { background: var(--ag-surface); border: 1px solid var(--ag-filet); border-radius: 18px; padding: 18px 20px; box-shadow: 0 0 0 6px rgba(245, 244, 238, 0.025); }
+.ag-hp__tete { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.ag-hp__icone { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 9px; background: var(--ag-surface-2); font-family: var(--ag-titre); font-size: 1rem; }
+.ag-hp__valeur { margin: 14px 0 2px; font-family: var(--ag-titre); font-size: 1.9rem; font-weight: 700; letter-spacing: -0.01em; }
+.ag-hp__valeur--vert { color: var(--ag-vert); }
+.ag-hp__valeur--ambre { color: var(--ag-ambre); }
+.ag-hp__etiquette { margin: 0; color: var(--ag-texte-doux); }
+.ag-hp__detail { margin: 4px 0 0; font-size: 0.82rem; color: var(--ag-texte-pale); }
+.ag-hp__puce { display: inline-block; margin-top: 12px; padding: 3px 10px; border-radius: 999px; background: var(--ag-surface-2); font-family: var(--ag-titre); font-size: 0.78rem; font-weight: 600; }
+.ag-hp__tete .ag-hp__puce { margin-top: 0; }
+.ag-hp__liaison { position: relative; height: 22px; margin: 0 25%; border: 1px solid var(--ag-filet-fort); border-top: 0; border-radius: 0 0 10px 10px; }
+.ag-hp__liaison::after { content: ""; position: absolute; left: 50%; top: 100%; height: 18px; border-left: 1px solid var(--ag-filet-fort); }
+.ag-hp__carte--large { margin-top: 18px; }
+.ag-hp__titre-carte { display: inline-flex; align-items: center; gap: 10px; font-family: var(--ag-titre); font-size: 1.05rem; font-weight: 600; }
+.ag-hp__plats { list-style: none; margin: 14px 0 0; padding: 0; font-family: var(--ag-titre); }
+.ag-hp__plats li { display: flex; justify-content: space-between; align-items: center; padding: 11px 0; border-top: 1px solid var(--ag-filet); }
+.ag-hp__plats strong { font-weight: 600; }
+.ag-hp__point { display: inline-block; width: 9px; height: 9px; margin-right: 10px; border-radius: 50%; }
+.ag-hp__point--vert { background: var(--ag-vert); }
+.ag-hp__point--ambre { background: var(--ag-ambre); }
+.ag-hp__pied { display: flex; justify-content: space-between; align-items: baseline; margin: 4px 0 0; padding-top: 12px; border-top: 1px solid var(--ag-filet-fort); font-family: var(--ag-titre); font-size: 0.92rem; color: var(--ag-texte-doux); }
+.ag-hp__pied strong { font-size: 1.1rem; }
+.ag-hp__legende { margin-top: 12px; text-align: right; font-family: var(--ag-titre); font-size: 0.78rem; color: var(--ag-texte-pale); }
+
+/* Liste à coche sous les boutons d'action (reprise de la charte éditoriale
+   d'origine : `.ag-hero__rassurance`), avec la marge resserrée propre à
+   l'accroche sombre (`.ag-hp__rassurance`). */
+.ag-hero__rassurance { list-style: none; margin: 18px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 0.95rem; color: var(--ag-texte-doux); }
+.ag-hero__rassurance li { position: relative; padding-left: 24px; }
+.ag-hero__rassurance li::before { content: "\2713"; position: absolute; left: 0; color: var(--ag-vert); font-weight: 700; }
 
 /* --- Chiffres ------------------------------------------------------------ */
 .ag-stats { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
@@ -323,18 +385,24 @@
 @media (max-width: 1150px) {
   .ag-nav { display: none; }
   .ag-entete__fin { margin-left: auto; }
-  .ag-hero__grille { grid-template-columns: 1fr; gap: 36px; }
   .ag-cartes, .ag-grille-3, .ag-jalons { grid-template-columns: repeat(2, 1fr); }
   .ag-fuite { grid-template-columns: 3rem 1fr; }
   .ag-fuite__chiffre { grid-column: 2; }
 }
+@media (max-width: 960px) {
+  .ag-hp__grille { grid-template-columns: 1fr; gap: 44px; }
+}
 @media (max-width: 700px) {
-  .ag-apercus, .ag-cartes, .ag-etapes, .ag-form, .ag-fuite, .ag-grille-3, .ag-jalons, .ag-offres, .ag-pied__grille, .ag-stats { grid-template-columns: 1fr; }
+  .ag-cartes, .ag-etapes, .ag-form, .ag-fuite, .ag-grille-3, .ag-jalons, .ag-offres, .ag-pied__grille, .ag-stats { grid-template-columns: 1fr; }
   .ag-form > button { justify-self: stretch; }
   .ag-fuite { gap: 14px; }
   .ag-fuite__chiffre { grid-column: 1; }
   .ag-appel__interieur { padding: 30px 24px; }
-  .ag-hero__actions .ag-btn, .ag-appel__actions .ag-btn { width: 100%; }
+  .ag-hp__actions .ag-btn, .ag-appel__actions .ag-btn { width: 100%; }
+  .ag-hp__pastille { display: none; }
+  .ag-hp__titre { margin-top: 0; }
+  .ag-hp__carte { padding: 14px 14px; }
+  .ag-hp__valeur { font-size: 1.45rem; }
 
   .ag-avant-apres thead { display: none; }
   .ag-avant-apres, .ag-avant-apres tbody, .ag-avant-apres tr, .ag-avant-apres th, .ag-avant-apres td { display: block; width: auto; }
@@ -351,4 +419,5 @@
 @media (prefers-reduced-motion: reduce) {
   .ag-btn, .ag-carte, .ag-etape, .ag-faq__item { transition: none; }
   .ag-carte:hover, .ag-etape:hover { transform: none; }
+  .ag-hp__defile { animation: none; }
 }
