@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { getAgenciesAffichees, getSelectedAgency } from "@/lib/agency";
 import { getClock } from "@/lib/demo-clock";
 import { getMenuKeys } from "@/lib/menu-settings";
@@ -11,6 +12,11 @@ import { DemoClockBar } from "@/components/app-shell/DemoClockBar";
 import { SelecteurLangue } from "@/components/app-shell/SelecteurLangue";
 
 export const dynamic = "force-dynamic";
+
+// Les écrans de démonstration portent des données fictives, identiques d'une
+// page à l'autre en titre et en description : ils n'ont rien à faire dans un
+// index. Seule la page de vente (`/presentation`) cherche à être trouvée.
+export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const t = await traducteur();

@@ -8,6 +8,7 @@ import {
   PROFIL_PAR_DEFAUT,
 } from "@/lib/demo-profil";
 import { LANGUE_COOKIE, langueValide } from "@/lib/i18n/langue";
+import { ENTETE_LANGUE_PAGE, langueDeLaPage } from "@/lib/i18n/langue-page";
 
 const UN_AN = 60 * 60 * 24 * 365;
 
@@ -50,7 +51,9 @@ export function proxy(request: NextRequest) {
   // personnalisés y sont hors d'atteinte, les pages non.
   const parChemin = CHEMIN_COMMERCIAL.exec(pathname);
   if (parChemin) {
-    const reponse = NextResponse.rewrite(new URL("/", request.url));
+    const reponse = NextResponse.rewrite(new URL("/", request.url), {
+      request: { headers: avecLangue(request, langue) },
+    });
     poser(reponse, COMMERCIAL_COOKIE, parChemin[1]);
     poser(reponse, PROFIL_COOKIE, profil ?? PROFIL_PAR_DEFAUT);
     // Sans `&n=`, on efface le nom du prospect précédent. Un lien de commercial
@@ -67,13 +70,27 @@ export function proxy(request: NextRequest) {
   }
 
   // --- Liens à paramètres : /?p=keo&c=phil&n=cabinet-durand ------------------
-  const reponse = NextResponse.next();
+  const reponse = NextResponse.next({ request: { headers: avecLangue(request, langue) } });
   if (profil) poser(reponse, PROFIL_COOKIE, profil);
   if (nom) poser(reponse, NOM_COOKIE, nom);
   const commercial = valide(searchParams.get("c"));
   if (commercial) poser(reponse, COMMERCIAL_COOKIE, commercial);
   if (langue) poser(reponse, LANGUE_COOKIE, langue);
   return reponse;
+}
+
+/**
+ * Transmet au gabarit racine la langue de la page, pour `<html lang>` : il ne
+ * voit ni le chemin ni les paramètres de la requête, et sans cela la page
+ * anglaise se déclarait française aux moteurs et aux lecteurs d'écran.
+ */
+function avecLangue(request: NextRequest, parametre: string | null): Headers {
+  const entetes = new Headers(request.headers);
+  entetes.set(
+    ENTETE_LANGUE_PAGE,
+    langueDeLaPage(request.nextUrl.pathname, parametre, request.cookies.get(LANGUE_COOKIE)?.value),
+  );
+  return entetes;
 }
 
 function valide(brut: string | null): string | null {

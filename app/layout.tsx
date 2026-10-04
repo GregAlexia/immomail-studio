@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { headers } from "next/headers";
 import { Geist } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { ProspectTracker } from "@/components/ProspectTracker";
 import { JournalAudience } from "@/components/JournalAudience";
+import { ENTETE_LANGUE_PAGE } from "@/lib/i18n/langue-page";
+import { langueValide, LANGUE_PAR_DEFAUT } from "@/lib/i18n/langue";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -39,11 +42,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  // Posée par le proxy, qui seul voit le chemin et le cookie de langue.
+  const langue = langueValide((await headers()).get(ENTETE_LANGUE_PAGE)) ?? LANGUE_PAR_DEFAUT;
   return (
-    <html lang="fr" className={`${geistSans.variable} h-full`}>
+    <html lang={langue} className={`${geistSans.variable} h-full`}>
       <body className="min-h-full">
         {children}
         {/* Composants clients isolés : la frontière client reste confinée ici,
